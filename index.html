@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Quản Lý Chuỗi Sân Cầu Lông - UTE Sport</title>
+  
+  <!-- Bootstrap 5 CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom Design System -->
+  <link rel="stylesheet" href="src/main/resources/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-ute">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+        <span class="navbar-brand-badge">
+          <i class="bi bi-badge-ad-fill fs-5"></i> UTE SPORT
+        </span>
+        <span class="fw-bold d-none d-sm-inline text-dark">Hệ Thống Quản Lý Chuỗi Sân Cầu Lông</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-dismiss="collapse" data-bs-target="#navContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+          <li class="nav-item">
+            <a class="nav-link nav-link-custom active" href="index.html"><i class="bi bi-house-door me-1"></i> Trang chủ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-custom" href="src/main/resources/templates/booking.html"><i class="bi bi-calendar-week me-1"></i> Đặt sân trực tuyến</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-custom" href="src/main/resources/templates/pos.html"><i class="bi bi-pc-display-horizontal me-1"></i> Màn hình Quầy (POS)</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-custom" href="src/main/resources/templates/manager.html"><i class="bi bi-building-gear me-1"></i> Quản lý Chi nhánh</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-custom" href="src/main/resources/templates/executive.html"><i class="bi bi-pie-chart-fill me-1"></i> Giám đốc & Quản trị</a>
+          </li>
+        </ul>
+
+        <!-- Role Switcher for Interactive Demonstration -->
+        <div class="d-flex align-items-center gap-2">
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 rounded-pill" type="button" data-bs-toggle="dropdown">
+              <span id="current-role-badge" class="role-badge role-kh">
+                <i class="bi bi-person-circle"></i> <span>Khách hàng (KH)</span>
+              </span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li><h6 class="dropdown-header">Chuyển đổi vai trò demo:</h6></li>
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="switchRole('KH', 'Khách hàng')"><span class="role-badge role-kh">KH</span> Khách hàng (Portal đặt sân)</a></li>
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="switchRole('NVQ', 'Nhân viên quầy')"><span class="role-badge role-nvq">NVQ</span> Nhân viên quầy (POS)</a></li>
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="switchRole('QLCN', 'Quản lý chi nhánh')"><span class="role-badge role-qlcn">QLCN</span> Quản lý chi nhánh</a></li>
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="switchRole('GD', 'Chủ chuỗi / Giám đốc')"><span class="role-badge role-gd">GD</span> Giám đốc toàn chuỗi</a></li>
+              <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="switchRole('QT', 'Quản trị viên')"><span class="role-badge role-qt">QT</span> Quản trị hệ thống</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container-fluid px-4 py-4 flex-grow-1">
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-emerald-900 bg-opacity-50 text-success-emphasis border border-success mb-3">
+            <span class="badge bg-success">HCM-UTE</span>
+            <span class="text-white small fw-bold">Đồ Án Công Nghệ Phần Mềm • Khóa 2024-2026</span>
+          </div>
+          <h1 class="display-5 fw-extrabold mb-3 text-white">NỀN TẢNG QUẢN LÝ CHUỖI SÂN CẦU LÔNG TẬP TRUNG</h1>
+          <p class="lead text-light mb-4" style="max-width: 720px; opacity: 0.9;">
+            Giải pháp số hóa toàn diện từ khâu đặt sân online chống trùng lịch (khóa slot 10 phút, cọc 30%), đến vận hành POS quầy thu ngân, quản lý kho dụng cụ và báo cáo so sánh doanh thu liên chi nhánh.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="src/main/resources/templates/booking.html" class="btn btn-ute-accent btn-lg shadow-sm">
+              <i class="bi bi-calendar-check me-2"></i> Trải Nghiệm Đặt Sân Ngay
+            </a>
+            <a href="src/main/resources/templates/pos.html" class="btn btn-outline-light btn-lg">
+              <i class="bi bi-cash-coin me-2"></i> Màn Hình Quầy POS
+            </a>
+            <a href="src/main/resources/templates/executive.html" class="btn btn-outline-light btn-lg">
+              <i class="bi bi-graph-up me-2"></i> Báo Cáo Giám Đốc
+            </a>
+          </div>
+        </div>
+        <div class="col-lg-4 text-center mt-4 mt-lg-0">
+          <div class="p-4 rounded-4 bg-white bg-opacity-10 backdrop-blur border border-white border-opacity-20 shadow-lg text-start">
+            <div class="text-white-50 text-uppercase fw-bold small mb-2">Quy mô chuỗi UTE Sport</div>
+            <div class="d-flex justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
+              <span class="text-light">Chi nhánh hoạt động:</span>
+              <span class="text-white fw-bold">3 Chi nhánh</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
+              <span class="text-light">Tổng số sân tiêu chuẩn:</span>
+              <span class="text-white fw-bold">24 Sân (BWF)</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3 border-bottom border-white border-opacity-10 pb-2">
+              <span class="text-light">Khung giờ mở cửa:</span>
+              <span class="text-white fw-bold">06:00 - 23:00</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span class="text-light">Thành viên tích lũy:</span>
+              <span class="text-warning fw-bold">12,450+ Thành viên</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Navigation Hub to All 4 Portals -->
+    <div class="row g-4 mb-5">
+      <!-- Card 1: Khách hàng -->
+      <div class="col-md-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="stat-icon bg-success-subtle text-success mb-3">
+              <i class="bi bi-person-vcard fs-3"></i>
+            </div>
+            <span class="badge bg-success-subtle text-success mb-2 w-fit">Cổng Khách Hàng (KH)</span>
+            <h5 class="fw-bold mb-2">Đặt Sân & Giải Đấu</h5>
+            <p class="text-muted small flex-grow-1">
+              Xem lưới giờ sân trực quan thời gian thực, khóa slot 10 phút, đặt cọc 30% qua VietQR, đăng ký tham gia giải đấu phong trào.
+            </p>
+            <a href="src/main/resources/templates/booking.html" class="btn btn-outline-success w-100 fw-bold mt-3">
+              Mở Cổng Khách Hàng <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Nhân viên quầy -->
+      <div class="col-md-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="stat-icon bg-warning-subtle text-warning mb-3">
+              <i class="bi bi-shop fs-3"></i>
+            </div>
+            <span class="badge bg-warning-subtle text-warning mb-2 w-fit">Nhân Viên Quầy (NVQ)</span>
+            <h5 class="fw-bold mb-2">POS & Nhận Khách</h5>
+            <p class="text-muted small flex-grow-1">
+              Xác nhận đặt sân, Check-in/Check-out giờ chơi thực tế, bán nước, cho thuê vợt (trừ kho tức thì), in hóa đơn theo biểu mẫu <strong>BM-NVQ03</strong>.
+            </p>
+            <a href="src/main/resources/templates/pos.html" class="btn btn-outline-warning w-100 fw-bold mt-3">
+              Mở Màn Hình POS <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Quản lý chi nhánh -->
+      <div class="col-md-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="stat-icon bg-primary-subtle text-primary mb-3">
+              <i class="bi bi-building-gear fs-3"></i>
+            </div>
+            <span class="badge bg-primary-subtle text-primary mb-2 w-fit">Quản Lý Chi Nhánh (QLCN)</span>
+            <h5 class="fw-bold mb-2">Vận Hành & Kho Bãi</h5>
+            <p class="text-muted small flex-grow-1">
+              Quản lý danh mục sân, cấu hình bảng giá giờ thường/cao điểm (<strong>BM-QLCN02</strong>), kiểm soát tồn kho dụng cụ/nước và phân ca làm việc.
+            </p>
+            <a href="src/main/resources/templates/manager.html" class="btn btn-outline-primary w-100 fw-bold mt-3">
+              Vào Trang Quản Lý <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Giám đốc -->
+      <div class="col-md-6 col-xl-3">
+        <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift">
+          <div class="card-body p-4 d-flex flex-column">
+            <div class="stat-icon bg-purple-subtle text-purple mb-3" style="background: #f3e8ff; color: #7e22ce;">
+              <i class="bi bi-bar-chart-line fs-3"></i>
+            </div>
+            <span class="badge text-purple mb-2 w-fit" style="background: #f3e8ff; color: #7e22ce;">Giám Đốc & Quản Trị (GD/QT)</span>
+            <h5 class="fw-bold mb-2">Thống Kê Toàn Chuỗi</h5>
+            <p class="text-muted small flex-grow-1">
+              Dashboard so sánh doanh thu và tỷ lệ lấp đầy giữa các cơ sở (<strong>BM-GD01/02</strong>), phê duyệt chính sách giá, quản trị tài khoản 5 roles.
+            </p>
+            <a href="src/main/resources/templates/executive.html" class="btn btn-outline-dark w-100 fw-bold mt-3">
+              Xem Báo Cáo Toàn Chuỗi <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Highlights Table -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-check2-all text-success me-2"></i>Quy Định & Công Thức Nghiệp Vụ Chuẩn Hóa</h5>
+        <span class="badge bg-light text-muted border">Bám sát Chương 4 & 5 Đặc tả đồ án</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Mã Quy định</th>
+              <th>Tên Quy trình</th>
+              <th>Công thức / Mô tả chuẩn hóa</th>
+              <th>Biểu mẫu liên quan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge bg-secondary">QĐ-KH02</span></td>
+              <td class="fw-bold">Khóa slot & Đặt cọc</td>
+              <td>Khóa khung giờ trong <strong>10 phút</strong>. Tiền cọc = <code>30% × Đơn giá × Số giờ</code></td>
+              <td><code>BM-KH02</code> Phiếu xác nhận đặt sân</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-secondary">QĐ-KH03</span></td>
+              <td class="fw-bold">Hủy lịch & Hoàn cọc</td>
+              <td>Hủy trước $\ge 4$ giờ hoàn <strong>100%</strong> cọc; hủy dưới 4 giờ <strong>mất cọc</strong>. Chi nhánh hủy sự cố hoàn 100%.</td>
+              <td>Phiếu hủy cọc</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-secondary">QĐ-NVQ01</span></td>
+              <td class="fw-bold">Ưu tiên khách Online</td>
+              <td>Khung giờ có khách đặt online tuyệt đối không xếp khách vãng lai đè lên.</td>
+              <td><code>BM-NVQ01</code> Phiếu đặt tại quầy</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-secondary">BM-NVQ03</span></td>
+              <td class="fw-bold">Tính tiền Hóa đơn</td>
+              <td><code>Tổng = Tiền sân thực tế + Dụng cụ + Nước uống - Chiết khấu - Cọc</code></td>
+              <td><code>BM-NVQ03</code> Hóa đơn thanh toán</td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-secondary">BM-GD01</span></td>
+              <td class="fw-bold">Tỷ lệ lấp đầy sân</td>
+              <td><code>Tỷ lệ lấp đầy = (Tổng giờ đặt / Tổng giờ sân phục vụ) × 100%</code></td>
+              <td><code>BM-GD01</code> Báo cáo doanh thu toàn chuỗi</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-top py-4 text-center text-muted small">
+    <div class="container">
+      <div class="fw-bold text-dark mb-1">UTE Sport - Hệ Thống Website Quản Lý Chuỗi Sân Cầu Lông Tập Trung</div>
+      <div>Đồ án môn Công nghệ Phần mềm • Trường Đại học Công nghệ Kỹ thuật TP. HCM (HCM-UTE)</div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="src/main/resources/static/js/app.js"></script>
+</body>
+</html>

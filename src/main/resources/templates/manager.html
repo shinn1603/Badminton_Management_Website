@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Chi Nhánh - UTE Sport</title>
+  
+  <!-- Bootstrap 5 & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom Design System -->
+  <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body class="bg-light">
+
+  <!-- Top Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-ute">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="../../index.html">
+        <span class="navbar-brand-badge bg-success">
+          <i class="bi bi-building-gear fs-5"></i> UTE SPORT
+        </span>
+        <span class="fw-bold text-dark">Quản Lý Chi Nhánh 1 (Thủ Đức)</span>
+      </a>
+
+      <div class="d-flex align-items-center gap-3">
+        <a href="../../index.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Trang chủ</a>
+        <span class="badge bg-success-subtle text-success p-2 rounded-pill">
+          <i class="bi bi-person-badge-fill me-1"></i> Quản lý: Nguyễn Thanh Tâm (QLCN01)
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid px-4 py-4">
+
+    <!-- Branch Summary Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small fw-bold text-uppercase">Doanh Thu Hôm Nay</div>
+              <div class="fs-4 fw-extrabold text-success mt-1">4.850.000 đ</div>
+              <div class="small text-muted mt-1"><i class="bi bi-arrow-up-right text-success me-1"></i> +12% so với hôm qua</div>
+            </div>
+            <div class="stat-icon bg-success-subtle text-success">
+              <i class="bi bi-cash-coin"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small fw-bold text-uppercase">Tỷ Lệ Lấp Đầy Sân</div>
+              <div class="fs-4 fw-extrabold text-primary mt-1">82.5%</div>
+              <div class="small text-muted mt-1">33 / 40 slot giờ đã đặt</div>
+            </div>
+            <div class="stat-icon bg-primary-subtle text-primary">
+              <i class="bi bi-pie-chart-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small fw-bold text-uppercase">Số Sân Hoạt Động</div>
+              <div class="fs-4 fw-extrabold text-dark mt-1">7 / 8 Sân</div>
+              <div class="small text-warning mt-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> 1 sân đang bảo trì</div>
+            </div>
+            <div class="stat-icon bg-warning-subtle text-warning">
+              <i class="bi bi-grid-3x3-gap-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small fw-bold text-uppercase">Cảnh Báo Tồn Kho</div>
+              <div class="fs-4 fw-extrabold text-danger mt-1">2 Mặt Hàng</div>
+              <div class="small text-danger mt-1">Ống cầu & Nước Revive sắp hết</div>
+            </div>
+            <div class="stat-icon bg-danger-subtle text-danger">
+              <i class="bi bi-box-seam"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs for Manager -->
+    <ul class="nav nav-pills mb-4 gap-2 bg-white p-2 rounded-4 shadow-sm border" id="managerTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold" id="courts-tab" data-bs-toggle="pill" data-bs-target="#courts" type="button" role="tab">
+          <i class="bi bi-grid-fill me-1"></i> Danh Sách Sân (BM-QLCN01)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="pricing-tab" data-bs-toggle="pill" data-bs-target="#pricing" type="button" role="tab">
+          <i class="bi bi-tags-fill me-1"></i> Cấu Hình Bảng Giá (BM-QLCN02)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="inventory-tab" data-bs-toggle="pill" data-bs-target="#inventory" type="button" role="tab">
+          <i class="bi bi-boxes me-1"></i> Kho Dụng Cụ & Đồ Uống
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="roster-tab" data-bs-toggle="pill" data-bs-target="#roster" type="button" role="tab">
+          <i class="bi bi-calendar2-range me-1"></i> Phân Ca Làm Việc (BM-QLCN05)
+        </button>
+      </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="managerTabContent">
+      
+      <!-- Tab 1: Danh Sách Sân -->
+      <div class="tab-pane fade show active" id="courts" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Quản Lý Danh Sách Sân - Chi Nhánh 1</h5>
+            <button class="btn btn-ute-primary btn-sm fw-bold" onclick="showToast('Mở biểu mẫu thêm sân mới!', 'info')">
+              <i class="bi bi-plus-lg me-1"></i> Thêm Sân Mới
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Mã Sân</th>
+                  <th>Tên Sân</th>
+                  <th>Loại Sân</th>
+                  <th>Chất Liệu Mặt Sàn</th>
+                  <th>Trạng Thái</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw-bold">S01</td>
+                  <td>Sân 01</td>
+                  <td><span class="badge bg-success-subtle text-success">Sân Đôi</span></td>
+                  <td>Thảm PVC BWF Tiêu Chuẩn</td>
+                  <td><span class="badge bg-success">Đang hoạt động</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-warning" onclick="showToast('Đã chuyển Sân 01 sang trạng thái bảo trì!', 'warning')">Bảo trì</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="fw-bold">S02</td>
+                  <td>Sân 02</td>
+                  <td><span class="badge bg-success-subtle text-success">Sân Đôi</span></td>
+                  <td>Thảm PVC BWF Tiêu Chuẩn</td>
+                  <td><span class="badge bg-success">Đang hoạt động</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-warning" onclick="showToast('Đã chuyển Sân 02 sang bảo trì!', 'warning')">Bảo trì</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="fw-bold">S03</td>
+                  <td>Sân 03</td>
+                  <td><span class="badge bg-secondary-subtle text-secondary">Sân Đơn</span></td>
+                  <td>Sàn gỗ chuyên dụng</td>
+                  <td><span class="badge bg-warning text-dark">Đang bảo trì</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-success" onclick="showToast('Đã kích hoạt lại Sân 03 hoạt động!', 'success')">Mở lại sân</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="fw-bold">S04</td>
+                  <td>Sân 04</td>
+                  <td><span class="badge bg-success-subtle text-success">Sân Đôi</span></td>
+                  <td>Thảm PVC BWF Tiêu Chuẩn</td>
+                  <td><span class="badge bg-success">Đang hoạt động</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-warning">Bảo trì</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Cấu Hình Bảng Giá (BM-QLCN02) -->
+      <div class="tab-pane fade" id="pricing" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="fw-bold mb-1">BẢNG GIÁ SÂN (BM-QLCN02)</h5>
+              <div class="text-muted small">Quy định áp dụng theo QĐ-QLCN01 (Phân loại Giờ thường & Giờ cao điểm)</div>
+            </div>
+            <button class="btn btn-ute-primary btn-sm fw-bold" onclick="showToast('Đã lưu cấu hình bảng giá mới!', 'success')">
+              <i class="bi bi-save me-1"></i> Lưu Cập Nhật Bảng Giá
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Khung Giờ</th>
+                  <th>Thời Gian</th>
+                  <th>Ngày Trong Tuần Áp Dụng</th>
+                  <th>Đơn Giá Hiện Tại (đ/giờ)</th>
+                  <th>Điều Chỉnh</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw-bold text-success"><i class="bi bi-sun me-1"></i> Giờ Thường</td>
+                  <td>06:00 - 17:00</td>
+                  <td>Thứ 2 - Thứ 6</td>
+                  <td class="fw-bold fs-6">80.000 đ</td>
+                  <td><input type="number" class="form-control form-control-sm" value="80000" style="width: 140px;"></td>
+                </tr>
+                <tr>
+                  <td class="fw-bold text-danger"><i class="bi bi-moon-stars me-1"></i> Giờ Cao Điểm</td>
+                  <td>17:00 - 22:00</td>
+                  <td>Tất cả các ngày trong tuần</td>
+                  <td class="fw-bold fs-6 text-danger">130.000 đ</td>
+                  <td><input type="number" class="form-control form-control-sm" value="130000" style="width: 140px;"></td>
+                </tr>
+                <tr>
+                  <td class="fw-bold text-primary"><i class="bi bi-calendar-check me-1"></i> Cuối Tuần</td>
+                  <td>06:00 - 22:00</td>
+                  <td>Thứ 7 & Chủ Nhật</td>
+                  <td class="fw-bold fs-6 text-primary">120.000 đ</td>
+                  <td><input type="number" class="form-control form-control-sm" value="120000" style="width: 140px;"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Kho Hàng & Nhập Kho -->
+      <div class="tab-pane fade" id="inventory" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Tồn Kho Dụng Cụ & Đồ Uống Tại Chi Nhánh</h5>
+            <button class="btn btn-ute-primary btn-sm fw-bold" onclick="showToast('Mở phiếu tạo đơn nhập kho mới (PhieuNhapKho)!', 'info')">
+              <i class="bi bi-box-arrow-in-down me-1"></i> Lập Phiếu Nhập Kho (BM-QLCN03)
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Mã Hàng</th>
+                  <th>Tên Mặt Hàng / Dụng Cụ</th>
+                  <th>Loại</th>
+                  <th>Đơn Giá</th>
+                  <th>Số Lượng Tồn</th>
+                  <th>Cảnh Báo Tồn</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw-bold">SP01</td>
+                  <td>Pocari Sweat 500ml</td>
+                  <td>Đồ uống</td>
+                  <td>20.000 đ</td>
+                  <td><span class="fw-bold">45 chai</span></td>
+                  <td><span class="badge bg-success">An toàn</span></td>
+                  <td><button class="btn btn-sm btn-outline-secondary">Nhập thêm</button></td>
+                </tr>
+                <tr>
+                  <td class="fw-bold">SP04</td>
+                  <td>Ống cầu Thành Công</td>
+                  <td>Cầu lông</td>
+                  <td>130.000 đ</td>
+                  <td><span class="fw-bold text-danger">4 ống</span></td>
+                  <td><span class="badge bg-danger">Sắp hết hàng</span></td>
+                  <td><button class="btn btn-sm btn-primary fw-bold" onclick="showToast('Đã thêm ống cầu vào phiếu nhập kho!', 'success')">Nhập khẩn</button></td>
+                </tr>
+                <tr>
+                  <td class="fw-bold">DC01</td>
+                  <td>Vợt Yonex Astrox 88D</td>
+                  <td>Dụng cụ thuê</td>
+                  <td>35.000 đ/lượt</td>
+                  <td><span class="fw-bold">12 cây</span></td>
+                  <td><span class="badge bg-success">Tốt</span></td>
+                  <td><button class="btn btn-sm btn-outline-secondary">Kiểm kê</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Phân Ca Làm Việc (BM-QLCN05) -->
+      <div class="tab-pane fade" id="roster" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Bảng Phân Ca Làm Việc Nhân Viên Quầy (BM-QLCN05)</h5>
+            <button class="btn btn-ute-primary btn-sm fw-bold">
+              <i class="bi bi-calendar-plus me-1"></i> Xếp Ca Tuần Mới
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Ca Trực / Giờ</th>
+                  <th>Thứ 2</th>
+                  <th>Thứ 3</th>
+                  <th>Thứ 4</th>
+                  <th>Thứ 5</th>
+                  <th>Thứ 6</th>
+                  <th>Thứ 7</th>
+                  <th>Chủ Nhật</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw-bold">Ca Sáng (06:00 - 14:00)</td>
+                  <td><span class="badge bg-primary">Trần Phúc Bảo</span></td>
+                  <td><span class="badge bg-primary">Trần Phúc Bảo</span></td>
+                  <td><span class="badge bg-info text-dark">Nguyễn Phước Thọ</span></td>
+                  <td><span class="badge bg-primary">Trần Phúc Bảo</span></td>
+                  <td><span class="badge bg-primary">Trần Phúc Bảo</span></td>
+                  <td><span class="badge bg-info text-dark">Nguyễn Phước Thọ</span></td>
+                  <td><span class="badge bg-info text-dark">Nguyễn Phước Thọ</span></td>
+                </tr>
+                <tr>
+                  <td class="fw-bold">Ca Tối (14:00 - 23:00)</td>
+                  <td><span class="badge bg-success">Trần Biểu Hương</span></td>
+                  <td><span class="badge bg-success">Trần Biểu Hương</span></td>
+                  <td><span class="badge bg-success">Trần Biểu Hương</span></td>
+                  <td><span class="badge bg-success">Trần Biểu Hương</span></td>
+                  <td><span class="badge bg-success">Trần Biểu Hương</span></td>
+                  <td><span class="badge bg-primary">Trần Phúc Bảo</span></td>
+                  <td><span class="badge bg-success">Trần Biểu Hương</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../static/js/app.js"></script>
+</body>
+</html>
