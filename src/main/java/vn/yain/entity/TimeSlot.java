@@ -2,7 +2,6 @@ package vn.yain.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 @Entity
 @Table(name = "time_slots")
 @Data
