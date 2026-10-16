@@ -1,0 +1,51 @@
+package vn.yain.entity;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "users")
+@Data
+public class User {
+    public User() {
+    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(nullable = false, length = 100)
+    private String password;
+
+    @Column(name = "full_name", nullable = false, length = 100)
+    private String fullName;
+
+    @Column(length = 100)
+    private String email;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(nullable = false, length = 30)
+    private String role; // DIRECTOR, MANAGER, POS, CUSTOMER, ADMIN
+
+    @Column(name = "staff_code", length = 20)
+    private String staffCode;
+
+    @Column(name = "branch_code", length = 20)
+    private String branchCode;
+
+    @Column(length = 30)
+    private String status = "Hoạt động";
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    public String getStaffCode() { return staffCode; }
+    public void setStaffCode(String staffCode) { this.staffCode = staffCode; }
+}
