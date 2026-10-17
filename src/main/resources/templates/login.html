@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập hệ thống - UTE Sport</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 30%, rgba(6, 78, 59, 0.95) 0%, rgba(4, 20, 16, 0.98) 100%),
+        url('/images/badminton_arena_hero.jpg') center/cover no-repeat fixed;
+      background-blend-mode: overlay;
+      padding: 24px;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 460px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    [data-theme="dark"] .auth-card {
+      background: rgba(15, 30, 26, 0.92);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .auth-brand-center {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .auth-logo-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+
+    .auth-brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-dark);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .auth-brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .input-icon-wrap {
+      position: relative;
+    }
+
+    .input-icon-wrap input {
+      width: 100%;
+      padding: 11px 14px 11px 40px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text-dark);
+      font-size: 13.5px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .input-icon-wrap input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .input-icon-wrap svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .auth-aux-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 14px 0 22px;
+      font-size: 12.5px;
+    }
+
+    .remember-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .remember-label input {
+      accent-color: var(--primary);
+      width: 15px;
+      height: 15px;
+    }
+
+    .auth-footer-tag {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--text-muted);
+      padding-top: 18px;
+      border-top: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="auth-card">
+    <!-- BRAND HEADER -->
+    <div class="auth-brand-center">
+      <div class="auth-logo-badge">
+        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 26px; height: 26px; stroke-width: 2.2;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+          <path d="M2 12h20"></path>
+        </svg>
+      </div>
+      <h1 class="auth-brand-title">UTE SPORT</h1>
+      <p class="auth-brand-sub">Hệ thống Quản lý Chuỗi Sân Cầu Lông Cao Cấp</p>
+    </div>
+
+    <!-- Quick Role Demo Selector -->
+    <div style="margin-bottom: 20px;">
+      <div style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+        Chọn vai trò trải nghiệm nhanh:
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <button type="button" class="btn btn-outline" onclick="selectDemoRole('manager', '123456')" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
+          Quản Lý
+        </button>
+        <button type="button" class="btn btn-outline" onclick="selectDemoRole('pos', '123456')" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
+          Thu Ngân POS
+        </button>
+        <button type="button" class="btn btn-outline" onclick="selectDemoRole('director', '123456')" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
+          Giám Đốc
+        </button>
+        <button type="button" class="btn btn-outline" onclick="selectDemoRole('admin', '123456')" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
+          Admin
+        </button>
+        <button type="button" class="btn btn-outline" onclick="selectDemoRole('customer', '123456')" style="padding: 6px 10px; font-size: 11.5px; border-radius: 8px;">
+          Khách Hàng
+        </button>
+      </div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label" for="usernameInput">Tên tài khoản</label>
+        <div class="input-icon-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input type="text" id="usernameInput" placeholder="Tên đăng nhập (vd: manager, director, pos)" value="manager" required
+            autocomplete="username">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label" for="passwordInput">Mật khẩu</label>
+        <div class="input-icon-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <input type="password" id="passwordInput" placeholder="Mật khẩu (mặc định: 123456)" value="123456" required
+            autocomplete="current-password">
+        </div>
+      </div>
+
+      <div class="auth-aux-row">
+        <label class="remember-label">
+          <input type="checkbox" id="rememberMe" checked>
+          <span>Ghi nhớ phiên đăng nhập</span>
+        </label>
+        <a href="javascript:void(0)" onclick="openForgotPasswordModal()" style="font-size: 12px; color: var(--primary); font-weight: 500; text-decoration: none;">Quên mật khẩu?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="btnSubmit"
+        style="width: 100%; padding: 12px; font-size: 14.5px;">
+        <svg class="svg-icon" viewBox="0 0 24 24">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+          <polyline points="10 17 15 12 10 7"></polyline>
+          <line x1="15" y1="12" x2="3" y2="12"></line>
+        </svg>
+        <span>Đăng nhập hệ thống</span>
+      </button>
+    </form>
+
+    <div style="margin-top: 18px; text-align: center; font-size: 13px; color: var(--text-muted);">
+      <span>Bạn là khách hàng đặt sân? </span>
+      <a href="/customer/auth" style="color: var(--primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+        Đến Cổng Khách Hàng
+        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke-width: 2.2;"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+      </a>
+    </div>
+
+    <div class="auth-footer-tag">
+      <span>UTE Sport • Chuỗi Sân Cầu Lông Tiêu Chuẩn Quốc Tế</span>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD MODAL -->
+  <div id="forgotPasswordModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 26px; max-width: 420px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-dark);">Khôi Phục Mật Khẩu</h3>
+        <button type="button" onclick="closeForgotPasswordModal()" style="border: none; background: transparent; font-size: 18px; cursor: pointer; color: var(--text-muted);">✕</button>
+      </div>
+      <p style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 16px;">
+        Nhập thông tin tài khoản, SĐT hoặc email đã đăng ký cùng mật khẩu mới để khôi phục quyền truy cập.
+      </p>
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 0;">Tài khoản / SĐT / Email</label>
+          <a href="javascript:void(0)" id="btnSendFpOtp" onclick="sendResetOtp()" style="font-size: 11.5px; color: var(--primary); text-decoration: none; font-weight: 600;">📩 Gửi OTP về Email</a>
+        </div>
+        <input type="text" id="fpIdentifier" class="form-control" placeholder="Nhập username, SĐT hoặc email" style="width: 100%; box-sizing: border-box;">
+      </div>
+      <div id="otpFieldContainer" style="margin-bottom: 12px; display: none;">
+        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--primary);">Mã OTP (6 chữ số từ email)</label>
+        <input type="text" id="fpOtp" class="form-control" placeholder="Nhập mã 6 chữ số nhận từ email" style="width: 100%; box-sizing: border-box; letter-spacing: 2px; font-weight: 700; color: #047857;">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted);">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+        <input type="password" id="fpNewPassword" class="form-control" placeholder="Nhập mật khẩu mới" style="width: 100%; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted);">Xác nhận mật khẩu mới</label>
+        <input type="password" id="fpConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu mới" style="width: 100%; box-sizing: border-box;">
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeForgotPasswordModal()">Hủy</button>
+        <button type="button" class="btn btn-primary" id="btnConfirmReset" style="flex: 1.5;" onclick="submitResetPassword()">Đặt Lại Mật Khẩu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('usernameInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const btn = document.getElementById('btnSubmit');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Đang xác thực với SQL Server...</span>';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          localStorage.setItem('utesport_user', JSON.stringify(data));
+          if (data.token) {
+            localStorage.setItem('jwt_token', data.token);
+            document.cookie = `jwt_token=${data.token}; path=/; max-age=86400`;
+          }
+          localStorage.setItem('pos_user', 'true');
+          showToast(`Đăng nhập thành công! Xin chào ${data.fullName}`, 'success');
+
+          setTimeout(() => {
+            if (data.role === 'DIRECTOR') {
+              window.location.href = '/director/dashboard';
+            } else if (data.role === 'POS') {
+              window.location.href = '/pos/grid';
+            } else if (data.role === 'CUSTOMER') {
+              window.location.href = '/customer/home';
+            } else if (data.role === 'ADMIN') {
+              window.location.href = '/admin/users';
+            } else {
+              window.location.href = '/manager/dashboard';
+            }
+          }, 600);
+        } else {
+          showToast(data.message || 'Sai tài khoản hoặc mật khẩu trong SQL Server!', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '<span>Đăng nhập vào hệ thống</span>';
+        }
+      } catch (err) {
+        console.warn('Login API error:', err);
+        showToast('Lỗi kết nối máy chủ xác thực: ' + (err.message || 'Không thể đăng nhập'), 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Đăng nhập vào hệ thống</span>';
+      }
+    }
+
+    function selectDemoRole(username, pass) {
+      document.getElementById('usernameInput').value = username;
+      document.getElementById('passwordInput').value = pass;
+      showToast(`Đã chọn tài khoản: ${username}`, 'info');
+    }
+
+    function showToast(msg, type = 'success') {
+      const c = document.getElementById('toastContainer');
+      if (c) c.style.zIndex = '999999';
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      t.style.zIndex = '999999';
+      t.innerHTML = `<span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 250);
+      }, 3000);
+    }
+
+    function openForgotPasswordModal() {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (modal) modal.style.display = 'flex';
+      const userVal = document.getElementById('usernameInput')?.value.trim();
+      if (userVal) document.getElementById('fpIdentifier').value = userVal;
+    }
+
+    function closeForgotPasswordModal() {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function submitResetPassword() {
+      const identifier = document.getElementById('fpIdentifier').value.trim();
+      const newPass = document.getElementById('fpNewPassword').value;
+      const confirmPass = document.getElementById('fpConfirmPassword').value;
+      const btn = document.getElementById('btnConfirmReset');
+
+      if (!identifier) {
+        showToast('Vui lòng nhập tên tài khoản, số điện thoại hoặc email!', 'warning');
+        return;
+      }
+      if (!newPass || newPass.length < 6) {
+        showToast('Mật khẩu mới phải có tối thiểu 6 ký tự!', 'warning');
+        return;
+      }
+      if (newPass !== confirmPass) {
+        showToast('Xác nhận mật khẩu mới không trùng khớp!', 'warning');
+        return;
+      }
+
+      const otp = document.getElementById('fpOtp') ? document.getElementById('fpOtp').value.trim() : '';
+
+      btn.disabled = true;
+      btn.innerText = 'Đang xử lý...';
+
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, newPassword: newPass, otp })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          closeForgotPasswordModal();
+          document.getElementById('usernameInput').value = identifier;
+          document.getElementById('passwordInput').value = newPass;
+          document.getElementById('passwordInput').focus();
+        } else {
+          showToast(data.message || 'Không thể đặt lại mật khẩu!', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi mạng khi kết nối máy chủ!', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Đặt Lại Mật Khẩu';
+      }
+    }
+
+    async function sendResetOtp() {
+      const identifier = document.getElementById('fpIdentifier').value.trim();
+      if (!identifier) {
+        showToast('Vui lòng nhập tài khoản, SĐT hoặc email trước khi yêu cầu mã OTP!', 'warning');
+        document.getElementById('fpIdentifier').focus();
+        return;
+      }
+      const btn = document.getElementById('btnSendFpOtp');
+      btn.innerText = 'Đang gửi...';
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          const otpContainer = document.getElementById('otpFieldContainer');
+          if (otpContainer) otpContainer.style.display = 'block';
+          btn.innerText = 'Gửi lại OTP';
+          document.getElementById('fpOtp').focus();
+        } else {
+          showToast(data.message || 'Không thể gửi mã OTP!', 'error');
+          btn.innerText = '📩 Gửi OTP về Email';
+        }
+      } catch (e) {
+        showToast('Lỗi kết nối khi gửi email OTP!', 'error');
+        btn.innerText = '📩 Gửi OTP về Email';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('expired') === 'true') {
+        showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.', 'warning');
+      }
+    });
+  </script>
+</body>
+
+</html>

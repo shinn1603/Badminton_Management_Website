@@ -2,6 +2,7 @@ package vn.yain.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -10,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,6 +23,12 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,11 +69,25 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Allow static resources & dev tools
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/h2-console/**").permitAll()
-                // Day 1 Baseline: Allow public entry routes
-                .requestMatchers("/", "/customer", "/customer/home", "/error").permitAll()
-                // Remaining APIs require authentication
-                .anyRequest().permitAll()
-            );
+                // Allow public web routes
+                .requestMatchers("/", "/login", "/logout", "/error").permitAll()
+                .requestMatchers("/customer/**", "/pos/**", "/manager/**", "/director/**", "/admin/**").permitAll()
+                // Allow public auth endpoints
+                .requestMatchers("/api/auth/**").permitAll()
+                // Public court, branch, products and pricing lookup
+                .requestMatchers(HttpMethod.GET, "/api/branches", "/api/branches/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/courts", "/api/courts/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/courts/hold", "/api/courts/status").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/equipment", "/api/equipment/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/pricing/**").permitAll()
+                // Require authentication for other administrative/manager APIs
+                .requestMatchers("/api/director/**").hasAnyRole("DIRECTOR", "ADMIN")
+                .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
+                .requestMatchers("/api/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -66,4 +66,34 @@
   - Áp dụng patch cho `DashboardController.java` (`@GetMapping("/customer/booking")` và `@GetMapping("/manager/courts")`).
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 2 của Thọ. Sẵn sàng cho Ngày 3 (tích hợp `BookingService`, đặt sân và kiểm tra trùng lịch).
 
+## Ngày 2 (18/10/2026) — Triết (AI-T)
+
+- **Nhánh làm việc:** `triet/day-02-auth`
+- **Phạm vi được giao:** `UserService`, JWT & Security infrastructure, đăng nhập/đăng ký, logout phía giao diện và phân quyền theo vai trò đúng bản gốc; tích hợp các controllers dùng chung (`DashboardController.java`, `ApiController.java`, `HomeController.java`); tích hợp static assets auth guard và global hub.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/security/JwtTokenProvider.java`: Sinh và giải mã JWT token (HMAC-SHA256), trích xuất username/role/fullName/branchCode, kiểm tra tính hợp lệ và thời hạn token.
+  - `src/main/java/vn/yain/security/JwtAuthenticationFilter.java`: Filter chặn request, đọc JWT từ `Authorization: Bearer <token>` hoặc cookie `jwt_token`, thiết lập `SecurityContext`.
+  - `src/main/java/vn/yain/security/SecurityConfig.java`: Cấu hình Spring Security 6 với JWT filter, CORS policy, phân quyền theo role (`ROLE_ADMIN`, `ROLE_DIRECTOR`, `ROLE_MANAGER`, `ROLE_POS`, `ROLE_CUSTOMER`), permitAll cho static/assets/auth.
+  - `src/main/java/vn/yain/service/UserService.java`: Xử lý xác thực người dùng, tự động đồng bộ tài khoản từ khách hàng, nâng cấp mật khẩu plaintext sang BCrypt an toàn, cơ chế khóa tạm 15 phút sau 5 lần nhập sai, đăng ký hội viên mới, reset mật khẩu.
+  - `src/main/java/vn/yain/controller/DashboardController.java`: Controller điều hướng giao diện Thymeleaf (`/login`, `/customer/auth`, `/customer/login`, `/customer/home`, `/customer/booking`, `/manager/courts`).
+  - `src/main/java/vn/yain/controller/HomeController.java`: Cập nhật redirect root `/` và `/customer` về `/customer/home`.
+  - `src/main/java/vn/yain/controller/ApiController.java`: Tích hợp các REST endpoints Ngày 2 (`/api/auth/login`, `/api/auth/register`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/me`, `/api/customer/profile`, `/api/courts`, `/api/courts/hold`, `/api/courts/status`, `/api/branches`, `/api/products`, `/api/equipment`, `/api/pricing/summary`).
+  - `src/main/resources/templates/login.html`: Giao diện đăng nhập tập trung cho nhân sự và ban quản lý.
+  - `src/main/resources/templates/customer/auth.html`: Giao diện đăng nhập/đăng ký/quên mật khẩu dành riêng cho khách hàng.
+  - `src/main/resources/static/js/auth-guard.js`: Bộ định tuyến và bảo vệ frontend, kiểm tra JWT token, phân quyền chuyển hướng theo vai trò và hỗ trợ logout.
+  - `src/main/resources/static/js/global-hub.js`: Client WebSocket và EventBus dùng chung phục vụ nhận thông báo và cập nhật thời gian thực.
+  - `src/test/java/vn/yain/security/JwtTokenProviderTest.java`: 4 unit tests xác minh sinh token, kiểm tra hạn dùng, kiểm tra vai trò và từ chối token giả mạo.
+  - `src/test/java/vn/yain/service/UserServiceTest.java`: 8 unit tests xác minh xác thực XL-01, khóa tạm tài khoản, đăng ký UC-02, trùng lặp và đồng bộ khách hàng.
+  - `docs/progress.md`: Cập nhật tiến độ hoàn thành Ngày 2 của Triết.
+- **Chức năng đã xong:**
+  - Hoàn tất toàn bộ phân hệ xác thực và phân quyền người dùng (Security, JWT, BCrypt, Auth Filter).
+  - Tích hợp giao diện đăng nhập nhân viên (`/login`) và cổng đăng nhập/đăng ký hội viên (`/customer/auth`).
+  - Đóng gói trọn vẹn các API tra cứu dùng chung cho Ngày 2 (Courts, Branches, Products, Equipment, Pricing Summary) mà không kéo theo các module nghiệp vụ tương lai (đặt cọc, check-in, checkout, giải đấu).
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ 22/22 unit và integration tests PASSED (100%), build thành công (`BUILD SUCCESS`).
+- **Điểm chưa xác minh:**
+  - Endpoint gửi email OTP thật phụ thuộc vào cấu hình SMTP trên môi trường thực tế (hiện tại fallback mô phỏng logger đầy đủ theo thiết kế gốc).
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 2 cho Triết. Sẵn sàng cho Ngày 3 (BookingService, quản lý vòng đời đặt sân và tích hợp API hồ sơ khách hàng đầy đủ).
+
+
 
