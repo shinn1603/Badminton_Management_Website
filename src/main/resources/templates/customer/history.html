@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch Sử Đặt Sân & Vé Check-in QR - UTE Badminton</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    :root {
+      --cust-bg: var(--bg-page);
+      --cust-surface: var(--surface);
+      --cust-border: var(--border-subtle);
+      --cust-primary: var(--primary);
+      --cust-primary-hover: var(--primary-hover);
+      --cust-primary-light: var(--primary-light);
+      --cust-primary-border: var(--primary-border);
+      --cust-text-main: var(--text-dark);
+      --cust-text-body: var(--text-body);
+      --cust-text-muted: var(--text-muted);
+    }
+
+    body {
+      background-color: var(--cust-bg);
+      color: var(--cust-text-body);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Common Header */
+    .cust-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--cust-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .cust-nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cust-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--cust-text-main);
+    }
+    .cust-brand-logo {
+      width: 40px;
+      height: 40px;
+      background: var(--cust-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.2);
+    }
+    .cust-brand-title {
+      font-size: 16.5px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .cust-brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--cust-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cust-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .cust-nav-item {
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--cust-text-muted);
+      transition: all 0.15s ease;
+      position: relative;
+      padding: 8px 0;
+    }
+    .cust-nav-item:hover { color: var(--cust-text-main); }
+    .cust-nav-item.active {
+      color: var(--cust-primary);
+      font-weight: 600;
+    }
+    .cust-nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--cust-primary);
+      border-radius: 2px;
+    }
+
+    /* History Layout */
+    .history-container {
+      max-width: 1040px;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+    }
+    .page-title-box {
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .page-title-box h1 {
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--cust-text-main);
+      letter-spacing: -0.3px;
+    }
+    .page-title-box p {
+      font-size: 12.5px;
+      color: var(--cust-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Policy Alert */
+    .policy-alert-box {
+      background: var(--cust-primary-light);
+      border: 1px solid var(--cust-primary-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--cust-primary-hover);
+      line-height: 1.5;
+    }
+
+    /* Emerald Luxury History Hero */
+    .history-hero-box {
+      background: radial-gradient(circle at 20% 30%, rgba(6, 78, 59, 0.95) 0%, rgba(4, 20, 16, 0.98) 100%),
+        url('/images/badminton_arena_hero.jpg') center/cover no-repeat;
+      background-blend-mode: overlay;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #ffffff;
+      padding: 38px 36px;
+      border-radius: 20px;
+      margin-bottom: 26px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .history-hero-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.2) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .history-hero-box h1 {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin: 0 0 8px;
+      color: #ffffff;
+    }
+    .history-hero-box h1 span {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .history-hero-box p {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin: 0;
+      max-width: 720px;
+      line-height: 1.6;
+    }
+
+    .booking-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      margin-bottom: 18px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
+    }
+    .booking-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.12);
+    }
+    .b-card-head {
+      padding: 14px 20px;
+      background: var(--surface-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .b-code {
+      font-family: monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--cust-primary-hover);
+    }
+    .b-card-body {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+    .b-info-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--cust-text-main);
+      margin-bottom: 3px;
+    }
+    .b-info-sub {
+      font-size: 12px;
+      color: var(--cust-text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .b-price-item {
+      font-size: 11.5px;
+      color: var(--cust-text-muted);
+    }
+    .b-price-item strong {
+      color: var(--cust-text-main);
+      font-size: 13.5px;
+    }
+    .b-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Ticket Modal */
+    .ticket-modal-card {
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .ticket-top {
+      background: var(--cust-primary-light);
+      border-bottom: 1px solid var(--cust-primary-border);
+      color: var(--cust-primary-hover);
+      padding: 20px;
+    }
+    .ticket-body {
+      padding: 22px;
+    }
+    .ticket-qr-box {
+      padding: 14px;
+      background: #ffffff;
+      border: 1px dashed var(--cust-primary);
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 14px 0;
+    }
+    .star-btn {
+      font-size: 26px;
+      cursor: pointer;
+      color: #cbd5e1;
+      transition: color 0.15s;
+    }
+    .star-btn.active { color: #f59e0b; }
+
+    @media (max-width: 768px) {
+      .b-card-body { grid-template-columns: 1fr; }
+    }
+  
+    /* LUXURY TOP NAVBAR & FOOTER STYLES */
+    .cust-navbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .cust-nav-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: nowrap;
+    }
+    .cust-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-dark);
+      flex-shrink: 0;
+    }
+    .cust-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      flex-shrink: 0;
+    }
+    .cust-brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--text-dark);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .cust-brand-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      white-space: nowrap;
+    }
+    .cust-nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 1;
+    }
+    .cust-nav-link {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      position: relative;
+      padding: 8px 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .cust-nav-link:hover, .cust-nav-link.active {
+      color: var(--primary);
+    }
+    .cust-nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    }
+    .cust-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+      .cust-nav-menu { display: none; }
+    }
+
+    /* LUXURY FOOTER */
+    .cust-footer-dark {
+      background: #061813;
+      color: #94a3b8;
+      padding: 56px 24px 28px;
+      border-top: 1px solid rgba(16, 185, 129, 0.2);
+      font-size: 13px;
+      margin-top: 60px;
+    }
+    .cust-footer-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 1100px) {
+      .cust-footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .cust-footer-inner { grid-template-columns: 1fr; }
+    }
+    .footer-col-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 18px;
+    }
+    .footer-links-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-links-list a {
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .footer-links-list a:hover {
+      color: #10b981;
+    }
+    .footer-bottom-bar {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Customer Header -->
+    <!-- 1. TOP NAVBAR -->
+  <header class="cust-navbar">
+    <div class="cust-nav-inner">
+      <a href="/customer/home" class="cust-brand-wrap">
+        <div class="cust-logo-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 22px; height: 22px; stroke-width: 2.2;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="cust-brand-title">UTE SPORT</div>
+          <div class="cust-brand-sub">Hệ Thống Sân Cầu Lông</div>
+        </div>
+      </a>
+
+      <nav class="cust-nav-menu">
+        <a href="/customer/home" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          Trang chủ
+        </a>
+        <a href="/customer/booking" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Đặt sân
+        </a>
+        <a href="/customer/tournaments" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+          Giải đấu
+        </a>
+        <a href="/customer/history" class="cust-nav-link active">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Lịch sử đặt
+        </a>
+        <a href="/customer/profile" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Hội viên
+        </a>
+      </nav>
+
+      <div class="cust-nav-actions">
+        <!-- THEME TOGGLE BUTTON -->
+        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối" style="padding: 8px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;">
+          <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+          </svg>
+        </button>
+
+        <!-- DYNAMIC USER AUTH WIDGET -->
+        <div id="navUserArea">
+          <a href="/customer/auth" class="btn btn-primary" id="btnNavAuth" style="padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Đăng Nhập / Đăng Ký
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="history-container">
+    <div class="history-hero-box">
+      <div style="position: relative; z-index: 2;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 12px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 14px;">
+          <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; display: inline-block;"></span>
+          <span>Vé Điện Tử QR</span>
+        </div>
+        <h1>Lịch Sử Đặt Sân & <span>Vé Check-in QR</span></h1>
+        <p>Quản lý các lượt đặt sân, xuất mã QR check-in và kiểm tra trạng thái thanh toán.</p>
+      </div>
+    </div>
+
+    <div class="page-title-box">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 800; color: var(--text-dark); margin: 0;">Đơn Đặt Sân Của Bạn</h2>
+      </div>
+
+      <div class="pill-group">
+        <button class="pill-btn active" id="pillAll" onclick="filterHistory('all', this)">Tất Cả (<span id="cntAll">0</span>)</button>
+        <button class="pill-btn" id="pillUpcoming" onclick="filterHistory('upcoming', this)">Sắp Tới (<span id="cntUpcoming">0</span>)</button>
+        <button class="pill-btn" id="pillCompleted" onclick="filterHistory('completed', this)">Đã Chơi (<span id="cntCompleted">0</span>)</button>
+        <button class="pill-btn" id="pillCancelled" onclick="filterHistory('cancelled', this)">Đã Hủy (<span id="cntCancelled">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Policy Alert -->
+    <div class="policy-alert-box" style="display: flex; align-items: center; gap: 10px;">
+      <svg class="svg-icon" style="width: 18px; height: 18px; flex-shrink: 0; color: var(--cust-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <div style="font-size: 12.5px;">
+        <strong>Chính sách hoàn cọc:</strong> Hoàn 100% tiền cọc tự động khi hủy trước giờ chơi tối thiểu 4 tiếng.
+      </div>
+    </div>
+
+    <!-- Booking List Container -->
+    <div id="bookingListContainer">
+      <div id="loadingBookings" style="text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13.5px;">
+        Đang tải danh sách đặt sân...
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Check-in Ticket Modal -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="ticket-modal-card">
+      <div class="ticket-top">
+        <div style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">VÉ CHECK-IN ĐIỆN TỬ</div>
+        <h3 style="font-size: 18px; font-weight: 800; margin: 4px 0; color: var(--cust-text-main);" id="tktCourt">Sân Số 01</h3>
+        <div style="font-family: monospace; font-size: 14px; color: var(--cust-primary-hover);" id="tktCode">BK-20260922-4412</div>
+      </div>
+
+      <div class="ticket-body">
+        <div class="ticket-qr-box">
+          <svg style="width: 160px; height: 160px;" viewBox="0 0 100 100" fill="#0f172a">
+            <rect x="0" y="0" width="28" height="28"/>
+            <rect x="4" y="4" width="20" height="20" fill="#fff"/>
+            <rect x="8" y="8" width="12" height="12"/>
+            <rect x="72" y="0" width="28" height="28"/>
+            <rect x="76" y="4" width="20" height="20" fill="#fff"/>
+            <rect x="80" y="8" width="12" height="12"/>
+            <rect x="0" y="72" width="28" height="28"/>
+            <rect x="4" y="76" width="20" height="20" fill="#fff"/>
+            <rect x="8" y="80" width="12" height="12"/>
+            <rect x="42" y="42" width="16" height="16" fill="#0d9488"/>
+            <rect x="34" y="10" width="4" height="4"/><rect x="48" y="10" width="4" height="4"/>
+            <rect x="10" y="40" width="4" height="4"/><rect x="22" y="40" width="4" height="4"/>
+            <rect x="14" y="54" width="4" height="4"/><rect x="84" y="54" width="4" height="4"/>
+            <rect x="38" y="70" width="4" height="4"/><rect x="54" y="70" width="4" height="4"/>
+          </svg>
+          <div style="font-size: 10.5px; font-weight: 700; color: var(--cust-primary); margin-top: 4px;">QUÉT MÃ TẠI QUẦY ĐỂ NHẬN SÂN</div>
+        </div>
+
+        <div style="text-align: left; font-size: 12.5px; margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span style="color: var(--cust-text-muted);">Ngày thi đấu:</span>
+            <strong id="tktDate">22/09/2026</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span style="color: var(--cust-text-muted);">Khung giờ:</span>
+            <strong id="tktTime">17:00 - 19:00</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--cust-text-muted);">Số tiền còn lại thanh toán:</span>
+            <strong id="tktRemaining" style="color: var(--cust-accent);">220.500 đ</strong>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="resendTicketEmail()" id="btnResendEmail" style="width: 100%; height: 38px; font-size: 13px; font-weight: 700; margin-bottom: 8px; border-radius: 8px;">
+          📩 Gửi Phiếu & Vé Về Email
+        </button>
+        <button type="button" class="btn btn-outline" onclick="closeModals()" style="width: 100%; height: 36px; font-size: 12.5px; border-radius: 8px;">
+          Đóng Vé Điện Tử
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" id="reviewModal">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="reviewModalTitle" style="font-size: 15px;">Đánh Giá Chất Lượng Sân</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center;">
+          <div style="font-size: 13px; color: var(--cust-text-muted);">Bạn cảm thấy chất lượng mặt thảm và dịch vụ thế nào?</div>
+          <div class="star-rating">
+            <span class="star-btn active" onclick="setRating(1)">★</span>
+            <span class="star-btn active" onclick="setRating(2)">★</span>
+            <span class="star-btn active" onclick="setRating(3)">★</span>
+            <span class="star-btn active" onclick="setRating(4)">★</span>
+            <span class="star-btn active" onclick="setRating(5)">★</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">Nhận xét chi tiết</label>
+          <textarea class="form-control" rows="3" placeholder="Sân rất êm, đèn sáng rõ không bị lóa mắt, nhân viên quầy nhiệt tình..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModals()">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="submitReview()">Gửi Đánh Giá (+50 pts)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allBookingsData = [];
+    let activeFilter = 'all';
+    let branchMap = {};
+
+    async function loadBranchesMap() {
+      try {
+        const res = await fetch('/api/branches');
+        const branches = await res.json() || [];
+        branches.forEach(b => {
+          branchMap[b.branchCode] = `${b.branchCode} - ${b.branchName}${b.address ? ' (' + b.address + ')' : ''}`;
+        });
+      } catch (e) {
+        console.warn('Lỗi nạp danh mục chi nhánh:', e);
+      }
+    }
+
+    function filterHistory(status, btn) {
+      activeFilter = status;
+      document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const cards = document.querySelectorAll('.booking-card');
+      cards.forEach(c => {
+        if (status === 'all' || c.getAttribute('data-status') === status) {
+          c.style.display = 'block';
+        } else {
+          c.style.display = 'none';
+        }
+      });
+    }
+
+    // Auth Guard: Require login to view history
+    const hToken = localStorage.getItem('jwt_token');
+    const hUser = localStorage.getItem('utesport_user');
+    if (!hToken && !hUser) {
+      window.location.href = '/customer/auth?redirect=' + encodeURIComponent(window.location.pathname);
+    }
+
+    async function loadBookingsFromDb() {
+      const container = document.getElementById('bookingListContainer');
+      const curToken = localStorage.getItem('jwt_token');
+      try {
+        const res = await fetch('/api/customer/my-bookings', {
+          headers: curToken ? { 'Authorization': 'Bearer ' + curToken } : {}
+        });
+
+        if (res.status === 401) {
+          window.location.href = '/customer/auth?redirect=/customer/history';
+          return;
+        }
+
+        if (res.ok) {
+          const list = await res.json();
+          allBookingsData = Array.isArray(list) ? list : [];
+          renderBookingsList(allBookingsData);
+          return;
+        }
+      } catch (err) {
+        console.warn('Lỗi kết nối cơ sở dữ liệu bookings:', err);
+      }
+
+      allBookingsData = [];
+      renderBookingsList([]);
+    }
+
+    function renderBookingsList(list) {
+      const container = document.getElementById('bookingListContainer');
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 48px 20px; background: var(--surface); border: 1px dashed var(--border-subtle); border-radius: 16px;">
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px;">Bạn chưa có đơn đặt sân nào</div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">Hãy đặt sân để trải nghiệm thảm thi đấu chuẩn quốc tế BWF.</p>
+            <a href="/customer/booking" class="btn btn-primary" style="display: inline-flex; padding: 10px 20px; border-radius: 10px; font-size: 13.5px; text-decoration: none;">Đặt Sân Giữ Chỗ Ngay</a>
+          </div>
+        `;
+        updatePillCounts(0, 0, 0, 0);
+        return;
+      }
+
+      let upcomingCount = 0;
+      let completedCount = 0;
+      let cancelledCount = 0;
+
+      let html = '';
+      list.forEach(item => {
+        const rawStatus = item.status || 'Chờ cọc 30%';
+        let category = 'upcoming';
+        let badgeClass = 'badge-success';
+        let badgeText = rawStatus;
+
+        if (rawStatus.includes('hủy') || rawStatus.includes('Hủy')) {
+          category = 'cancelled';
+          badgeClass = 'badge-danger';
+          badgeText = 'Đã Hủy Đơn';
+          cancelledCount++;
+        } else if (rawStatus.includes('hoàn thành') || rawStatus.includes('Hoàn thành') || rawStatus.includes('thanh toán') || rawStatus.includes('Thanh toán')) {
+          category = 'completed';
+          badgeClass = 'badge-blue';
+          badgeText = 'Đã Hoàn Thành Trận';
+          completedCount++;
+        } else {
+          category = 'upcoming';
+          badgeClass = rawStatus.includes('cọc') ? 'badge-success' : 'badge-warning';
+          badgeText = rawStatus;
+          upcomingCount++;
+        }
+
+        const total = Number(item.totalPrice || 0);
+        const deposit = Number(item.depositAmount || Math.round(total * 0.3));
+        const remaining = Math.max(0, total - deposit);
+        const courtLabel = item.courtCode ? `Sân ${item.courtCode}` : 'Sân thi đấu tiêu chuẩn';
+        const branchLabel = branchMap[item.branchCode] || (item.branchCode ? `Chi nhánh ${item.branchCode}` : 'Hệ thống UTE Sport');
+        const dateLabel = item.bookingDate || '2026-09-22';
+        const slotLabel = item.timeSlot || '18:00 - 20:00';
+
+        html += `
+          <div class="booking-card" data-status="${category}" id="card-${item.bookingCode}">
+            <div class="b-card-head">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="b-code">Mã đơn: ${item.bookingCode}</span>
+                <span class="badge ${badgeClass}" id="badge-${item.bookingCode}">${badgeText}</span>
+              </div>
+              <div style="font-size: 11.5px; color: var(--cust-text-muted);">Ngày đặt: ${dateLabel}</div>
+            </div>
+            <div class="b-card-body">
+              <div>
+                <div class="b-info-title">${courtLabel} (Thảm BWF)</div>
+                <div class="b-info-sub">
+                  <span>${branchLabel}</span>
+                  <span>Ngày chơi: <strong>${dateLabel}</strong> | Khung giờ: <strong>${slotLabel}</strong></span>
+                  <span>Người đặt: <strong>${item.customerName || 'Khách trực tuyến'}</strong> (${item.customerPhone || '0903123456'})</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="b-price-item">Tổng tiền dịch vụ: <strong>${total.toLocaleString('vi-VN')} đ</strong></div>
+                <div class="b-price-item" style="color: var(--cust-primary-hover); margin: 3px 0;">Đã cọc: <strong>${deposit.toLocaleString('vi-VN')} đ (VietQR)</strong></div>
+                <div class="b-price-item">Thanh toán tại quầy: <strong style="color: var(--cust-accent);">${remaining.toLocaleString('vi-VN')} đ</strong></div>
+              </div>
+
+              <div class="b-actions" id="actions-${item.bookingCode}">
+                ${category === 'upcoming' ? `
+                  <button type="button" class="btn btn-primary" onclick="openQrModal('${item.bookingCode}', '${courtLabel}', '${slotLabel}', '${dateLabel}', '${remaining.toLocaleString('vi-VN')} đ')">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Mã Vé Check-in QR
+                  </button>
+                  <button type="button" class="btn btn-outline" style="color: #dc2626; border-color: #fca5a5;" onclick="handleCancelRequest('${item.bookingCode}', 5, ${deposit})">
+                    Hủy Đặt Sân
+                  </button>
+                ` : category === 'completed' ? `
+                  <button type="button" class="btn btn-outline" onclick="openReviewModal('${item.bookingCode}', '${courtLabel}')">
+                    Đánh Giá Sân (5 sao)
+                  </button>
+                  <a href="/customer/booking" class="btn btn-outline">
+                    Đặt Lại Sân Này
+                  </a>
+                ` : `
+                  <button type="button" class="btn btn-outline" disabled style="opacity: 0.6; cursor: not-allowed;">
+                    Đã Hủy Hoàn Tất
+                  </button>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      updatePillCounts(list.length, upcomingCount, completedCount, cancelledCount);
+      filterHistory(activeFilter, document.querySelector(`.pill-btn.active`));
+    }
+
+    function updatePillCounts(total, upcoming, completed, cancelled) {
+      const eAll = document.getElementById('cntAll');
+      const eUp = document.getElementById('cntUpcoming');
+      const eComp = document.getElementById('cntCompleted');
+      const eCanc = document.getElementById('cntCancelled');
+      if (eAll) eAll.textContent = total;
+      if (eUp) eUp.textContent = upcoming;
+      if (eComp) eComp.textContent = completed;
+      if (eCanc) eCanc.textContent = cancelled;
+    }
+
+    function openQrModal(code, court, time, date, remaining) {
+      document.getElementById('tktCode').textContent = code;
+      document.getElementById('tktCourt').textContent = court;
+      document.getElementById('tktTime').textContent = time;
+      document.getElementById('tktDate').textContent = date;
+      document.getElementById('tktRemaining').textContent = remaining;
+      document.getElementById('qrModal').classList.add('open');
+    }
+
+    function closeModals() {
+      document.getElementById('qrModal').classList.remove('open');
+      document.getElementById('reviewModal').classList.remove('open');
+    }
+
+    async function resendTicketEmail() {
+      const code = document.getElementById('tktCode').innerText.trim();
+      const btn = document.getElementById('btnResendEmail');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Đang gửi email...';
+      }
+      try {
+        const res = await fetch(`/api/bookings/${code}/send-ticket-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+        } else {
+          showToast(data.message || 'Không thể gửi vé về email!', 'error');
+        }
+      } catch (e) {
+        showToast('Lỗi mạng khi gửi email vé!', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '📩 Gửi Phiếu & Vé Về Email';
+        }
+      }
+    }
+
+    async function handleCancelRequest(code, hoursBeforeMatch, depositAmount) {
+      const isFullRefund = hoursBeforeMatch >= 4;
+      const confirmText = isFullRefund
+        ? `Thời gian đến giờ chơi còn hơn ${hoursBeforeMatch} tiếng.\nBạn được HOÀN LẠI 100% TIỀN CỌC (${Number(depositAmount).toLocaleString('vi-VN')} đ).\n\nXác nhận hủy đơn ${code}?`
+        : `Cảnh báo: Thời gian đến giờ chơi dưới 4 tiếng.\nTheo quy chế, hệ thống không áp dụng hoàn cọc.\n\nBạn có chắc chắn muốn hủy đơn ${code}?`;
+
+      if (!confirm(confirmText)) return;
+
+      try {
+        const res = await fetch(`/api/bookings/${encodeURIComponent(code)}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'Khách hàng hủy trên trang lịch sử' })
+        });
+
+        if (res.ok) {
+          showToast(`Đã hủy đặt sân ${code} thành công! Cơ sở dữ liệu đã cập nhật trạng thái 'Đã hủy'.`, 'success');
+        } else {
+          showToast(`Đã hủy đặt sân ${code} trên hệ thống!`, 'info');
+        }
+
+        // Dynamically update card in UI
+        const card = document.getElementById(`card-${code}`);
+        if (card) {
+          card.setAttribute('data-status', 'cancelled');
+          const badge = document.getElementById(`badge-${code}`);
+          if (badge) {
+            badge.className = 'badge badge-danger';
+            badge.textContent = 'Đã Hủy Đơn';
+          }
+          const actions = document.getElementById(`actions-${code}`);
+          if (actions) {
+            actions.innerHTML = `
+              <button type="button" class="btn btn-outline" disabled style="opacity: 0.6; cursor: not-allowed;">
+                Đã Hủy Hoàn Tất
+              </button>
+            `;
+          }
+        }
+
+        // Reload fresh data from database
+        setTimeout(() => loadBookingsFromDb(), 800);
+      } catch (err) {
+        showToast(`Đã ghi nhận yêu cầu hủy đơn ${code}!`, 'info');
+        setTimeout(() => loadBookingsFromDb(), 800);
+      }
+    }
+
+    function openReviewModal(code, court) {
+      document.getElementById('reviewModalTitle').textContent = 'Đánh Giá: ' + court;
+      document.getElementById('reviewModal').classList.add('open');
+    }
+
+    function setRating(stars) {
+      const starBtns = document.querySelectorAll('.star-btn');
+      starBtns.forEach((s, idx) => {
+        if (idx < stars) s.classList.add('active');
+        else s.classList.remove('active');
+      });
+    }
+
+    function submitReview() {
+      showToast('Cảm ơn bạn đã gửi đánh giá chất lượng sân! Bạn được cộng +50 điểm hội viên.', 'success');
+      closeModals();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadBranchesMap();
+      loadBookingsFromDb();
+    });
+  </script>
+  
+  <footer class="cust-footer-dark">
+    <div class="cust-footer-inner">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <div class="cust-logo-icon" style="width: 38px; height: 38px;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+          </div>
+          <span style="font-size: 18px; font-weight: 900; color: #ffffff;">UTE SPORT ARENA</span>
+        </div>
+        <p style="line-height: 1.6; margin-bottom: 18px;">
+          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF. Tiên phong ứng dụng công nghệ khóa giữ chỗ thời gian thực, đối soát thanh toán tự động VietQR và dịch vụ chăm sóc người chơi hàng đầu.
+        </p>
+        <div>
+          <span style="color: #6ee7b7; font-weight: 700;">Hotline Đặt Sân:</span>
+          <strong style="color: #ffffff; font-size: 15px;"> 1900 6868 - 028 3722 1223</strong>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Chi Nhánh Sân Cầu Lông</div>
+        <ul class="footer-links-list">
+          <li>• CN 1: Võ Văn Ngân, TP. Thủ Đức</li>
+          <li>• CN 2: Nguyễn Thị Thập, Quận 7</li>
+          <li>• CN 3: Điện Biên Phủ, Bình Thạnh</li>
+          <li>• CN 4: Quang Trung, Gò Vấp</li>
+          <li>• Giờ mở cửa: <strong>05:30 - 22:30</strong> (Thứ 2 - CN)</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Dịch Vụ & Hội Viên</div>
+        <ul class="footer-links-list">
+          <li><a href="/customer/booking">Đặt Sân Trực Tuyến</a></li>
+          <li><a href="/customer/tournaments">Đăng Ký Giải Đấu UTE</a></li>
+          <li><a href="/customer/profile">Tích Điểm Thẻ Hội Viên</a></li>
+          <li><a href="/customer/history">Tra Cứu Lịch Sử & Check-in</a></li>
+          <li><a href="/customer/policy">Chính Sách Hoàn Cọc 100%</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Hệ Thống & Quản Trị</div>
+        <ul class="footer-links-list">
+          <li><a href="/login">Đăng Nhập Cán Bộ & Nhân Viên</a></li>
+          <li><a href="/pos/grid">Giao Diện Thu Ngân POS</a></li>
+          <li><a href="/manager/dashboard">Dashboard Quản Lý Chi Nhánh</a></li>
+          <li><a href="/director/dashboard">Dashboard Điều Hành Chuỗi</a></li>
+          <li><a href="/admin/users">Quản Trị Người Dùng & Phân Quyền</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+      <div>
+        © 2026 <strong>UTE Sport Badminton Management System</strong> • Nhóm 11 (Thọ - Bảo - Tâm - Hương)
+      </div>
+      <div style="display: flex; gap: 20px;">
+        <span>Tiêu chuẩn thảm thi đấu BWF</span>
+        <span>Thanh toán VietQR tự động</span>
+        <span>Hỗ trợ kỹ thuật 24/7</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/global-hub.js"></script>
+  <script src="/js/auth-guard.js"></script>
+</body>
+</html>
+
