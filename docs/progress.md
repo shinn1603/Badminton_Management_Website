@@ -116,6 +116,25 @@
   - Lịch sử đặt sân chi tiết trong tab "Lịch sử tích điểm" sẽ hiển thị đầy đủ ngay khi PR của Thọ (Ngày 3 - `BookingService` & `BookingRepository`) được merge vào nhánh `main`.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 cho Triết. Sẵn sàng phối hợp kiểm tra tích hợp khi Thọ và Đạt hoàn tất PR Ngày 3.
 
+## Ngày 3 (19/10/2026) — Đạt (AI-D)
 
+- **Nhánh làm việc:** `dat/day-03-product-catalog`
+- **Phạm vi được giao:** CRUD sản phẩm, quản lý tồn kho cơ bản, kiểm chứng giá dịch vụ và chuẩn bị dữ liệu catalog phục vụ đặt sân.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/repository/ProductRepository.java`: Bổ sung query method tìm kiếm theo mã, chi nhánh và danh mục.
+  - `src/main/java/vn/yain/repository/EquipmentRepository.java`: Bổ sung phương thức truy vấn thiết bị/dụng cụ.
+  - `src/main/java/vn/yain/service/WarehouseService.java`: Triển khai CRUD sản phẩm và hàm cập nhật tồn kho cơ bản.
+  - Patch API gửi Triết tích hợp vào `ApiController.java` (`/api/products`, `/api/equipment`).
+- **Chức năng đã xong:**
+  - Cung cấp đầy đủ hàm nghiệp vụ tra cứu danh mục sản phẩm và dụng cụ thuê.
+  - Đảm bảo logic tính giá từ `PricingService` (hoàn thành từ Ngày 2) sẵn sàng để Thọ inject vào `BookingService`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Build Maven compile thành công, các repository tương tác đúng thực thể JPA và cơ sở dữ liệu.
+- **Điểm chưa xác minh:**
+  - Quy trình nhập xuất kho chi tiết (phiếu nhập, chi tiết nhập) sẽ hoàn thiện ở Ngày 4.
+- **Phần cần người khác tích hợp:**
+  - Triết gộp patch catalog API vào `ApiController.java`.
+  - Thọ sử dụng `PricingService` và danh mục trong `BookingService`.
+- **Điểm dừng:** Dừng ở phạm vi Ngày 3 theo đúng phân công, sẵn sàng chuyển giao.
 
 
