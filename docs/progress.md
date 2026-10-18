@@ -116,35 +116,25 @@
   - Lịch sử đặt sân chi tiết trong tab "Lịch sử tích điểm" sẽ hiển thị đầy đủ ngay khi PR của Thọ (Ngày 3 - `BookingService` & `BookingRepository`) được merge vào nhánh `main`.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 cho Triết. Sẵn sàng phối hợp kiểm tra tích hợp khi Thọ và Đạt hoàn tất PR Ngày 3.
 
-## Ngày 3 (19/10/2026) — Thọ (AI-H)
+## Ngày 3 (19/10/2026) — Đạt (AI-D)
 
-- **Nhánh làm việc:** `tho/day-03-booking`
-- **Phạm vi được giao:** `BookingService`, quản lý vòng đời đặt sân cơ bản (tạo/xem/sửa/hủy đặt sân), tra cứu khung giờ hoạt động, kiểm tra chồng lấn khung giờ (`isSlotOverlapping`), giao diện tra cứu lịch sử đặt sân của khách hàng (`customer/history.html`) và màn hình quản lý đặt sân (`manager/bookings.html`).
+- **Nhánh làm việc:** `dat/day-03-warehouse`
+- **Phạm vi được giao:** CRUD sản phẩm, quản lý tồn kho cơ bản, kiểm chứng giá dịch vụ và chuẩn bị dữ liệu catalog phục vụ đặt sân.
 - **File đã tạo/sửa:**
-  - `src/main/java/vn/yain/entity/Booking.java`: Thực thể quản lý đơn đặt sân (mã booking, thông tin khách hàng, sân, chi nhánh, ngày đặt, khung giờ, đơn giá, tổng tiền, tiền cọc 30%, trạng thái, ghi chú).
-  - `src/main/java/vn/yain/entity/Payment.java`: Thực thể giao dịch thanh toán/tiền cọc (mã thanh toán, mã booking, số tiền, phương thức, loại giao dịch, mã tham chiếu).
-  - `src/main/java/vn/yain/entity/Invoice.java`: Thực thể hóa đơn dịch vụ và thanh toán trả sân (mã hóa đơn, tiền sân, tiền dụng cụ, tiền nước, cọc đã trừ, tổng thanh toán).
-  - `src/main/java/vn/yain/repository/BookingRepository.java`: JPA Repository cho đặt sân với các query tra cứu theo mã booking, chi nhánh, sân theo ngày, số điện thoại khách hàng.
-  - `src/main/java/vn/yain/repository/PaymentRepository.java`: JPA Repository quản lý lịch sử thanh toán giao dịch.
-  - `src/main/java/vn/yain/repository/InvoiceRepository.java`: JPA Repository quản lý hóa đơn thanh toán.
-  - `src/main/java/vn/yain/dto/BookingNotificationDto.java`: DTO phát thông báo đặt sân realtime qua WebSocket (`NEW_BOOKING`, `DEPOSIT_CONFIRMED`, `CHECKED_IN`, `CHECKED_OUT`, `BOOKING_CANCELLED`, `COURT_TRANSFERRED`).
-  - `src/main/java/vn/yain/service/BookingService.java`: Dịch vụ nghiệp vụ đặt sân: sinh mã duy nhất (`DSxxxxxx`), tạo đặt sân với kiểm tra chống xung đột khung giờ (`isSlotOverlapping`), tự động tính cọc 30%, cập nhật thông tin, khóa slot trực tuyến (`lockSlotBooking`), xác nhận cọc (`confirmDeposit`), check-in (`checkIn`), check-out quyết toán hóa đơn (`checkOut`), hủy đặt sân (`cancelBooking`), chuyển sân (`transferCourt`), thuật toán kiểm tra khung giờ chồng lấn (`isSlotOverlapping`).
-  - `src/main/java/vn/yain/service/EmailService.java`: Stub service tối thiểu làm dependency biên dịch cho `BookingService` (chuẩn bị cho Triết hoàn thiện vào Ngày 7 theo kế hoạch).
-  - `src/main/resources/templates/customer/history.html`: Giao diện khách hàng tra cứu lịch sử đặt sân, xem vé điện tử E-Ticket và mã QR check-in 1 chạm.
-  - `src/main/resources/templates/manager/bookings.html`: Giao diện quản lý danh sách đặt sân của chi nhánh, bộ lọc ngày/trạng thái, 4 thẻ thống kê mini và chi tiết đơn đặt sân.
-  - `src/test/java/vn/yain/service/BookingServiceTest.java`: Bộ 12 unit tests bao phủ toàn bộ use case đặt sân XL-02, XL-03, XL-04, XL-06, XL-07, kiểm tra trùng lặp khung giờ, khung giờ ngoài giờ hoạt động và thuật toán kiểm tra chồng lấn.
-  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 3 của Thọ.
+  - `src/main/java/vn/yain/repository/ProductRepository.java`: Bổ sung query method tìm kiếm theo mã, chi nhánh và danh mục.
+  - `src/main/java/vn/yain/repository/EquipmentRepository.java`: Bổ sung phương thức truy vấn thiết bị/dụng cụ.
+  - `src/main/java/vn/yain/service/WarehouseService.java`: Triển khai CRUD sản phẩm và hàm cập nhật tồn kho cơ bản.
+  - Patch API gửi Triết tích hợp vào `ApiController.java` (`/api/products`, `/api/equipment`).
 - **Chức năng đã xong:**
-  - Hoàn tất toàn bộ logic đặt sân và kiểm tra chồng lấn lịch đặt sân (kể cả khung giờ đa giờ, khung giờ có dấu phẩy hoặc giờ liền kề).
-  - Tạo đơn đặt sân, tự động tính cọc 30% và cập nhật trạng thái sân sang "Đã đặt trước".
-  - Hủy đơn đặt sân và giải phóng trạng thái sân về "Trống".
-  - Tích hợp 2 giao diện Thymeleaf chuẩn từ bản gốc: `customer/history.html` và `manager/bookings.html`.
-  - Giữ vững điểm dừng Ngày 3: tạo đặt sân và thấy trong lịch sử; chưa kích hoạt cổng thanh toán thật (chờ Ngày 7).
+  - Cung cấp đầy đủ hàm nghiệp vụ tra cứu danh mục sản phẩm và dụng cụ thuê.
+  - Đảm bảo logic tính giá từ `PricingService` (hoàn thành từ Ngày 2) sẵn sàng để Thọ inject vào `BookingService`.
 - **Kiểm tra đã chạy và kết quả:**
-  - `.\mvnw.cmd test -Dtest=BookingServiceTest`: 12/12 unit tests PASSED (100%).
-  - `.\mvnw.cmd test`: Toàn bộ 39/39 tests của dự án PASSED (100%), `BUILD SUCCESS`.
-- **Phần cần người khác tích hợp (Patch gửi Triết):**
-  - Áp dụng patch cho `ApiController.java` (`POST /api/bookings`, `PUT /api/bookings/{code}`, `DELETE /api/bookings/{code}`, `POST /api/bookings/{code}/cancel`, `GET /api/bookings/slots`, `POST /api/bookings/slot-lock`, helper `isSlotOverlapping`, `parseSlotHours` và cập nhật `GET /api/customer/my-bookings` kết nối `bookingRepository`).
-  - Áp dụng patch cho `DashboardController.java` (`@GetMapping("/customer/history")`, `@GetMapping("/manager/bookings")`).
-  - Tích hợp `src/test/java/vn/yain/controller/SlotOverlappingTest.java` (4 tests) sau khi áp dụng patch cho `ApiController.java`.
-- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 của Thọ. Sẵn sàng cho Ngày 4 (vận hành sân, thu ngân và kho).
+  - Build Maven compile thành công, các repository tương tác đúng thực thể JPA và cơ sở dữ liệu.
+- **Điểm chưa xác minh:**
+  - Quy trình nhập xuất kho chi tiết (phiếu nhập, chi tiết nhập) sẽ hoàn thiện ở Ngày 4.
+- **Phần cần người khác tích hợp:**
+  - Triết gộp patch catalog API vào `ApiController.java`.
+  - Thọ sử dụng `PricingService` và danh mục trong `BookingService`.
+- **Điểm dừng:** Dừng ở phạm vi Ngày 3 theo đúng phân công, sẵn sàng chuyển giao.
+
+
