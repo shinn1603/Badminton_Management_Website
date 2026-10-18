@@ -95,6 +95,27 @@
   - Endpoint gửi email OTP thật phụ thuộc vào cấu hình SMTP trên môi trường thực tế (hiện tại fallback mô phỏng logger đầy đủ theo thiết kế gốc).
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 2 cho Triết. Sẵn sàng cho Ngày 3 (BookingService, quản lý vòng đời đặt sân và tích hợp API hồ sơ khách hàng đầy đủ).
 
+## Ngày 3 (19/10/2026) — Triết (AI-T)
+
+- **Nhánh làm việc:** `triet/day-03-customer-profile`
+- **Phạm vi được giao:** Quản lý hồ sơ khách hàng; tích hợp API dùng chung của Ngày 3 (`/api/customer/profile`, `/api/customer/my-bookings`); đảm bảo bảo mật và phân quyền dữ liệu người dùng chỉ xem/sửa thông tin của chính mình; bổ sung giao diện Thymeleaf `customer/profile.html`.
+- **File đã tạo/sửa:**
+  - `src/main/resources/templates/customer/profile.html`: Giao diện hồ sơ hội viên, tích điểm, thẻ thành viên, tiến trình lên hạng (Đồng $\rightarrow$ Bạc $\rightarrow$ Vàng $\rightarrow$ Kim Cương), form cập nhật thông tin cá nhân và lịch sử tích lũy điểm.
+  - `src/main/java/vn/yain/controller/DashboardController.java`: Bổ sung route điều hướng `@GetMapping("/customer/profile")` trỏ đến `customer/profile.html`.
+  - `src/main/java/vn/yain/controller/ApiController.java`: Bổ sung endpoint `PUT /api/customer/profile` (cập nhật họ tên, số điện thoại, email, mật khẩu mới, đồng bộ tức thời giữa `users` và `customers`) và `GET /api/customer/my-bookings`. Đảm bảo phân quyền nghiêm ngặt dựa trên định danh trích xuất từ JWT token của phiên đăng nhập hợp lệ.
+  - `src/test/java/vn/yain/controller/CustomerProfileTest.java`: Bộ 5 integration tests xác minh giao diện hồ sơ, từ chối truy cập/cập nhật trái phép khi thiếu token, truy vấn hồ sơ thành công và cập nhật đồng bộ 2 bảng `users` - `customers`.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 3 của Triết.
+- **Chức năng đã xong:**
+  - Người dùng đăng nhập có thể xem chi tiết hồ sơ cá nhân, hạng hội viên, điểm tích lũy, số giờ chơi.
+  - Cập nhật thông tin tài khoản an toàn với xác thực JWT: không thể xem hoặc chỉnh sửa dữ liệu của người dùng khác.
+  - Đồng bộ dữ liệu 2 chiều giữa bảng `users` và bảng `customers`.
+  - Giữ vững nguyên tắc đóng gói Ngày 3: không đưa các module thanh toán hay báo cáo quản trị của Ngày 4-9 vào sớm.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ 27/27 unit & integration tests PASSED (100%), `BUILD SUCCESS`.
+- **Điểm chưa xác minh:**
+  - Lịch sử đặt sân chi tiết trong tab "Lịch sử tích điểm" sẽ hiển thị đầy đủ ngay khi PR của Thọ (Ngày 3 - `BookingService` & `BookingRepository`) được merge vào nhánh `main`.
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 cho Triết. Sẵn sàng phối hợp kiểm tra tích hợp khi Thọ và Đạt hoàn tất PR Ngày 3.
+
 ## Ngày 3 (19/10/2026) — Đạt (AI-D)
 
 - **Nhánh làm việc:** `dat/day-03-product-catalog`
