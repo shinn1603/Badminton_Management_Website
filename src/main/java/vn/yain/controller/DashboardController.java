@@ -32,6 +32,11 @@ public class DashboardController {
         return "customer/booking";
     }
 
+    @GetMapping("/customer/profile")
+    public String customerProfile() {
+        return "customer/profile";
+    }
+
     // MANAGER ENDPOINTS
     @GetMapping("/manager/courts")
     public String managerCourts() {

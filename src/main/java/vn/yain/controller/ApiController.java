@@ -343,6 +343,84 @@ public class ApiController {
         return ResponseEntity.ok(resp);
     }
 
+    @PutMapping("/customer/profile")
+    public ResponseEntity<?> updateCustomerProfile(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody Map<String, String> payload) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập!"));
+        }
+
+        String token = authHeader.substring(7);
+        if (!jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Token không hợp lệ!"));
+        }
+
+        String username = jwtTokenProvider.getUsernameFromToken(token);
+        User u = userRepository.findByUsername(username).orElse(null);
+        if (u == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Tài khoản không tồn tại!"));
+        }
+
+        String newName = payload.get("fullName");
+        String newPhone = payload.get("phone");
+        String newEmail = payload.get("email");
+        String newPassword = payload.get("newPassword");
+
+        if (newName != null && !newName.trim().isEmpty()) {
+            u.setFullName(newName.trim());
+        }
+        if (newPhone != null && !newPhone.trim().isEmpty()) {
+            u.setPhone(newPhone.trim());
+        }
+        if (newEmail != null) {
+            u.setEmail(newEmail.trim());
+        }
+        userRepository.save(u);
+
+        if (newPassword != null && newPassword.trim().length() >= 6) {
+            userService.resetPassword(u.getUsername(), newPassword.trim());
+        }
+
+        if (u.getPhone() != null && !u.getPhone().trim().isEmpty()) {
+            Optional<Customer> cOpt = customerRepository.findByPhone(u.getPhone().trim());
+            if (cOpt.isPresent()) {
+                Customer c = cOpt.get();
+                if (newName != null) c.setFullName(newName.trim());
+                if (newEmail != null) c.setEmail(newEmail.trim());
+                customerRepository.save(c);
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Cập nhật hồ sơ thành công!",
+                "fullName", u.getFullName(),
+                "phone", u.getPhone() != null ? u.getPhone() : "",
+                "email", u.getEmail() != null ? u.getEmail() : ""
+        ));
+    }
+
+    @GetMapping("/customer/my-bookings")
+    public ResponseEntity<?> getMyBookings(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập!"));
+        }
+
+        String token = authHeader.substring(7);
+        if (!jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Token không hợp lệ!"));
+        }
+
+        String username = jwtTokenProvider.getUsernameFromToken(token);
+        User u = userRepository.findByUsername(username).orElse(null);
+        if (u == null) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        return ResponseEntity.ok(Collections.emptyList());
+    }
+
     // ==========================================
     // 2. COURTS & REALTIME STATUS (XL-02)
     // ==========================================
