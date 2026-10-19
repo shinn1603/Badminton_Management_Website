@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơ đồ & Lưới đặt sân theo giờ - UTE Sport</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/pos-grid.css">
+  <script src="/js/auth-guard.js"></script>
+  <script src="/js/global-hub.js"></script>
+</head>
+<body class="pos-layout">
+
+  <div class="layout-container">
+    <!-- UNIFIED SIDEBAR (MATCHING DASHBOARD & BOOKINGS) -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="brand-header">
+        <div class="brand-logo-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="stroke-width: 2.2;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>UTE SPORT</h2>
+          <span id="posSidebarBranchText">CHI NHÁNH THỦ ĐỨC</span>
+        </div>
+      </div>
+      
+      <div class="sidebar-content">
+        <div class="menu-title">Nghiệp vụ thu ngân POS</div>
+
+        <a href="/pos/grid" class="menu-item active" title="Sơ đồ bàn cờ & Lưới đặt sân thời gian thực">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <line x1="12" y1="20" x2="12" y2="10"></line>
+            <line x1="18" y1="20" x2="18" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="16"></line>
+          </svg>
+          <span class="menu-text">Lưới đặt sân</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="openCreateBookingModal()" class="menu-item" title="Đặt sân tại quầy">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="menu-text">Đặt sân tại quầy</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="openCheckoutModal()" class="menu-item" title="Quầy dịch vụ F&B và dụng cụ">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <span class="menu-text">Quầy Dịch Vụ F&B</span>
+        </a>
+
+        <a href="javascript:void(0)" onclick="openShiftHandoverModal()" class="menu-item" title="Bàn giao ca trực thu ngân">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <span class="menu-text">Bàn giao ca trực</span>
+        </a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-avatar" id="sidebarAvatar">TN</div>
+        <div class="user-meta">
+          <span class="user-name" id="sidebarName">Nguyễn Thanh Tâm</span>
+          <span class="user-title" id="sidebarTitle">Thu ngân POS - Thủ Đức</span>
+        </div>
+        <a href="/login" style="margin-left: auto; color: #94a3b8;" title="Đăng xuất">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <main class="pos-main-wrapper">
+      <!-- HEADER BAR -->
+      <header class="header-bar">
+        <div class="header-left">
+          <button class="btn-icon" onclick="toggleSidebar()" title="Thu gọn / Mở rộng">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="branch-select-badge">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <span id="posHeaderBranchText">Sơ đồ & Lưới đặt sân thời gian thực - Thủ Đức</span>
+          </div>
+        </div>
+
+        <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+          <!-- TÌM KIẾM ĐẶT SÂN / KHÁCH HÀNG -->
+          <div class="search-box" id="searchContainer">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--text-muted); flex-shrink: 0;">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Tìm khách, SĐT..." oninput="handleSearch()" autocomplete="off">
+            <div class="search-dropdown" id="searchResultsDropdown">
+              <div class="search-dropdown-header">KẾT QUẢ TÌM KIẾM ĐẶT SÂN</div>
+              <ul class="search-results-list" id="searchResultsList"></ul>
+            </div>
+          </div>
+
+          <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+            </svg>
+          </button>
+
+          <!-- USER PILL WIDGET -->
+          <div class="user-pill-header" id="headerUserWidget" title="Tài khoản đang đăng nhập">
+            <div class="user-avatar" style="width: 28px; height: 28px; font-size: 11px;">TN</div>
+            <div style="font-size: 12.5px; font-weight: 600; color: var(--text-dark);">Thu ngân POS</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="pos-content">
+        <!-- POS LUXURY MINI BANNER -->
+        <div class="pos-hero-strip" style="background: radial-gradient(circle at 20% 30%, rgba(6, 78, 59, 0.95) 0%, rgba(4, 20, 16, 0.98) 100%), url('/images/badminton_arena_hero.jpg') center/cover no-repeat; background-blend-mode: overlay; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-lg); padding: 14px 20px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); flex-wrap: wrap;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 3px;">
+              <span style="display: inline-block; width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span>
+              Sơ Đồ Thời Gian Thực
+            </div>
+            <div style="font-size: 15px; font-weight: 800; color: #ffffff;">Lưới Đặt Sân Theo Giờ - Chi Nhánh Thủ Đức</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" class="btn btn-primary" onclick="openCreateBookingModal()" style="font-size: 12px; padding: 6px 14px;">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Đặt sân tại quầy</span>
+            </button>
+            <button type="button" class="btn btn-outline" onclick="openShiftHandoverModal()" style="font-size: 12px; padding: 6px 14px; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.25); color: #ffffff;">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              <span>Bàn giao ca</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="grid-toolbar">
+          <div class="toolbar-controls">
+            <div class="date-navigator">
+              <button class="date-nav-btn" onclick="shiftDate(-1)" title="Lùi 1 ngày">‹</button>
+              <input type="date" id="gridDateInput" class="current-date-input">
+              <button class="date-nav-btn" onclick="shiftDate(1)" title="Tới 1 ngày">›</button>
+            </div>
+            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12.5px;" onclick="goToToday()">Hôm nay</button>
+            
+            <select id="branchFilter" class="form-control" onchange="changeBranch()" style="width: auto;">
+              <option value="CN01" selected>Chi nhánh 1 - Thủ Đức</option>
+              <option value="CN02">Chi nhánh 2 - Quận 7</option>
+              <option value="CN03">Chi nhánh 3 - Bình Thạnh</option>
+              <option value="CN04">Chi nhánh 4 - Gò Vấp</option>
+            </select>
+
+            <!-- BỘ ĐIỀU HƯỚNG KHUNG GIỜ & CUỘN LƯỚI -->
+            <div class="time-shift-navigator">
+              <span class="time-shift-label">Khung giờ:</span>
+              <button type="button" class="btn-time-shift active" data-shift="morning" onclick="jumpToGridTime('morning')">Sáng (06h - 11h)</button>
+              <button type="button" class="btn-time-shift" data-shift="afternoon" onclick="jumpToGridTime('afternoon')">Chiều (14h - 17h)</button>
+              <button type="button" class="btn-time-shift" data-shift="evening" onclick="jumpToGridTime('evening')">Tối (17h - 22h)</button>
+              <div class="grid-scroll-actions">
+                <button type="button" class="btn-grid-scroll-btn" onclick="scrollGridHorizontal(-350)" title="Cuộn bảng sang trái">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <button type="button" class="btn-grid-scroll-btn" onclick="scrollGridHorizontal(350)" title="Cuộn bảng sang phải">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEGEND -->
+          <div class="legend-group">
+            <div class="legend-item"><span class="legend-indicator legend-available"></span><span>Trống</span></div>
+            <div class="legend-item"><span class="legend-indicator legend-booked"></span><span>Đã cọc 30%</span></div>
+            <div class="legend-item"><span class="legend-indicator legend-in-use"></span><span>Đang chơi</span></div>
+            <div class="legend-item"><span class="legend-indicator legend-completed"></span><span>Đã thanh toán</span></div>
+          </div>
+        </div>
+
+        <!-- MATRIX TABLE -->
+        <div class="matrix-container">
+          <div class="matrix-scroll">
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th class="matrix-th-corner">SÂN / GIỜ</th>
+                  <th class="matrix-th-time">06:00 - 07:00</th>
+                  <th class="matrix-th-time">07:00 - 08:00</th>
+                  <th class="matrix-th-time">08:00 - 09:00</th>
+                  <th class="matrix-th-time">09:00 - 10:00</th>
+                  <th class="matrix-th-time">10:00 - 11:00</th>
+                  <th class="matrix-th-time">14:00 - 15:00</th>
+                  <th class="matrix-th-time">15:00 - 16:00</th>
+                  <th class="matrix-th-time">16:00 - 17:00</th>
+                  <th class="matrix-th-time">17:00 - 18:00</th>
+                  <th class="matrix-th-time">18:00 - 19:00</th>
+                  <th class="matrix-th-time">19:00 - 20:00</th>
+                  <th class="matrix-th-time">20:00 - 21:00</th>
+                  <th class="matrix-th-time">21:00 - 22:00</th>
+                </tr>
+              </thead>
+              <tbody id="matrixGridBody">
+                <!-- Rendered dynamically by pos-grid.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL ĐẶT SÂN NHANH TẠI QUẦY (MH-NVQ03) -->
+  <div class="modal-overlay" id="createBookingModal">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Tiếp nhận khách & Đặt sân tại quầy</h3>
+        <button class="modal-close-btn" onclick="closeCreateBookingModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tên khách hàng (*)</label>
+            <input type="text" id="bookingCustName" class="form-control" placeholder="vd: Anh Tuấn" required maxlength="50" autocomplete="off" oninput="cleanCustomerNameInput(this)">
+            <small id="custNameError" style="display: none; color: #ef4444; font-size: 11px; margin-top: 3px; font-weight: 500;">Tên khách hàng chỉ được nhập chữ cái, không nhập số hoặc ký tự lạ.</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại (*)</label>
+            <input type="tel" id="bookingCustPhone" class="form-control" placeholder="vd: 0901234567" required maxlength="10" inputmode="numeric" autocomplete="off" oninput="cleanCustomerPhoneInput(this)">
+            <small id="custPhoneError" style="display: none; color: #ef4444; font-size: 11px; margin-top: 3px; font-weight: 500;">Số điện thoại chỉ được nhập số (10 chữ số, bắt đầu bằng 0).</small>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">Chọn Sân</label>
+          <select id="bookingCourtSelect" class="form-control" onchange="recalculatePrice()">
+            <option value="Sân 01 (VIP Yonex)" data-price="120000">Sân 01 (VIP Yonex) - 120.000 đ/h</option>
+            <option value="Sân 02 (VIP Yonex)" data-price="120000">Sân 02 (VIP Yonex) - 120.000 đ/h</option>
+            <option value="Sân 03 (Thảm Enlio)" data-price="90000">Sân 03 (Thảm Enlio) - 90.000 đ/h</option>
+            <option value="Sân 04 (Thảm Enlio)" data-price="90000">Sân 04 (Thảm Enlio) - 90.000 đ/h</option>
+            <option value="Sân 05 (Tiêu chuẩn)" data-price="90000">Sân 05 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="Sân 06 (Tiêu chuẩn)" data-price="90000">Sân 06 (Tiêu chuẩn) - 90.000 đ/h</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Khung giờ bắt đầu</label>
+            <select id="bookingStartTime" class="form-control" onchange="recalculatePrice()">
+              <option value="06:00">06:00</option>
+              <option value="07:00">07:00</option>
+              <option value="08:00" selected>08:00</option>
+              <option value="09:00">09:00</option>
+              <option value="10:00">10:00</option>
+              <option value="14:00">14:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+              <option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+              <option value="19:00">19:00</option>
+              <option value="20:00">20:00</option>
+              <option value="21:00">21:00</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Khung giờ kết thúc</label>
+            <select id="bookingEndTime" class="form-control" onchange="recalculatePrice()">
+              <option value="07:00">07:00</option>
+              <option value="08:00">08:00</option>
+              <option value="09:00" selected>09:00</option>
+              <option value="10:00">10:00</option>
+              <option value="11:00">11:00</option>
+              <option value="15:00">15:00</option>
+              <option value="16:00">16:00</option>
+              <option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+              <option value="19:00">19:00</option>
+              <option value="20:00">20:00</option>
+              <option value="21:00">21:00</option>
+              <option value="22:00">22:00</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 10px; margin-bottom: 6px;">
+          <label class="form-label">Chính sách đặt cọc / Thanh toán tại quầy</label>
+          <select id="bookingPaymentType" class="form-control" onchange="recalculatePrice()">
+            <option value="play_now" selected>Chơi ngay / Trả sau (Không cần cọc - 0 đ)</option>
+            <option value="deposit_30">Thu cọc trước 30%</option>
+            <option value="full_pay">Thanh toán đủ 100% tại quầy</option>
+          </select>
+        </div>
+        <div style="background: var(--surface-subtle); padding: 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border-subtle); margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span>Tổng tiền thuê:</span>
+            <strong id="displayTotalRental" style="color: var(--primary); font-size: 14px;">180.000 đ</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span id="depositLabelText">Tiền cọc thực thu tại quầy:</span>
+            <strong id="displayDepositRequired" style="color: var(--warning); font-size: 14px;">0 đ (Trả sau)</strong>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeCreateBookingModal()">Đóng</button>
+        <button class="btn btn-primary" onclick="submitBookingForm()">Xác nhận & Giữ chỗ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHI TIẾT ĐƠN (CHECK-IN) (MH-NVQ04) -->
+  <div class="modal-overlay" id="detailBookingModal">
+    <div class="modal-container" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Chi tiết đặt sân (Check-in)</h3>
+        <button class="modal-close-btn" onclick="closeDetailModal()">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 14px; line-height: 1.8;">
+        <p><strong>Khách hàng:</strong> <span id="detailCustomer" style="color: var(--text-dark); font-weight: 700;"></span></p>
+        <p><strong>Số điện thoại:</strong> <span id="detailPhone" style="color: var(--text-muted);"></span></p>
+        <p><strong>Sân & Giờ:</strong> <span id="detailCourt" style="color: var(--primary); font-weight: 700;"></span> | <span id="detailTime"></span></p>
+        <p style="display: flex; align-items: center; gap: 8px;"><strong>Trạng thái:</strong> <span id="detailStatusBadge" class="slot-badge-status badge-booked"></span></p>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-outline" onclick="closeDetailModal()">Đóng</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;" onclick="cancelBookingFromModal()">Hủy đặt sân</button>
+          <button class="btn btn-outline" style="border-color: #3b82f6; color: #2563eb;" onclick="openTransferModal()">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;">
+              <polyline points="16 3 21 3 21 8"></polyline>
+              <line x1="4" y1="20" x2="21" y2="3"></line>
+              <polyline points="21 16 21 21 16 21"></polyline>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+            </svg>
+            Chuyển sân
+          </button>
+          <button class="btn btn-primary" onclick="checkInBooking()">Nhận sân (Check-in)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHUYỂN SÂN (XL-06) -->
+  <div class="modal-overlay" id="transferCourtModal">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--primary); display: inline-block; vertical-align: middle; margin-right: 6px;">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+          </svg>
+          Chuyển Sân Thi Đấu
+        </h3>
+        <button class="modal-close-btn" onclick="closeTransferModal()">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 13.5px;">
+        <div style="background: var(--surface-subtle); padding: 12px; border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Khách hàng:</span>
+            <strong id="transferCustomerName">--</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Mã đặt sân:</span>
+            <strong id="transferBookingCode" style="color: var(--primary);">--</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Sân hiện tại:</span>
+            <span id="transferCurrentCourt" style="font-weight: 600;">--</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">Chọn sân chuyển đến (*)</label>
+          <select id="transferTargetCourtSelect" class="form-control" onchange="calculateTransferDiff()">
+            <option value="CL01" data-price="120000">Sân cầu lông 1 (VIP Yonex) - 120.000 đ/h</option>
+            <option value="CL02" data-price="90000">Sân cầu lông 2 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="CL03" data-price="90000">Sân cầu lông 3 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="CL04" data-price="90000">Sân cầu lông 4 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="CL05" data-price="90000">Sân cầu lông 5 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="CL07" data-price="90000">Sân cầu lông 7 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="CL08" data-price="90000">Sân cầu lông 8 (Tiêu chuẩn) - 90.000 đ/h</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">Khung giờ mới</label>
+          <input type="text" id="transferNewTimeSlot" class="form-control" readonly>
+        </div>
+
+        <div style="padding: 12px; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2);">
+          <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span>Chênh lệch đơn giá sân:</span>
+            <strong id="transferDiffPrice" style="color: var(--primary);">0 đ</strong>
+          </div>
+          <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;" id="transferDiffNote">
+            Hệ thống tự động cộng/trừ chênh lệch vào tổng tiền hóa đơn của khách.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeTransferModal()">Hủy</button>
+        <button class="btn btn-primary" onclick="submitTransferCourt()">Xác nhận chuyển sân</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL POS, DỊCH VỤ & THANH TOÁN (MH-NVQ05, MH-NVQ06) -->
+  <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-container" style="width: 95vw; max-width: 1280px; height: 92vh; max-height: 92vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="padding: 14px 24px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <h3 class="modal-title" style="margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--primary); width: 22px; height: 22px;">
+              <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+            Quầy Dịch Vụ & Lập Hóa Đơn Thanh Toán POS
+          </h3>
+          <span class="badge badge-primary" style="font-size: 11px; padding: 3px 8px;">CSDL Trực Tuyến</span>
+        </div>
+        <button class="modal-close-btn" onclick="closeCheckoutModal()" title="Đóng (Esc)">✕</button>
+      </div>
+
+      <div class="modal-body" style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; flex: 1; overflow: hidden; padding: 16px 24px;">
+        <!-- LEFT: TOUCHPAD PRODUCTS DYNAMIC FROM DB & CART -->
+        <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; gap: 10px;">
+          <!-- TARGET COURT SELECTION STRIP -->
+          <div style="background: var(--surface-subtle); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0;">
+            <div>
+              <span style="font-size: 11.5px; color: var(--text-muted);">Đối tượng phục vụ:</span>
+              <strong id="checkoutTargetLabel" style="display: block; font-size: 13.5px; color: var(--primary);">Khách lẻ tại quầy (Không tính tiền sân - 0 đ)</strong>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="font-size: 12px; color: var(--text-muted); margin: 0; white-space: nowrap;">Gán vào sân:</label>
+              <select id="checkoutCourtAssignSelect" class="form-control" style="width: auto; font-size: 12px; padding: 4px 8px;" onchange="onCheckoutCourtAssignChange(this.value)">
+                <option value="none">Bán lẻ mang đi (Tiền sân 0 đ)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- SAVE SERVICE NOTIFICATION BANNER -->
+          <div id="saveServiceAlert" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid #10b981; border-radius: 8px; padding: 10px 14px; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1); flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px; color: #10b981; flex-shrink: 0;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <div>
+                <strong style="font-size: 13px; color: var(--text-dark);">Đã lưu dịch vụ vào sân thành công!</strong>
+                <div style="font-size: 12px; color: var(--text-muted);" id="saveServiceAlertDetail">Khách tiếp tục chơi. Đã đồng bộ hóa đơn cho toàn bộ khung giờ của khách.</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+              <button type="button" class="btn btn-xs btn-outline" style="background: var(--surface); border-color: #10b981; color: #059669; font-weight: 600; padding: 5px 12px;" onclick="continueAddingServices()">Tiếp tục gọi món</button>
+              <button type="button" class="btn btn-xs btn-primary" style="background: #10b981; border-color: #10b981; color: #ffffff; font-weight: 600; padding: 5px 12px;" onclick="closeCheckoutModal()">Đóng quầy (Về lưới)</button>
+            </div>
+          </div>
+
+          <!-- Catalog Header + Search + Category Pills -->
+          <div style="flex-shrink: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin: 0; font-weight: 700; font-size: 12.5px;">Dịch Vụ & Sản Phẩm (Kho CSDL):</label>
+              <span style="font-size: 11px; color: var(--text-muted);" id="posProductCount">Đang tải CSDL...</span>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+              <input type="text" id="posProductSearch" class="form-control" placeholder="Tìm sản phẩm / đồ uống / ống cầu..." oninput="filterPosSearch(this.value)" style="flex: 1; padding: 6px 12px; font-size: 12px;">
+              <div id="posCatPills" style="display: flex; gap: 4px; flex-shrink: 0;">
+                <button type="button" class="btn btn-xs btn-primary pos-cat-btn" data-cat="all" onclick="filterPosCat('all')">Tất cả</button>
+                <button type="button" class="btn btn-xs btn-outline pos-cat-btn" data-cat="Dụng cụ" onclick="filterPosCat('Dụng cụ')">Cầu & Vợt</button>
+                <button type="button" class="btn btn-xs btn-outline pos-cat-btn" data-cat="Nước giải khát" onclick="filterPosCat('Nước giải khát')">Nước uống</button>
+                <button type="button" class="btn btn-xs btn-outline pos-cat-btn" data-cat="Phụ kiện" onclick="filterPosCat('Phụ kiện')">Phụ kiện</button>
+              </div>
+            </div>
+
+            <!-- Dynamic Products Grid: responsive auto-fill -->
+            <div id="posProductGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+              <!-- Populated dynamically via loadDbProductsForPos() -->
+            </div>
+          </div>
+
+          <!-- Added Items Table Section -->
+          <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 160px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;">
+              <label class="form-label" style="font-weight: 700; margin: 0; font-size: 12.5px;">Chi Tiết Dịch Vụ Đã Thêm:</label>
+              <span style="font-size: 11px; color: var(--text-muted);">Bấm ✕ để bớt số lượng hoặc xóa món</span>
+            </div>
+            <div style="flex: 1; overflow-y: auto; overflow-x: hidden; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--surface);">
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed;">
+                <thead style="background: var(--surface-subtle); position: sticky; top: 0; z-index: 2;">
+                  <tr>
+                    <th style="padding: 7px 10px; text-align: left; width: 44%;">Mục</th>
+                    <th style="padding: 7px 6px; text-align: center; width: 12%;">SL</th>
+                    <th style="padding: 7px 8px; text-align: right; width: 20%;">Đơn giá</th>
+                    <th style="padding: 7px 8px; text-align: right; width: 24%;">Tiền</th>
+                    <th style="padding: 7px 4px; text-align: center; width: 32px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="invoiceBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: PAYMENT & VIETQR -->
+        <div style="background: var(--surface-subtle); padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border-subtle); display: flex; flex-direction: column; justify-content: space-between; height: 100%; overflow-y: auto;">
+          <div>
+            <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+              <button type="button" class="btn btn-primary" id="btnPayCash" style="flex: 1; padding: 7px 6px; font-size: 12px; font-weight: 600;" onclick="switchPaymentMode('cash')">Tiền mặt</button>
+              <button type="button" class="btn btn-outline" id="btnPayQR" style="flex: 1; padding: 7px 6px; font-size: 12px; font-weight: 600;" onclick="switchPaymentMode('vietqr')">Quét VietQR</button>
+              <button type="button" class="btn btn-outline" id="btnPayCard" style="flex: 1; padding: 7px 6px; font-size: 12px; font-weight: 600;" onclick="switchPaymentMode('card')">Thẻ POS</button>
+            </div>
+
+            <div id="vietqrBox" style="display: none; text-align: center; margin-bottom: 10px; padding: 10px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border-subtle);">
+              <img id="vietqrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=00020101021238540010A00000072701240006970422011009031234560208QRIBFTTA5303704540840005802VN62170813UTESPORT6304" alt="VietQR" style="width: 130px; height: 130px; border-radius: 8px; border: 1px solid var(--border-subtle); background: #ffffff; padding: 4px;">
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Quét mã VietQR thanh toán tức thì</div>
+            </div>
+
+            <div style="line-height: 2; font-size: 13px; border-top: 1px dashed var(--border-subtle); padding-top: 10px;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Tiền giờ sân:</span>
+                <strong id="coCourtPrice" style="color: var(--text-dark);">0 đ</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">Dịch vụ & Dụng cụ:</span>
+                <strong id="coServicePrice" style="color: var(--text-dark);">0 đ</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; color: var(--danger);">
+                <span>Khách đã cọc trước:</span>
+                <strong id="coDeposit">- 0 đ</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 17px; font-weight: 800; color: var(--text-dark); margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--border-subtle);">
+                <span>CẦN THANH TOÁN:</span>
+                <span id="coTotal" style="color: var(--primary); font-size: 22px;">0 đ</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
+            <button type="button" class="btn btn-outline" id="btnSaveServicesOnly" style="width: 100%; border-color: #3b82f6; color: #2563eb; display: none; padding: 8px;" onclick="saveServicesAndContinuePlaying()">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span style="font-weight: 600;">Lưu dịch vụ vào sân (Khách tiếp tục chơi)</span>
+            </button>
+            <button type="button" class="btn btn-outline" style="width: 100%; font-size: 12px; padding: 8px;" onclick="printReceiptK80()">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>In Hóa Đơn Nhiệt K80</span>
+            </button>
+            <button type="button" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700;" onclick="submitCheckout()">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span id="btnCheckoutSubmitText">Xác nhận Thanh toán & Trả sân</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; background: var(--surface-subtle); border-top: 1px solid var(--border-subtle); flex-shrink: 0;">
+        <span style="font-size: 12px; color: var(--text-muted);">Phím tắt: Bấm <strong>Esc</strong> để đóng quầy • Hóa đơn tự động đồng bộ theo sân</span>
+        <button class="btn btn-outline btn-sm" onclick="closeCheckoutModal()">Đóng quầy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL BÀN GIAO CA TRỰC THU NGÂN (XL-08) -->
+  <div class="modal-overlay" id="shiftHandoverModal">
+    <div class="modal-container" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--warning); display: inline-block; vertical-align: middle; margin-right: 6px;">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          Bàn Giao Ca Trực Thu Ngân
+        </h3>
+        <button class="modal-close-btn" onclick="closeShiftHandoverModal()">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 13.5px;">
+        <div style="background: var(--surface-subtle); padding: 14px; border-radius: 10px; border: 1px solid var(--border-subtle); margin-bottom: 16px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
+            <div><strong>Thu ngân:</strong> <span class="user-name">Nguyễn Thanh Tâm</span></div>
+            <div><strong>Ca trực:</strong> <span>Ca Sáng (06:00 - 14:00)</span></div>
+            <div><strong>Chi nhánh:</strong> <span id="handoverBranch">CN01 - Thủ Đức</span></div>
+            <div><strong>Thời gian chốt:</strong> <span id="handoverTime">Hôm nay</span></div>
+          </div>
+        </div>
+
+        <h4 style="font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Tổng hợp phát sinh trong ca</h4>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px; background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Tiền giờ thuê sân:</span>
+            <strong id="shiftCourtRevenue">0 đ</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Dịch vụ nước & phụ kiện:</span>
+            <strong id="shiftProductRevenue">0 đ</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 14.5px;">
+            <strong>TỔNG DOANH THU CA:</strong>
+            <strong style="color: var(--primary);" id="shiftTotalRevenue">0 đ</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-muted); margin-top: 4px;">
+            <span>• Tiền mặt tại két: <strong id="shiftCashRevenue">0 đ</strong></span>
+            <span>• Chuyển khoản VietQR: <strong id="shiftTransferRevenue">0 đ</strong></span>
+          </div>
+        </div>
+
+        <h4 style="font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Kiểm đếm tiền mặt thực tế & Đối soát</h4>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">Tiền mặt thực tế đếm được trong két (*)</label>
+          <input type="number" id="actualCashInput" class="form-control" placeholder="vd: 1450000" value="0" oninput="calculateHandoverDifference()">
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+          <span>Trạng thái đối soát:</span>
+          <strong id="handoverDiffText" style="color: var(--primary);">Khớp sổ (Chênh lệch: 0 đ)</strong>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button class="btn btn-outline" onclick="printHandoverReport()">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span>In biên bản kết ca</span>
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" onclick="closeShiftHandoverModal()">Đóng</button>
+          <button class="btn btn-primary" onclick="confirmShiftHandover()">Xác nhận kết ca</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC TÁCH RIÊNG HOÀN CHỈNH -->
+  <script src="/js/pos-grid.js"></script>
+  <script src="/js/global-hub.js"></script>
+  <script>
+    let shiftSystemCash = 0;
+    let shiftTotalRevenue = 0;
+    let currentShiftSummary = null;
+
+    async function openShiftHandoverModal() {
+      const now = new Date();
+      document.getElementById('handoverTime').innerText = now.toLocaleString('vi-VN');
+      const bFilter = document.getElementById('branchFilter');
+      const branch = bFilter ? bFilter.value : 'CN01';
+      const branchText = (bFilter && bFilter.options[bFilter.selectedIndex]) ? bFilter.options[bFilter.selectedIndex].text : (branch + ' - Thủ Đức');
+      document.getElementById('handoverBranch').innerText = branchText;
+
+      let token = localStorage.getItem('jwt_token');
+      if (!token && document.cookie) {
+        const m = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+        if (m) {
+          token = m[1];
+          localStorage.setItem('jwt_token', token);
+        }
+      }
+
+      if (!token) {
+        showToast('Phiên làm việc đã hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập tài khoản Thu ngân (pos)!', 'error');
+        setTimeout(() => { window.location.href = '/login?expired=true'; }, 1500);
+        return;
+      }
+
+      try {
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/shifts/summary?branchCode=${branch}`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          currentShiftSummary = data;
+          shiftSystemCash = Number(data.cashRevenue !== undefined ? data.cashRevenue : data.systemCashTotal) || 0;
+          shiftTotalRevenue = Number(data.totalRevenue) || 0;
+          const courtRev = Number(data.courtFee) || 0;
+          const prodRev = Number(data.productFee) || 0;
+          const tfRev = Number(data.transferRevenue !== undefined ? data.transferRevenue : data.systemTransferTotal) || 0;
+
+          document.getElementById('shiftCourtRevenue').innerText = courtRev.toLocaleString('vi-VN') + ' đ';
+          document.getElementById('shiftProductRevenue').innerText = prodRev.toLocaleString('vi-VN') + ' đ';
+          document.getElementById('shiftTotalRevenue').innerText = shiftTotalRevenue.toLocaleString('vi-VN') + ' đ';
+          document.getElementById('shiftCashRevenue').innerText = shiftSystemCash.toLocaleString('vi-VN') + ' đ';
+          document.getElementById('shiftTransferRevenue').innerText = tfRev.toLocaleString('vi-VN') + ' đ';
+
+          document.getElementById('actualCashInput').value = shiftSystemCash;
+          calculateHandoverDifference();
+          document.getElementById('shiftHandoverModal').classList.add('active');
+        } else if (res.status === 401 || res.status === 403) {
+          showToast('Phiên làm việc đã hết hạn hoặc bạn không có quyền thu ngân (403 Forbidden). Đang chuyển hướng đăng nhập...', 'error');
+          setTimeout(() => { window.location.href = '/login?expired=true'; }, 1500);
+        } else {
+          showToast('Không thể tải tổng hợp ca: Lỗi máy chủ ' + res.status, 'error');
+        }
+      } catch (err) {
+        console.warn('Lỗi tải tổng hợp ca:', err);
+        showToast('Lỗi mạng khi tải dữ liệu ca trực!', 'error');
+      }
+    }
+
+    function closeShiftHandoverModal() {
+      document.getElementById('shiftHandoverModal').classList.remove('active');
+    }
+
+    function calculateHandoverDifference() {
+      const actual = Number(document.getElementById('actualCashInput').value) || 0;
+      const diff = actual - shiftSystemCash;
+      const txt = document.getElementById('handoverDiffText');
+      if (diff === 0) {
+        txt.style.color = 'var(--primary)';
+        txt.innerText = 'Khớp sổ (Chênh lệch: 0 đ)';
+      } else if (diff > 0) {
+        txt.style.color = '#2563eb';
+        txt.innerText = `Thừa két: +${diff.toLocaleString('vi-VN')} đ`;
+      } else {
+        txt.style.color = '#ef4444';
+        txt.innerText = `Thiếu két: ${diff.toLocaleString('vi-VN')} đ`;
+      }
+    }
+
+    function printHandoverReport() {
+      const win = window.open('', '_blank', 'width=380,height=600');
+      const actualCash = Number(document.getElementById('actualCashInput').value) || 0;
+      const courtRev = document.getElementById('shiftCourtRevenue').innerText;
+      const prodRev = document.getElementById('shiftProductRevenue').innerText;
+      const totalRev = document.getElementById('shiftTotalRevenue').innerText;
+      const cashRev = document.getElementById('shiftCashRevenue').innerText;
+      const tfRev = document.getElementById('shiftTransferRevenue').innerText;
+
+      const curUser = (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser()) || {};
+      const staffName = curUser.fullName || 'Nguyễn Thanh Tâm';
+      const staffTitle = curUser.roleTitle || 'Thu ngân POS';
+
+      win.document.write(`
+        <html><head><title>Biên Bản Bàn Giao Ca</title>
+        <style>body{font-family:'Courier New',monospace;padding:16px;line-height:1.4;font-size:12px;}.center{text-align:center;}.dash{border-bottom:1px dashed #000;margin:8px 0;}.row{display:flex;justify-content:space-between;}</style>
+        </head><body onload="window.print()">
+        <div class="center"><h3>UTE SPORT ARENA</h3><p>BIÊN BẢN BÀN GIAO CA THU NGÂN</p></div>
+        <div class="dash"></div>
+        <div>Thu ngân: <strong>${staffName} (${staffTitle})</strong></div>
+        <div>Thời gian in: ${new Date().toLocaleString('vi-VN')}</div>
+        <div class="dash"></div>
+        <div class="row"><span>Doanh thu giờ sân:</span><strong>${courtRev}</strong></div>
+        <div class="row"><span>Doanh thu dịch vụ:</span><strong>${prodRev}</strong></div>
+        <div class="row"><span>Tổng thu ca:</span><strong>${totalRev}</strong></div>
+        <div class="dash"></div>
+        <div class="row"><span>Tiền mặt sổ sách:</span><span>${cashRev}</span></div>
+        <div class="row"><span>Tiền mặt thực tế:</span><span>${actualCash.toLocaleString('vi-VN')} đ</span></div>
+        <div class="row"><span>VietQR chuyển khoản:</span><span>${tfRev}</span></div>
+        <div class="dash"></div>
+        <div class="center" style="margin-top:20px;"><p>Người lập biểu &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Người nhận bàn giao<br>(Ký & ghi rõ họ tên) &nbsp;&nbsp;&nbsp;&nbsp; (Ký & ghi rõ họ tên)</p></div>
+        </body></html>
+      `);
+      win.document.close();
+    }
+
+    async function confirmShiftHandover() {
+      const actualCash = Number(document.getElementById('actualCashInput').value) || 0;
+      const bFilter = document.getElementById('branchFilter');
+      const branch = bFilter ? bFilter.value : 'CN01';
+      const curUser = (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser()) || {};
+      const currentStaffCode = curUser.staffCode || (curUser.username === 'pos' ? 'NV-02' : 'NV-02');
+
+      let token = localStorage.getItem('jwt_token');
+      if (!token && document.cookie) {
+        const m = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+        if (m) {
+          token = m[1];
+          localStorage.setItem('jwt_token', token);
+        }
+      }
+
+      if (!token) {
+        showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại!', 'error');
+        setTimeout(() => { window.location.href = '/login?expired=true'; }, 1500);
+        return;
+      }
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/shifts/close', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            staffCode: currentStaffCode,
+            branchCode: branch,
+            actualCash: actualCash,
+            notes: 'Bàn giao ca trực cuối ca POS'
+          })
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          showToast('Phiên làm việc đã hết hạn hoặc bạn không có quyền thu ngân (403 Forbidden). Đang chuyển hướng đăng nhập...', 'error');
+          setTimeout(() => { window.location.href = '/login?expired=true'; }, 1500);
+          return;
+        }
+
+        const result = await res.json();
+        if (res.ok && result.success) {
+          const diffVal = Number(result.difference) || 0;
+          const diffText = diffVal === 0 ? 'Khớp sổ 100%' : (diffVal > 0 ? `Thừa két: +${diffVal.toLocaleString('vi-VN')} đ` : `Thiếu két: ${diffVal.toLocaleString('vi-VN')} đ`);
+          showToast(`Đã lưu biên bản kết ca [${result.handoverCode}] thành công! (${diffText})`, 'success');
+
+          setTimeout(() => {
+            const shouldLogout = confirm(`Đã kết ca thành công!\n- Mã biên bản: ${result.handoverCode}\n- Tình trạng quỹ: ${diffText}\n\nBạn có muốn ĐĂNG XUẤT tài khoản để bàn giao cho ca tiếp theo không?\n(Bấm OK để đăng xuất, bấm Cancel để ở lại quầy)`);
+            closeShiftHandoverModal();
+            if (shouldLogout) {
+              localStorage.removeItem('jwt_token');
+              localStorage.removeItem('utesport_user');
+              document.cookie = 'jwt_token=; path=/; max-age=0';
+              window.location.href = '/login';
+            }
+          }, 400);
+        } else {
+          showToast(result.message || 'Lỗi kết ca', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi gửi kết ca: ' + err.message, 'error');
+      }
+    }
+
+    // ==========================================
+    // COURT TRANSFER LOGIC (XL-06)
+    // ==========================================
+    let currentTransferBookingCode = 'DS0102';
+    let currentTransferSourcePrice = 90000;
+
+    function openTransferModal() {
+      const cust = document.getElementById('detailCustomer').innerText;
+      const court = document.getElementById('detailCourt').innerText;
+      const time = document.getElementById('detailTime').innerText;
+
+      document.getElementById('transferCustomerName').innerText = cust || 'Khách hàng';
+      document.getElementById('transferCurrentCourt').innerText = court || 'Sân hiện tại';
+      document.getElementById('transferNewTimeSlot').value = time || '18:00 - 19:00';
+
+      currentTransferBookingCode = (activeSlotCell && activeSlotCell.dataset.code) ? activeSlotCell.dataset.code : 'DS0102';
+      document.getElementById('transferBookingCode').innerText = currentTransferBookingCode;
+
+      currentTransferSourcePrice = (activeSlotCell && activeSlotCell.dataset.price) ? Number(activeSlotCell.dataset.price) : (court.includes('VIP') ? 120000 : 90000);
+
+      calculateTransferDiff();
+      closeDetailModal();
+      document.getElementById('transferCourtModal').classList.add('active');
+    }
+
+    function closeTransferModal() {
+      document.getElementById('transferCourtModal').classList.remove('active');
+    }
+
+    function calculateTransferDiff() {
+      const select = document.getElementById('transferTargetCourtSelect');
+      const opt = select.options[select.selectedIndex];
+      const targetPrice = Number(opt.dataset.price) || 90000;
+      const diff = targetPrice - currentTransferSourcePrice;
+      const diffEl = document.getElementById('transferDiffPrice');
+      const noteEl = document.getElementById('transferDiffNote');
+
+      if (diff > 0) {
+        diffEl.style.color = '#ef4444';
+        diffEl.innerText = `+${diff.toLocaleString('vi-VN')} đ/h (Khách bù thêm)`;
+        noteEl.innerText = 'Chuyển sang sân hạng cao hơn, số tiền chênh lệch sẽ được cộng vào hóa đơn thanh toán.';
+      } else if (diff < 0) {
+        diffEl.style.color = 'var(--primary)';
+        diffEl.innerText = `${diff.toLocaleString('vi-VN')} đ/h (Khách được giảm)`;
+        noteEl.innerText = 'Chuyển sang sân tiêu chuẩn, số tiền chênh lệch sẽ được khấu trừ vào hóa đơn thanh toán.';
+      } else {
+        diffEl.style.color = 'var(--text-dark)';
+        diffEl.innerText = '0 đ/h (Cùng hạng sân)';
+        noteEl.innerText = 'Hai sân cùng đơn giá, hóa đơn giữ nguyên giá trị.';
+      }
+    }
+
+    async function submitTransferCourt() {
+      const select = document.getElementById('transferTargetCourtSelect');
+      const targetCourtCode = select.value;
+      const targetCourtName = select.options[select.selectedIndex].text.split(' - ')[0];
+      const newTimeSlot = document.getElementById('transferNewTimeSlot').value;
+
+      try {
+        const res = await fetch(`/api/bookings/${currentTransferBookingCode}/transfer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetCourtCode: targetCourtCode,
+            newTimeSlot: newTimeSlot
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.lastActionBookingCode = currentTransferBookingCode;
+          showToast(`Chuyển sang [${targetCourtName}] thành công! Chênh lệch: ${Number(data.priceDifference || 0).toLocaleString('vi-VN')} đ`, 'success');
+          closeTransferModal();
+          await renderGridForDate(currentDateStr);
+        } else {
+          showToast(data.message || 'Lỗi chuyển sân', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối chuyển sân: ' + err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
