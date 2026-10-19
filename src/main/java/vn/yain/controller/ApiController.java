@@ -6,10 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.yain.dto.CourtEventDto;
 import vn.yain.entity.*;
 import vn.yain.repository.*;
 import vn.yain.security.JwtTokenProvider;
+import vn.yain.service.CloudinaryService;
 import vn.yain.service.CourtService;
 import vn.yain.service.PricingService;
 import vn.yain.service.UserService;
@@ -58,6 +60,12 @@ public class ApiController {
 
     @Autowired
     private TimeSlotRepository timeSlotRepository;
+
+    @Autowired(required = false)
+    private BookingRepository bookingRepository;
+
+    @Autowired(required = false)
+    private CloudinaryService cloudinaryService;
 
     private static final Map<String, Map<String, Object>> forgotPasswordOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -418,7 +426,36 @@ public class ApiController {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        return ResponseEntity.ok(Collections.emptyList());
+        List<Booking> bookings = new ArrayList<>();
+        if (bookingRepository != null) {
+            if (u.getPhone() != null && !u.getPhone().trim().isEmpty()) {
+                bookings = bookingRepository.findByCustomerPhoneOrderByBookingDateDesc(u.getPhone().trim());
+            }
+            if (bookings.isEmpty() && u.getFullName() != null) {
+                bookings = bookingRepository.findByCustomerNameContainingIgnoreCase(u.getFullName().trim());
+            }
+        }
+
+        return ResponseEntity.ok(bookings);
+    }
+
+    // ==========================================
+    // CLOUDINARY IMAGE UPLOAD (DAY 4 SCOPE)
+    // ==========================================
+    @PostMapping("/upload/image")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(value = "folder", defaultValue = "general") String folder) {
+        if (cloudinaryService == null) {
+            return ResponseEntity.status(503).body(Map.of("success", false, "message", "Dịch vụ Cloudinary chưa sẵn sàng!"));
+        }
+        try {
+            String url = cloudinaryService.uploadImage(file, folder);
+            return ResponseEntity.ok(Map.of("success", true, "url", url, "folder", folder));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Lỗi upload ảnh: " + e.getMessage()));
+        }
     }
 
     // ==========================================

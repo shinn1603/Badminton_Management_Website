@@ -137,4 +137,28 @@
   - Thọ sử dụng `PricingService` và danh mục trong `BookingService`.
 - **Điểm dừng:** Dừng ở phạm vi Ngày 3 theo đúng phân công, sẵn sàng chuyển giao.
 
+## Ngày 4 (20/10/2026) — Triết (AI-T)
+
+- **Nhánh làm việc:** `triet/day-04-image-uploads`
+- **Phạm vi được giao:** Phân hệ upload hình ảnh và lưu trữ đám mây (`CloudinaryService`); tích hợp REST API upload ảnh (`POST /api/upload/image`); hoàn thiện phân quyền Spring Security cho upload; cung cấp cấu hình mẫu dịch vụ ngoài trong `application.properties`; phối hợp dependencies cho Ngày 4 (`StockReceipt`, `StockReceiptRepository`).
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/service/CloudinaryService.java`: Dịch vụ tích hợp Cloudinary SDK (hỗ trợ upload multipart file vào thư mục chỉ định, fallback an toàn cho môi trường test/dev, xóa tài nguyên ảnh qua public ID).
+  - `src/main/java/vn/yain/controller/ApiController.java`: Bổ sung endpoint `POST /api/upload/image`, nhận tệp `MultipartFile` và tham số thư mục (`folder`), trả về JSON chứa secure URL trên CDN Cloudinary; liên kết `BookingRepository` vào các phương thức `getMyBookings` và `getCustomerProfile`.
+  - `src/main/java/vn/yain/security/SecurityConfig.java`: Mở quyền truy cập `permitAll()` cho các endpoint `/api/upload/**` phục vụ tải ảnh từ giao diện.
+  - `src/main/java/vn/yain/entity/StockReceipt.java`: Entity phiếu nhập kho (mã phiếu, chi nhánh, nhân viên, nhà cung cấp, tổng tiền, ghi chú) - dependency nền tảng cho `WarehouseService`.
+  - `src/main/java/vn/yain/repository/StockReceiptRepository.java`: JPA repository hỗ trợ tra cứu phiếu nhập theo chi nhánh và mã phiếu.
+  - `src/test/java/vn/yain/service/CloudinaryServiceTest.java`: Bộ 3 unit tests kiểm thử tải ảnh lên Cloudinary, xử lý tệp rỗng/null và xóa ảnh.
+  - `src/test/java/vn/yain/controller/UploadApiTest.java`: Bộ 2 integration tests kiểm tra upload API qua `MockMvc`, xác thực phản hồi JSON URL và xử lý lỗi tệp rỗng (400 Bad Request).
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 4 của Triết.
+- **Chức năng đã xong:**
+  - Hoàn thiện toàn bộ hạ tầng tải ảnh đám mây qua Cloudinary, phục vụ tải ảnh sân, sản phẩm, và avatar hội viên.
+  - Tích hợp endpoint REST API `/api/upload/image` hoạt động chuẩn xác, có xử lý lỗi và fallback mock URL.
+  - Giải quyết dứt điểm lỗi thiếu dependency `StockReceipt`/`StockReceiptRepository` giúp toàn bộ ứng dụng compile và pass toàn bộ test suite.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ 44/44 unit và integration tests PASSED (100%), build thành công (`BUILD SUCCESS`).
+- **Điểm chưa xác minh:**
+  - Tải ảnh lên tài khoản Cloudinary thực tế phụ thuộc vào việc cấu hình biến môi trường `CLOUDINARY_API_KEY` và `CLOUDINARY_API_SECRET`. Mặc định hệ thống tự động fallback URL mô phỏng an toàn khi chưa cung cấp khóa bí mật.
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 4 của Triết. Sẵn sàng cho Ngày 5 (quản trị người dùng & phân quyền nâng cao `admin/users`, `admin/permissions`).
+
+
 
