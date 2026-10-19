@@ -116,6 +116,25 @@
   - Lịch sử đặt sân chi tiết trong tab "Lịch sử tích điểm" sẽ hiển thị đầy đủ ngay khi PR của Thọ (Ngày 3 - `BookingService` & `BookingRepository`) được merge vào nhánh `main`.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 cho Triết. Sẵn sàng phối hợp kiểm tra tích hợp khi Thọ và Đạt hoàn tất PR Ngày 3.
 
+## Ngày 4 (20/10/2026) — Đạt (AI-D)
 
+- **Nhánh làm việc:** `dat/day-04-inventory`
+- **Phạm vi được giao:** Triển khai WarehouseService, tạo phiếu nhập kho (StockReceipt), cập nhật tồn kho tự động khi nhập và trừ kho khi bán lẻ dịch vụ tại sân.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/entity/StockReceipt.java`: Thực thể phiếu nhập kho, liên kết mã sản phẩm, chi nhánh và giá nhập.
+  - `src/main/java/vn/yain/repository/StockReceiptRepository.java`: Repository lưu trữ và tra cứu phiếu nhập theo chi nhánh/thời gian.
+  - `src/main/java/vn/yain/service/WarehouseService.java`: Bổ sung hàm tạo phiếu nhập (tự động cộng tồn kho) và hàm xuất kho (trừ tồn kho khi POS gọi dịch vụ).
+  - Soạn Patch API phiếu nhập và xuất kho gửi Triết đưa vào `ApiController.java`.
+- **Chức năng đã xong:**
+  - Quy trình nhập kho qua phiếu nhập (`createStockReceipt`) đồng bộ số lượng tồn và giá vốn của `Product`.
+  - Cung cấp hàm `deductStockForSale` phục vụ Thọ trừ tồn kho khi thu ngân gọi dịch vụ trên lưới POS.
+- **Kiểm tra đã chạy và kết quả:**
+  - Build Maven compile thành công, kiểm tra ràng buộc số lượng tồn không bị âm khi trừ kho vượt mức.
+- **Điểm chưa xác minh:**
+  - Giao diện `manager/receipts.html` và `manager/inventory.html` sẽ được kết nối dữ liệu hoàn chỉnh khi Triết tích hợp patch API vào controller.
+- **Phần cần người khác tích hợp:**
+  - Triết: Gộp patch API `/api/receipts` và `/api/inventory/deduct` vào `ApiController.java`.
+  - Thọ: Gọi `warehouseService.deductStockForSale` khi xuất hóa đơn dịch vụ POS.
+- **Điểm dừng:** Hoàn thành phạm vi Ngày 4. Không tự ý sang phần phân ca hoặc duyệt giá của Ngày 5.
 
 
