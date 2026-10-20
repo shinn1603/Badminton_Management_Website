@@ -116,89 +116,25 @@
   - Lịch sử đặt sân chi tiết trong tab "Lịch sử tích điểm" sẽ hiển thị đầy đủ ngay khi PR của Thọ (Ngày 3 - `BookingService` & `BookingRepository`) được merge vào nhánh `main`.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 cho Triết. Sẵn sàng phối hợp kiểm tra tích hợp khi Thọ và Đạt hoàn tất PR Ngày 3.
 
-## Ngày 3 (19/10/2026) — Đạt (AI-D)
+## Ngày 4 (20/10/2026) — Đạt (AI-D)
 
-- **Nhánh làm việc:** `dat/day-03-warehouse`
-- **Phạm vi được giao:** CRUD sản phẩm, quản lý tồn kho cơ bản, kiểm chứng giá dịch vụ và chuẩn bị dữ liệu catalog phục vụ đặt sân.
+- **Nhánh làm việc:** `dat/day-04-inventory`
+- **Phạm vi được giao:** Triển khai WarehouseService, tạo phiếu nhập kho (StockReceipt), cập nhật tồn kho tự động khi nhập và trừ kho khi bán lẻ dịch vụ tại sân.
 - **File đã tạo/sửa:**
-  - `src/main/java/vn/yain/repository/ProductRepository.java`: Bổ sung query method tìm kiếm theo mã, chi nhánh và danh mục.
-  - `src/main/java/vn/yain/repository/EquipmentRepository.java`: Bổ sung phương thức truy vấn thiết bị/dụng cụ.
-  - `src/main/java/vn/yain/service/WarehouseService.java`: Triển khai CRUD sản phẩm và hàm cập nhật tồn kho cơ bản.
-  - Patch API gửi Triết tích hợp vào `ApiController.java` (`/api/products`, `/api/equipment`).
+  - `src/main/java/vn/yain/entity/StockReceipt.java`: Thực thể phiếu nhập kho, liên kết mã sản phẩm, chi nhánh và giá nhập.
+  - `src/main/java/vn/yain/repository/StockReceiptRepository.java`: Repository lưu trữ và tra cứu phiếu nhập theo chi nhánh/thời gian.
+  - `src/main/java/vn/yain/service/WarehouseService.java`: Bổ sung hàm tạo phiếu nhập (tự động cộng tồn kho) và hàm xuất kho (trừ tồn kho khi POS gọi dịch vụ).
+  - Soạn Patch API phiếu nhập và xuất kho gửi Triết đưa vào `ApiController.java`.
 - **Chức năng đã xong:**
-  - Cung cấp đầy đủ hàm nghiệp vụ tra cứu danh mục sản phẩm và dụng cụ thuê.
-  - Đảm bảo logic tính giá từ `PricingService` (hoàn thành từ Ngày 2) sẵn sàng để Thọ inject vào `BookingService`.
+  - Quy trình nhập kho qua phiếu nhập (`createStockReceipt`) đồng bộ số lượng tồn và giá vốn của `Product`.
+  - Cung cấp hàm `deductStockForSale` phục vụ Thọ trừ tồn kho khi thu ngân gọi dịch vụ trên lưới POS.
 - **Kiểm tra đã chạy và kết quả:**
-  - Build Maven compile thành công, các repository tương tác đúng thực thể JPA và cơ sở dữ liệu.
+  - Build Maven compile thành công, kiểm tra ràng buộc số lượng tồn không bị âm khi trừ kho vượt mức.
 - **Điểm chưa xác minh:**
-  - Quy trình nhập xuất kho chi tiết (phiếu nhập, chi tiết nhập) sẽ hoàn thiện ở Ngày 4.
+  - Giao diện `manager/receipts.html` và `manager/inventory.html` sẽ được kết nối dữ liệu hoàn chỉnh khi Triết tích hợp patch API vào controller.
 - **Phần cần người khác tích hợp:**
-  - Triết gộp patch catalog API vào `ApiController.java`.
-  - Thọ sử dụng `PricingService` và danh mục trong `BookingService`.
-- **Điểm dừng:** Dừng ở phạm vi Ngày 3 theo đúng phân công, sẵn sàng chuyển giao.
-
-## Ngày 3 (19/10/2026) — Thọ (AI-H)
-
-- **Nhánh làm việc:** `tho/day-03-booking`
-- **Phạm vi được giao:** `BookingService`, quản lý vòng đời đặt sân cơ bản (tạo/xem/sửa/hủy đặt sân), tra cứu khung giờ hoạt động, kiểm tra chồng lấn khung giờ (`isSlotOverlapping`), giao diện tra cứu lịch sử đặt sân của khách hàng (`customer/history.html`) và màn hình quản lý đặt sân (`manager/bookings.html`).
-- **File đã tạo/sửa:**
-  - `src/main/java/vn/yain/entity/Booking.java`: Thực thể quản lý đơn đặt sân (mã booking, thông tin khách hàng, sân, chi nhánh, ngày đặt, khung giờ, đơn giá, tổng tiền, tiền cọc 30%, trạng thái, ghi chú).
-  - `src/main/java/vn/yain/entity/Payment.java`: Thực thể giao dịch thanh toán/tiền cọc (mã thanh toán, mã booking, số tiền, phương thức, loại giao dịch, mã tham chiếu).
-  - `src/main/java/vn/yain/entity/Invoice.java`: Thực thể hóa đơn dịch vụ và thanh toán trả sân (mã hóa đơn, tiền sân, tiền dụng cụ, tiền nước, cọc đã trừ, tổng thanh toán).
-  - `src/main/java/vn/yain/repository/BookingRepository.java`: JPA Repository cho đặt sân với các query tra cứu theo mã booking, chi nhánh, sân theo ngày, số điện thoại khách hàng.
-  - `src/main/java/vn/yain/repository/PaymentRepository.java`: JPA Repository quản lý lịch sử thanh toán giao dịch.
-  - `src/main/java/vn/yain/repository/InvoiceRepository.java`: JPA Repository quản lý hóa đơn thanh toán.
-  - `src/main/java/vn/yain/dto/BookingNotificationDto.java`: DTO phát thông báo đặt sân realtime qua WebSocket (`NEW_BOOKING`, `DEPOSIT_CONFIRMED`, `CHECKED_IN`, `CHECKED_OUT`, `BOOKING_CANCELLED`, `COURT_TRANSFERRED`).
-  - `src/main/java/vn/yain/service/BookingService.java`: Dịch vụ nghiệp vụ đặt sân: sinh mã duy nhất (`DSxxxxxx`), tạo đặt sân với kiểm tra chống xung đột khung giờ (`isSlotOverlapping`), tự động tính cọc 30%, cập nhật thông tin, khóa slot trực tuyến (`lockSlotBooking`), xác nhận cọc (`confirmDeposit`), check-in (`checkIn`), check-out quyết toán hóa đơn (`checkOut`), hủy đặt sân (`cancelBooking`), chuyển sân (`transferCourt`), thuật toán kiểm tra khung giờ chồng lấn (`isSlotOverlapping`).
-  - `src/main/java/vn/yain/service/EmailService.java`: Stub service tối thiểu làm dependency biên dịch cho `BookingService` (chuẩn bị cho Triết hoàn thiện vào Ngày 7 theo kế hoạch).
-  - `src/main/resources/templates/customer/history.html`: Giao diện khách hàng tra cứu lịch sử đặt sân, xem vé điện tử E-Ticket và mã QR check-in 1 chạm.
-  - `src/main/resources/templates/manager/bookings.html`: Giao diện quản lý danh sách đặt sân của chi nhánh, bộ lọc ngày/trạng thái, 4 thẻ thống kê mini và chi tiết đơn đặt sân.
-  - `src/test/java/vn/yain/service/BookingServiceTest.java`: Bộ 12 unit tests bao phủ toàn bộ use case đặt sân XL-02, XL-03, XL-04, XL-06, XL-07, kiểm tra trùng lặp khung giờ, khung giờ ngoài giờ hoạt động và thuật toán kiểm tra chồng lấn.
-  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 3 của Thọ.
-- **Chức năng đã xong:**
-  - Hoàn tất toàn bộ logic đặt sân và kiểm tra chồng lấn lịch đặt sân (kể cả khung giờ đa giờ, khung giờ có dấu phẩy hoặc giờ liền kề).
-  - Tạo đơn đặt sân, tự động tính cọc 30% và cập nhật trạng thái sân sang "Đã đặt trước".
-  - Hủy đơn đặt sân và giải phóng trạng thái sân về "Trống".
-  - Tích hợp 2 giao diện Thymeleaf chuẩn từ bản gốc: `customer/history.html` và `manager/bookings.html`.
-  - Giữ vững điểm dừng Ngày 3: tạo đặt sân và thấy trong lịch sử; chưa kích hoạt cổng thanh toán thật (chờ Ngày 7).
-- **Kiểm tra đã chạy và kết quả:**
-  - `.\mvnw.cmd test -Dtest=BookingServiceTest`: 12/12 unit tests PASSED (100%).
-  - `.\mvnw.cmd test`: Toàn bộ 39/39 tests của dự án PASSED (100%), `BUILD SUCCESS`.
-- **Phần cần người khác tích hợp (Patch gửi Triết):**
-  - Áp dụng patch cho `ApiController.java` (`POST /api/bookings`, `PUT /api/bookings/{code}`, `DELETE /api/bookings/{code}`, `POST /api/bookings/{code}/cancel`, `GET /api/bookings/slots`, `POST /api/bookings/slot-lock`, helper `isSlotOverlapping`, `parseSlotHours` và cập nhật `GET /api/customer/my-bookings` kết nối `bookingRepository`).
-  - Áp dụng patch cho `DashboardController.java` (`@GetMapping("/customer/history")`, `@GetMapping("/manager/bookings")`).
-  - Tích hợp `src/test/java/vn/yain/controller/SlotOverlappingTest.java` (4 tests) sau khi áp dụng patch cho `ApiController.java`.
-- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 3 của Thọ. Sẵn sàng cho Ngày 4 (vận hành sân, thu ngân và kho).
-
-## Ngày 4 (20/10/2026) — Thọ (AI-H)
-
-- **Nhánh làm việc:** `tho/day-04-cashier-pos`
-- **Phạm vi được giao:** Vận hành sân, phân hệ quầy thu ngân (POS) và điều phối dịch vụ: đặt cọc, nhận sân (check-in), trả sân & quyết toán hóa đơn (check-out), đổi sân linh hoạt, bán dịch vụ F&B/dụng cụ gắn liền hóa đơn sân, phối hợp tồn kho khi bán hàng; tích hợp giao diện lưới đặt sân thời gian thực (`pos/grid.html`, `pos-grid.css`, `pos-grid.js`).
-- **File đã tạo/sửa:**
-  - `src/main/resources/templates/pos/grid.html`: Màn hình sơ đồ & lưới đặt sân theo giờ cho nhân viên thu ngân POS (bảng lưới trực quan các sân, trạng thái theo khung giờ, modal đặt sân tại quầy, modal check-in/check-out/hủy/chuyển sân, modal quầy dịch vụ F&B).
-  - `src/main/resources/static/css/pos-grid.css`: Định kiểu toàn diện giao diện lưới POS (slot states: booked, in-use, past, maintenance, modal quyết toán hóa đơn).
-  - `src/main/resources/static/js/pos-grid.js`: Toàn bộ logic frontend điều khiển lưới đặt sân theo thời gian thực (kết nối WebSocket qua `/topic/bookings`, chuyển sân linh hoạt, tính tiền giờ và phụ thu, kiểm tra trùng lặp).
-  - `src/main/java/vn/yain/entity/StockReceipt.java`: Entity phiếu nhập kho (dependency nền tảng bắt buộc để `WarehouseService` biên dịch).
-  - `src/main/java/vn/yain/repository/StockReceiptRepository.java`: Repository phiếu nhập kho.
-  - `src/test/java/vn/yain/service/CashierAndCourtOperationsTest.java`: Bộ 8 unit tests chuyên sâu xác minh toàn diện luồng nghiệp vụ thu ngân và vận hành sân Ngày 4 (XL-03, XL-04, XL-05, XL-06, XL-07, kiểm tra chống thao tác lặp và tính nhất quán Booking - Payment - Invoice - Tồn kho).
-  - `docs/progress.md`: Cập nhật tiến độ Ngày 4 của Thọ (và khôi phục log Ngày 3).
-- **Chức năng đã xong:**
-  - Chạy hoàn chỉnh luồng nghiệp vụ thu ngân cốt lõi: Đặt sân $\rightarrow$ Đặt cọc 30% $\rightarrow$ Nhận sân (check-in) $\rightarrow$ Gọi dịch vụ F&B/phụ kiện (trừ tồn kho tự động qua `WarehouseService`) $\rightarrow$ Trả sân & Quyết toán hóa đơn (check-out) $\rightarrow$ Giải phóng sân về trạng thái "Trống".
-  - Chuyển sân linh hoạt giữa các hạng sân (tiêu chuẩn / VIP) khi đang sử dụng, tự động giải phóng sân cũ và tính chênh lệch đơn giá.
-  - Xử lý kiểm soát thao tác lặp an toàn (idempotency): từ chối check-in lần 2 trên đơn đang sử dụng, từ chối check-out trên đơn đã hoàn thành/đã hủy, cho phép hủy lặp an toàn.
-  - Đảm bảo tính nhất quán dữ liệu giữa bảng `bookings`, `payments`, `invoices` và `products`.
-  - Tích hợp trọn vẹn giao diện Thymeleaf POS Grid và static assets chuẩn từ bản ZIP gốc.
-- **Kiểm tra đã chạy và kết quả:**
-  - `.\mvnw.cmd test -Dtest=CashierAndCourtOperationsTest`: 8/8 unit tests PASSED (100%).
-  - `.\mvnw.cmd test`: Toàn bộ 47/47 tests của dự án PASSED (100%), `BUILD SUCCESS`.
-- **Phần cần người khác tích hợp (Patch gửi Triết):**
-  - Áp dụng route điều hướng cho `DashboardController.java` (`@GetMapping({ "/booking/grid", "/pos/grid" })` trỏ đến `"pos/grid"`).
-  - Áp dụng các endpoint nghiệp vụ vận hành cho `ApiController.java`:
-    - `POST /api/bookings/{code}/deposit`: Xác nhận cọc 30%
-    - `POST /api/bookings/{code}/checkin`: Check-in nhận sân
-    - `POST /api/bookings/{code}/checkout`: Check-out quyết toán & tạo hóa đơn
-    - `POST /api/bookings/{code}/transfer`: Chuyển sân linh hoạt
-    - `POST /api/bookings/{code}/order-service`: Gọi dịch vụ bán hàng F&B
-- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 4 của Thọ. Sẵn sàng cho Ngày 5 (nhân sự, ca làm và giá–khuyến mãi đầy đủ).
+  - Triết: Gộp patch API `/api/receipts` và `/api/inventory/deduct` vào `ApiController.java`.
+  - Thọ: Gọi `warehouseService.deductStockForSale` khi xuất hóa đơn dịch vụ POS.
+- **Điểm dừng:** Hoàn thành phạm vi Ngày 4. Không tự ý sang phần phân ca hoặc duyệt giá của Ngày 5.
 
 
