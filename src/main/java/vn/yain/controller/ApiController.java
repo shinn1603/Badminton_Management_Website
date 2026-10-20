@@ -17,6 +17,7 @@ import vn.yain.service.PricingService;
 import vn.yain.service.UserService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,6 +67,9 @@ public class ApiController {
 
     @Autowired(required = false)
     private CloudinaryService cloudinaryService;
+
+    @Autowired(required = false)
+    private AuditLogRepository auditLogRepository;
 
     private static final Map<String, Map<String, Object>> forgotPasswordOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -581,5 +585,88 @@ public class ApiController {
         res.put("activePromotions", Collections.emptyList());
 
         return ResponseEntity.ok(res);
+    }
+
+    // ==========================================
+    // 5. ADMIN USER MANAGEMENT & PERMISSIONS (DAY 5 SCOPE)
+    // ==========================================
+
+    @GetMapping("/admin/users")
+    public List<User> getAdminUsers() {
+        return userService.getAllUsers();
+    }
+
+    @PostMapping("/admin/users")
+    public ResponseEntity<?> saveAdminUser(@RequestBody Map<String, String> payload) {
+        try {
+            User u = userService.saveOrUpdateUser(payload);
+            return ResponseEntity.ok(Map.of("success", true, "user", u));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/admin/users/{username}/toggle-status")
+    public ResponseEntity<?> toggleAdminUserStatus(@PathVariable String username) {
+        try {
+            User u = userService.toggleUserStatus(username);
+            return ResponseEntity.ok(Map.of("success", true, "status", u.getStatus()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/admin/permissions")
+    public ResponseEntity<?> getAdminPermissions() {
+        try {
+            List<User> users = userRepository.findAll();
+            List<Branch> branches = branchRepository.findAll();
+            return ResponseEntity.ok(Map.of("success", true, "users", users, "branches", branches));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/admin/permissions")
+    public ResponseEntity<?> updateAdminPermissions(@RequestBody List<Map<String, String>> updates) {
+        try {
+            int count = 0;
+            StringBuilder desc = new StringBuilder("Cập nhật phân quyền chi nhánh cho: ");
+            for (Map<String, String> item : updates) {
+                String username = item.get("username");
+                String branchCode = item.get("branchCode");
+                if (username != null && branchCode != null) {
+                    Optional<User> uOpt = userRepository.findByUsername(username.trim());
+                    if (uOpt.isPresent()) {
+                        User u = uOpt.get();
+                        u.setBranchCode(branchCode.trim());
+                        userRepository.save(u);
+                        count++;
+                        desc.append(username).append(" -> ").append(branchCode).append("; ");
+                    }
+                }
+            }
+
+            if (auditLogRepository != null) {
+                try {
+                    AuditLog auditLog = new AuditLog();
+                    auditLog.setUsername("admin");
+                    auditLog.setActionType("Cập nhật ma trận phân quyền chi nhánh");
+                    auditLog.setDetails(desc.length() > 250 ? desc.substring(0, 247) + "..." : desc.toString());
+                    auditLog.setModule("Phân hệ Quản trị");
+                    auditLog.setStatus("Thành công");
+                    auditLog.setActionTime(LocalDateTime.now());
+                    auditLogRepository.save(auditLog);
+                } catch (Exception ex) {
+                    log.warn("Không thể ghi audit log: {}", ex.getMessage());
+                }
+            }
+
+            return ResponseEntity.ok(Map.of("success", true, "updatedCount", count));
+        } catch (Exception e) {
+            log.error("Lỗi cập nhật phân quyền:", e);
+            String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi: " + msg));
+        }
     }
 }

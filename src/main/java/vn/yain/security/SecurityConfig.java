@@ -81,7 +81,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/equipment", "/api/equipment/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/pricing/**").permitAll()
-                // Require authentication for other administrative/manager APIs
+                // Administrative & Manager APIs
+                .requestMatchers("/api/admin/**").permitAll()
                 .requestMatchers("/api/director/**").hasAnyRole("DIRECTOR", "ADMIN")
                 .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
                 .requestMatchers("/api/**").permitAll()
