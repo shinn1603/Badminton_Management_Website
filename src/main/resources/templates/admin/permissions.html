@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phân quyền phạm vi dữ liệu theo chi nhánh - UTE Sport</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <div class="layout-container">
+    <aside class="sidebar" id="appSidebar">
+      <div class="brand-header">
+        <div class="brand-logo-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>UTE SPORT</h2>
+          <span>QUẢN TRỊ HỆ THỐNG</span>
+        </div>
+      </div>
+
+      <div class="sidebar-content" id="sidebarContent">
+
+
+        <a href="/admin/users" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span class="menu-text">Tài khoản & Phân quyền</span>
+        </a>
+
+        <a href="/admin/permissions" class="menu-item active">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span class="menu-text">Phạm vi dữ liệu chi nhánh</span>
+        </a>
+
+        <a href="/admin/settings" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span class="menu-text">Cấu hình thông số</span>
+        </a>
+
+        <a href="/admin/logs" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span class="menu-text">Nhật ký hoạt động</span>
+        </a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-avatar" id="sidebarAvatar">AD</div>
+        <div class="user-meta">
+          <span class="user-name" id="sidebarName">Trần Biểu Hương</span>
+          <span class="user-title" id="sidebarTitle">Quản trị hệ thống</span>
+        </div>
+        <a href="/login" style="margin-left: auto; color: #94a3b8;" title="Đăng xuất">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-wrapper">
+      <header class="header-bar">
+        <div class="header-left">
+          <button class="btn-sidebar-toggle" onclick="toggleSidebar()" title="Thu gọn / Mở rộng">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="header-heading">
+            <h1>Phân quyền phạm vi dữ liệu theo chi nhánh</h1>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng / Tối" style="padding: 6px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; margin-right: 6px;">
+            <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+          <button class="btn btn-primary" onclick="savePermissions()">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Lưu phân quyền</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="main-content">
+        <!-- LUXURY HERO BANNER -->
+        <div class="hero-banner" style="margin-bottom: 24px;">
+          <div class="hero-banner-content">
+            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
+              <span style="display: inline-block; width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span>
+              Ma Trận Phân Quyền & Phạm Vi Dữ Liệu
+            </div>
+            <h1 class="hero-title" style="margin-bottom: 8px;">Phân Quyền Truy Cập & Giới Hạn Chi Nhánh</h1>
+            <p class="hero-subtitle" style="margin-bottom: 0;">Thiết lập ma trận phân quyền chi tiết cho Ban giám đốc, Quản lý chi nhánh, Thu ngân POS và Kỹ thuật viên</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2 class="card-title">Ma trận gán quyền truy cập chi nhánh</h2>
+              <div id="permStatusLabel" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                Đang nạp dữ liệu chi nhánh và nhân sự trực tiếp từ CSDL SQL Server...
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div class="search-box" style="margin: 0; min-width: 260px;">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--text-muted); width: 14px; height: 14px;">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" placeholder="Tìm tên nhân sự, tài khoản..." id="permSearchInput" onkeyup="filterPermissionsTable()">
+              </div>
+              <button type="button" class="btn btn-primary" onclick="savePermissions()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--primary, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                <span>Lưu tất cả thay đổi</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead id="permissionsTableHeader">
+                <!-- Dynamically populated from SQL Server branches table -->
+              </thead>
+              <tbody id="permissionsTableBody">
+                <!-- Dynamically loaded from /api/admin/permissions -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) sidebar.classList.toggle('collapsed');
+    }
+
+    let userPermissions = [];
+    let systemBranches = [];
+
+    const ROLE_TITLES = {
+      DIRECTOR: { label: 'Giám đốc chuỗi', badgeStyle: 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;', desc: 'Toàn quyền điều hành chuỗi sân, duyệt giá & giải đấu' },
+      ADMIN: { label: 'Quản trị hệ thống', badgeStyle: 'background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;', desc: 'Quản trị tài khoản, an toàn dữ liệu và sao lưu hệ thống' },
+      MANAGER: { label: 'Quản lý chi nhánh', badgeStyle: 'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;', desc: 'Quản lý sân, kho vật tư và duyệt báo cáo chi nhánh' },
+      POS: { label: 'Thu ngân POS', badgeStyle: 'background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;', desc: 'Đặt sân quầy POS, thu cọc và in hóa đơn tại quầy' },
+      CUSTOMER: { label: 'Khách hàng', badgeStyle: 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;', desc: 'Đặt sân trực tuyến & xem thông tin giải đấu' }
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    async function loadPermissionsData() {
+      try {
+        const token = localStorage.getItem('jwt_token');
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/admin/permissions', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.branches && Array.isArray(data.branches)) {
+            systemBranches = data.branches;
+          }
+          if (data.users && Array.isArray(data.users)) {
+            userPermissions = data.users.filter(u => u.role !== 'CUSTOMER');
+            if (userPermissions.length === 0) userPermissions = data.users;
+          }
+
+          renderPermissionsHeaders(systemBranches);
+          renderPermissionsTable(userPermissions, systemBranches);
+
+          const statusEl = document.getElementById('permStatusLabel');
+          if (statusEl) {
+            statusEl.innerText = `Đã đồng bộ ${userPermissions.length} nhân sự & ${systemBranches.length} chi nhánh trực tiếp từ CSDL SQL Server`;
+          }
+          return;
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải dữ liệu phân quyền từ CSDL SQL Server:', e);
+      }
+
+      userPermissions = [];
+      systemBranches = [];
+      renderPermissionsHeaders(systemBranches);
+      renderPermissionsTable(userPermissions, systemBranches);
+    }
+
+    function renderPermissionsHeaders(branches) {
+      const thead = document.getElementById('permissionsTableHeader');
+      if (!thead) return;
+
+      let branchHeaders = '';
+      if (branches && branches.length > 0) {
+        branchHeaders = branches.map(b => {
+          const shortName = (b.branchName || '')
+            .replace(/^Chi nhánh \d+\s*-\s*Sân Cầu Lông\s*/i, '')
+            .replace(/^Chi nhánh \d+\s*-\s*/i, '');
+          return `
+            <th style="text-align: center; white-space: nowrap;">
+              <div>${escapeHtml(b.branchCode)}</div>
+              <div style="font-size: 10.5px; font-weight: normal; color: var(--text-muted);">${escapeHtml(shortName || b.branchCode)}</div>
+            </th>
+          `;
+        }).join('');
+      }
+
+      thead.innerHTML = `
+        <tr>
+          <th>Nhân sự & Tài khoản</th>
+          <th>Vai trò chức danh</th>
+          <th style="text-align: center; white-space: nowrap;">
+            <div>Toàn chuỗi (ALL)</div>
+            <div style="font-size: 10.5px; font-weight: normal; color: var(--text-muted);">Không giới hạn</div>
+          </th>
+          ${branchHeaders}
+          <th>Quyền hạn tác nghiệp</th>
+        </tr>
+      `;
+    }
+
+    function renderPermissionsTable(users, branches) {
+      const tbody = document.getElementById('permissionsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const colSpan = 3 + (branches ? branches.length : 0) + 1;
+      if (!users || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy dữ liệu nhân sự trong cơ sở dữ liệu SQL Server.</td></tr>`;
+        return;
+      }
+
+      users.forEach(u => {
+        const roleMeta = ROLE_TITLES[u.role] || {
+          label: u.role,
+          badgeStyle: 'background: #eff6ff; color: #1d4ed8;',
+          desc: 'Tác vụ phân hệ theo chức năng'
+        };
+        const curBranch = u.branchCode || 'ALL';
+        const isSuper = (u.role === 'DIRECTOR' || u.role === 'ADMIN');
+        const codeDisplay = u.staffCode ? ` • ID: ${u.staffCode}` : '';
+
+        let branchCells = '';
+        if (branches && branches.length > 0) {
+          branchCells = branches.map(b => {
+            const isChecked = curBranch === b.branchCode;
+            return `
+              <td style="text-align: center;">
+                <input type="radio" 
+                       name="scope_${escapeHtml(u.username)}" 
+                       value="${escapeHtml(b.branchCode)}" 
+                       ${isChecked ? 'checked' : ''} 
+                       ${isSuper ? 'disabled' : ''} 
+                       onchange="updateUserScopeLive('${escapeHtml(u.username)}', '${escapeHtml(b.branchCode)}', '${escapeHtml(b.branchName)}')"
+                       style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;"
+                       title="Gán quyền cho ${escapeHtml(u.fullName || u.username)} tại ${escapeHtml(b.branchName)}">
+              </td>
+            `;
+          }).join('');
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight: 600; color: var(--text-dark);">${escapeHtml(u.fullName || u.username)}</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${escapeHtml(u.username)}${escapeHtml(codeDisplay)}</div>
+          </td>
+          <td>
+            <span class="badge" style="${roleMeta.badgeStyle}">${roleMeta.label}</span>
+          </td>
+          <td style="text-align: center;">
+            <input type="radio" 
+                   name="scope_${escapeHtml(u.username)}" 
+                   value="ALL" 
+                   ${curBranch === 'ALL' ? 'checked' : ''} 
+                   ${isSuper ? 'disabled checked' : ''} 
+                   onchange="updateUserScopeLive('${escapeHtml(u.username)}', 'ALL', 'Toàn chuỗi')"
+                   style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;"
+                   title="Gán quyền quản lý toàn chuỗi">
+          </td>
+          ${branchCells}
+          <td style="font-size: 12px; color: var(--text-muted);">${roleMeta.desc}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateUserScopeLive(username, branchCode, branchTitle) {
+      // Auto-save instantly into SQL Server database on click
+      const u = userPermissions.find(item => item.username === username);
+      if (u) u.branchCode = branchCode;
+
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/admin/permissions', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify([{ username, branchCode }])
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (window.showToast) showToast(`Đã cập nhật phạm vi "${username}" -> ${branchCode} (${branchTitle}) vào CSDL!`, 'success');
+        } else {
+          if (window.showToast) showToast(data.message || 'Lỗi khi lưu phân quyền', 'error');
+        }
+      } catch (err) {
+        console.error('Lỗi lưu phân quyền:', err);
+      }
+    }
+
+    async function savePermissions() {
+      const updates = [];
+      userPermissions.forEach(u => {
+        if (u.role === 'DIRECTOR' || u.role === 'ADMIN') {
+          updates.push({ username: u.username, branchCode: 'ALL' });
+        } else {
+          const selected = document.querySelector(`input[name="scope_${CSS.escape(u.username)}"]:checked`);
+          if (selected) {
+            updates.push({ username: u.username, branchCode: selected.value });
+          }
+        }
+      });
+
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/admin/permissions', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(updates)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (window.showToast) showToast(`Đã lưu thành công ${data.updatedCount || updates.length} phân quyền nhân sự vào CSDL SQL Server!`, 'success');
+          await loadPermissionsData();
+        } else {
+          if (window.showToast) showToast(data.message || 'Lỗi khi lưu phân quyền', 'error');
+        }
+      } catch (err) {
+        console.error('Lỗi khi lưu phân quyền:', err);
+        if (window.showToast) showToast('Đã ghi nhận cấu hình phân quyền chi nhánh', 'info');
+      }
+    }
+
+    function filterPermissionsTable() {
+      const q = (document.getElementById('permSearchInput')?.value || '').toLowerCase().trim();
+      const rows = document.querySelectorAll('#permissionsTableBody tr');
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        r.style.display = (!q || text.includes(q)) ? '' : 'none';
+      });
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    document.addEventListener('DOMContentLoaded', loadPermissionsData);
+  </script>
+  <script src="/js/global-hub.js"></script>
+</body>
+</html>
+
+
+

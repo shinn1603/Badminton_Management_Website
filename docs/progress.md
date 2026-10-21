@@ -137,4 +137,30 @@
   - Thọ: Gọi `warehouseService.deductStockForSale` khi xuất hóa đơn dịch vụ POS.
 - **Điểm dừng:** Hoàn thành phạm vi Ngày 4. Không tự ý sang phần phân ca hoặc duyệt giá của Ngày 5.
 
+## Ngày 5 (21/10/2026) — Triết (AI-T)
+
+- **Nhánh làm việc:** `triet/day-05-user-admin`
+- **Phạm vi được giao:** Màn hình quản trị users và permissions; kiểm tra quyền giữa các vai trò theo code gốc; tích hợp API quản lý tài khoản và phạm vi dữ liệu chi nhánh (`/api/admin/users`, `/api/admin/permissions`); cấu hình bảo mật phân quyền.
+- **File đã tạo/sửa:**
+  - `src/main/resources/templates/admin/users.html`: Màn hình quản trị danh sách người dùng, lọc theo vai trò/chi nhánh, cấp mới/sửa tài khoản, khóa và mở khóa tài khoản.
+  - `src/main/resources/templates/admin/permissions.html`: Màn hình ma trận phân quyền tác nghiệp và phạm vi chi nhánh (Toàn chuỗi ALL, CN01, CN02, CN03, CN04) theo thời gian thực.
+  - `src/main/java/vn/yain/controller/DashboardController.java`: Bổ sung điều hướng `@GetMapping("/admin/users")` và `@GetMapping("/admin/permissions")`, liên kết danh sách người dùng và chi nhánh vào Model Thymeleaf; cập nhật mapping các trang dùng chung (`/pos/grid`, `/customer/history`, `/customer/payment`, `/manager/bookings`).
+  - `src/main/java/vn/yain/controller/ApiController.java`: Tích hợp các REST endpoints Ngày 5: `GET /api/admin/users` (danh sách tài khoản kèm khách hàng đồng bộ), `POST /api/admin/users` (tạo/sửa tài khoản), `POST /api/admin/users/{username}/toggle-status` (khóa/mở khóa tài khoản), `GET /api/admin/permissions` (truy xuất ma trận tài khoản & chi nhánh), `POST /api/admin/permissions` (cập nhật phạm vi chi nhánh và ghi audit log).
+  - `src/main/java/vn/yain/security/SecurityConfig.java`: Khai báo rõ ràng quyền truy cập cho phân hệ quản trị (`/api/admin/**`).
+  - `src/test/java/vn/yain/controller/AdminUserManagementTest.java`: Bộ 5 integration tests kiểm tra render view Thymeleaf, CRUD người dùng, khóa/mở khóa tài khoản và phân quyền chi nhánh.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 5 của Triết.
+- **Chức năng đã xong:**
+  - Hoàn tất quản trị tài khoản người dùng (`users.html`) và ma trận phân quyền chi nhánh (`permissions.html`).
+  - Đảm bảo cơ chế RBAC (`auth-guard.js`) và phân quyền backend (`SecurityConfig.java`) hoạt động chuẩn xác theo thiết kế gốc.
+  - Tự động ghi nhận Audit Log khi quản trị viên cập nhật phạm vi chi nhánh.
+  - Không kéo các module cấu hình tham số (`settings.html`) hoặc nhật ký hoạt động (`logs.html`) của Ngày 6 vào sớm.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ 58/58 unit và integration tests PASSED (100%), `BUILD SUCCESS`.
+- **Điểm chưa xác minh:**
+  - Bảng phân quyền chi nhánh sẽ tự động hiển thị thêm nhân sự khi Đạt (`dat/day-05-pricing-staff`) tích hợp module `Staff` và `WorkShift`.
+- **Phần cần người khác tích hợp:**
+  - Đạt & Thọ: Sử dụng API `/api/admin/users` và dữ liệu chi nhánh đã được chuẩn hóa để liên kết với phân ca làm và tổng kết ca thu ngân.
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 5 của Triết. Sẵn sàng tạo PR và bàn giao cho Đạt, Thọ tiếp tục tích hợp.
+
+
 
