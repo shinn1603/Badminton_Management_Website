@@ -186,6 +186,36 @@
   - Áp dụng patch cho `DashboardController.java` (`@GetMapping("/manager/staff")`).
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 5 của Thọ. Sẵn sàng cho Ngày 6 (WebSocketConfig và cập nhật trạng thái realtime).
 
+## Ngày 6 (22/10/2026) — Triết (AI-T)
+
+- **Nhánh làm việc:** `triet/day-06-system-settings`
+- **Phạm vi được giao:** Tích hợp phân hệ cấu hình thông số hệ thống (`SystemSetting`), nhật ký kiểm toán và sao lưu (`AuditLog`); màn hình cấu hình (`settings.html`), nhật ký hoạt động (`logs.html`), chính sách hoàn cọc (`policy.html`); quy trình khôi phục mật khẩu qua mã OTP gửi về email (`EmailService`); đồng bộ quyền truy cập chính sách.
+- **File đã tạo/sửa:**
+  - `src/main/resources/templates/admin/settings.html`: Giao diện quản trị thông số vận hành (tỷ lệ đặt cọc, thời gian giữ slot 10 phút, thời hạn hủy sân 4 tiếng, số ngày đặt trước, tích hợp cổng thanh toán), hỗ trợ khôi phục mặc định.
+  - `src/main/resources/templates/admin/logs.html`: Giao diện xem 100 bản ghi nhật ký kiểm toán gần nhất, bảng lịch sử sao lưu CSDL SQL Server và nút sao lưu thủ công tức thì.
+  - `src/main/resources/templates/customer/policy.html`: Trang công bố chính sách hoàn cọc 100% tự động, quy định đặt/hủy sân, hiển thị thông số động và danh sách chi nhánh từ CSDL.
+  - `src/main/java/vn/yain/controller/DashboardController.java`: Bổ sung điều hướng `@GetMapping("/admin/settings")`, `@GetMapping("/admin/logs")` và `@GetMapping({"/customer/policy", "/policy"})`.
+  - `src/main/java/vn/yain/controller/ApiController.java`: Bổ sung REST APIs: `GET /api/policy/settings`, `GET /api/admin/settings`, `POST /api/admin/settings`, `POST /api/admin/settings/reset`, `GET /api/admin/logs`, `GET /api/admin/logs/backups`, `POST /api/admin/logs/backup`; kích hoạt gửi email OTP và email thông báo đổi mật khẩu qua `EmailService`.
+  - `src/main/java/vn/yain/service/EmailService.java`: Nâng cấp dịch vụ gửi email HTML bất đồng bộ (sendHtmlEmailAsync), gửi OTP khôi phục mật khẩu (sendPasswordResetOtp), thông báo đổi mật khẩu (sendPasswordChangedNotification), phiếu xác nhận đặt sân và vé điện tử E-Ticket với mã QR.
+  - `src/main/java/vn/yain/security/SecurityConfig.java`: Cho phép truy cập công khai không cần đăng nhập cho `/policy` và `/api/policy/**`.
+  - `src/test/java/vn/yain/controller/SystemSettingsAndAuditLogsTest.java`: Bộ 5 integration tests kiểm tra render view Thymeleaf, CRUD cấu hình hệ thống, reset mặc định, ghi nhật ký kiểm toán & sao lưu, quy trình quên/đổi mật khẩu qua email OTP.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 6 của Triết.
+- **Chức năng đã xong:**
+  - Quản trị thông số toàn chuỗi (`settings.html`) với lưu trữ CSDL thời gian thực và ghi nhận Audit Log.
+  - Quản lý nhật ký hoạt động (`logs.html`) và mô phỏng sao lưu/khôi phục CSDL SQL Server.
+  - Cổng thông tin chính sách hoàn cọc (`policy.html`) nạp dữ liệu động từ API chính sách.
+  - Hoàn thiện luồng quên/đặt lại mật khẩu gửi OTP 6 số và thông báo đổi mật khẩu qua email.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ 68/68 unit và integration tests PASSED (100%), `BUILD SUCCESS`.
+  - Bộ test mới `SystemSettingsAndAuditLogsTest`: 5/5 tests passed.
+- **Điểm chưa xác minh:**
+  - Gửi email SMTP thực tế phụ thuộc cấu hình `spring.mail.password` trong môi trường sản xuất; hiện tại hệ thống tự động fallback sang chế độ mô phỏng log (SIMULATED_DELIVERED_SUCCESSFULLY) hoạt động ổn định và chính xác.
+- **Phần cần người khác tích hợp:**
+  - Thọ (`tho/day-06-booking-realtime`): Sử dụng thông số `CFG_HOLDING_MINUTES` và `CFG_DEPOSIT_RATE` từ API `/api/policy/settings` cho luồng giữ chỗ WebSocket.
+  - Đạt (`dat/day-06-branch-tournaments`): Đồng bộ danh sách chi nhánh và giải đấu với dữ liệu chính sách và thông số quản trị.
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 6 của Triết. Sẵn sàng tạo PR và bàn giao cho Đạt, Thọ tiếp tục tích hợp.
+
+
 
 
 

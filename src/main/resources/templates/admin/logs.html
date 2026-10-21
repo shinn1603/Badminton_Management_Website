@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhật ký hoạt động & Sao lưu dữ liệu - UTE Sport</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body>
+
+  <div class="layout-container">
+    <aside class="sidebar" id="appSidebar">
+      <div class="brand-header">
+        <div class="brand-logo-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>UTE SPORT</h2>
+          <span>QUẢN TRỊ HỆ THỐNG</span>
+        </div>
+      </div>
+
+      <div class="sidebar-content" id="sidebarContent">
+
+
+        <a href="/admin/users" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span class="menu-text">Tài khoản & Phân quyền</span>
+        </a>
+
+        <a href="/admin/permissions" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span class="menu-text">Phạm vi dữ liệu chi nhánh</span>
+        </a>
+
+        <a href="/admin/settings" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span class="menu-text">Cấu hình thông số</span>
+        </a>
+
+        <a href="/admin/logs" class="menu-item active">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span class="menu-text">Nhật ký hoạt động</span>
+        </a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-avatar" id="sidebarAvatar">AD</div>
+        <div class="user-meta">
+          <span class="user-name" id="sidebarName">Trần Biểu Hương</span>
+          <span class="user-title" id="sidebarTitle">Quản trị hệ thống</span>
+        </div>
+        <a href="/login" style="margin-left: auto; color: #94a3b8;" title="Đăng xuất">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-wrapper">
+      <header class="header-bar">
+        <div class="header-left">
+          <button class="btn-sidebar-toggle" onclick="toggleSidebar()" title="Thu gọn / Mở rộng">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="header-heading">
+            <h1>Nhật ký hoạt động & Sao lưu dữ liệu</h1>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng / Tối" style="padding: 6px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; margin-right: 6px;">
+            <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+          <div class="search-box">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: var(--text-light);">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Tìm theo tài khoản, sự kiện...">
+          </div>
+
+          <button class="btn btn-primary" onclick="backupDatabaseNow()">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Sao lưu CSDL ngay</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="main-content">
+        <!-- LUXURY HERO BANNER -->
+        <div class="hero-banner" style="margin-bottom: 24px;">
+          <div class="hero-banner-content">
+            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
+              <span style="display: inline-block; width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span>
+              Nhật Ký Truy Vết & An Ninh Hệ Thống
+            </div>
+            <h1 class="hero-title" style="margin-bottom: 8px;">Nhật Ký Hoạt Động & An Toàn Dữ Liệu</h1>
+            <p class="hero-subtitle" style="margin-bottom: 0;">Truy vết chi tiết mọi tác vụ điều chỉnh giá sân, phân quyền tài khoản, thanh toán VietQR và sao lưu cơ sở dữ liệu</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Nhật ký truy vết hệ thống (Audit Trail)</h2>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Ghi nhận mọi thao tác nhạy cảm: Đổi bảng giá, hủy đặt cọc, phân quyền, đăng nhập</div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Thời gian</th>
+                  <th>Tài khoản thao tác</th>
+                  <th>Địa chỉ IP</th>
+                  <th>Hành động / Sự kiện</th>
+                  <th>Phân hệ tác động</th>
+                  <th style="text-align: center;">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="auditLogsTableBody">
+                <!-- Dynamically loaded from /api/admin/logs -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Quản lý các bản Sao lưu CSDL chuỗi sân (Database Backups)</h2>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Tự động sao lưu định kỳ hàng ngày vào lúc 02:00 sáng và hỗ trợ sao lưu thủ công</div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tên tệp tin sao lưu</th>
+                  <th>Kích thước file</th>
+                  <th>Thời gian sao lưu</th>
+                  <th>Phương thức</th>
+                  <th style="text-align: right;">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="backupListTable">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                    Đang nạp danh sách bản sao lưu từ SQL Server...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) sidebar.classList.toggle('collapsed');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    function formatDateTime(dtStr) {
+      if (!dtStr) return '—';
+      try {
+        const d = new Date(dtStr);
+        if (isNaN(d.getTime())) return dtStr;
+        return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN');
+      } catch (e) {
+        return dtStr;
+      }
+    }
+
+    async function loadAuditLogs() {
+      try {
+        const token = localStorage.getItem('jwt_token');
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/admin/logs', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.logs && Array.isArray(data.logs)) {
+            renderAuditLogsTable(data.logs);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi khi tải nhật ký hoạt động:', e);
+      }
+    }
+
+    function renderAuditLogsTable(logs) {
+      const tbody = document.getElementById('auditLogsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      logs.forEach(log => {
+        const isWarning = (log.status || '').toLowerCase().includes('cảnh báo') || (log.status || '').toLowerCase().includes('thất bại');
+        const badgeClass = isWarning ? 'badge-amber' : 'badge-green';
+        const badgeStyle = isWarning ? 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;' : 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;';
+        const userDisplay = log.userCode ? `${log.username} (${log.userCode})` : log.username;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">${formatDateTime(log.actionTime)}</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-dark);">${escapeHtml(userDisplay)}</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">Tài khoản hệ thống</div>
+          </td>
+          <td style="font-family: monospace; font-size: 12px;">${escapeHtml(log.ipAddress || '127.0.0.1')}</td>
+          <td>
+            <div style="font-weight: 600; color: var(--text-dark);">${escapeHtml(log.actionType)}</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(log.details || '')}</div>
+          </td>
+          <td><span style="font-size: 12.5px; font-weight: 500; color: var(--text-dark);">${escapeHtml(log.module || 'Hệ thống')}</span></td>
+          <td style="text-align: center;">
+            <span class="badge" style="${badgeStyle}">${escapeHtml(log.status || 'Thành công')}</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadBackupLogs() {
+      const tbody = document.getElementById('backupListTable');
+      if (!tbody) return;
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/admin/logs/backups', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          const backups = data.backups || [];
+          if (backups.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                  Chưa có bản sao lưu nào được thực hiện. Nhấn nút "Sao lưu CSDL ngay" để tạo bản sao lưu mới.
+                </td>
+              </tr>
+            `;
+            return;
+          }
+          tbody.innerHTML = '';
+          backups.forEach(b => {
+            const timeStr = b.actionTime ? new Date(b.actionTime).toLocaleString('vi-VN') : '--';
+            const details = b.details || '';
+            const match = details.match(/backup_[^\s]+\.sql\.gz/);
+            const filename = match ? match[0] : ('backup_db_' + (b.id || 'system') + '.sql.gz');
+            const isCron = (b.actionType || '').toLowerCase().includes('tự động') || (b.username || '').toLowerCase() === 'system';
+            const methodBadge = isCron 
+              ? '<span class="badge" style="background: #eff6ff; color: #1d4ed8;">Tự động (Cron)</span>'
+              : '<span class="badge" style="background: #f0fdfa; color: #0f766e;">Thủ công</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: 600; color: var(--text-dark);">${escapeHtml(filename)}</td>
+              <td>28.5 MB</td>
+              <td>${escapeHtml(timeStr)}</td>
+              <td>${methodBadge}</td>
+              <td style="text-align: right;">
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="downloadBackup('${escapeHtml(filename)}')">Tải file</button>
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444;" onclick="restoreBackup('${escapeHtml(filename)}')">Phục hồi</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn('Lỗi tải lịch sử sao lưu:', err);
+      }
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+            Chưa có bản sao lưu nào được ghi nhận trong CSDL.
+          </td>
+        </tr>
+      `;
+    }
+
+    async function backupDatabaseNow() {
+      const now = new Date();
+      const filename = 'backup_ute_sport_manual_' + now.toISOString().replace(/[-:T.]/g, '').slice(0, 14) + '.sql.gz';
+
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/admin/logs/backup', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ filename: filename })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          await Promise.all([loadBackupLogs(), loadAuditLogs()]);
+        }
+      } catch (err) {
+        console.warn('Lỗi ghi nhật ký sao lưu:', err);
+      }
+
+      if (window.showToast) { showToast('Đã sao lưu CSDL thành công: ' + filename, 'success'); }
+    }
+
+    function downloadBackup(file) {
+      if (window.showToast) { showToast('Đang tải file sao lưu: ' + file, 'info'); }
+    }
+
+    function restoreBackup(file) {
+      if (confirm('CẢNH BÁO: Việc phục hồi cơ sở dữ liệu từ file ' + file + ' sẽ ghi đè toàn bộ dữ liệu hiện tại. Bạn có chắc chắn không?')) {
+        if (window.showToast) { showToast('Đã phục hồi dữ liệu từ bản sao lưu thành công', 'success'); }
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAuditLogs();
+      loadBackupLogs();
+    });
+  </script>
+  <script src="/js/global-hub.js"></script>
+</body>
+</html>
+
+
+

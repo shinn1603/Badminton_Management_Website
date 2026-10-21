@@ -70,10 +70,10 @@ public class SecurityConfig {
                 // Allow static resources & dev tools
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/h2-console/**").permitAll()
                 // Allow public web routes
-                .requestMatchers("/", "/login", "/logout", "/error").permitAll()
+                .requestMatchers("/", "/login", "/logout", "/policy", "/error").permitAll()
                 .requestMatchers("/customer/**", "/pos/**", "/manager/**", "/director/**", "/admin/**").permitAll()
-                // Allow public auth and upload endpoints
-                .requestMatchers("/api/auth/**", "/api/upload/**").permitAll()
+                // Allow public auth, upload and policy endpoints
+                .requestMatchers("/api/auth/**", "/api/upload/**", "/api/policy/**").permitAll()
                 // Public court, branch, products and pricing lookup
                 .requestMatchers(HttpMethod.GET, "/api/branches", "/api/branches/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courts", "/api/courts/**").permitAll()
