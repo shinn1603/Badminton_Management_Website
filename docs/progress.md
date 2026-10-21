@@ -162,5 +162,30 @@
   - Đạt & Thọ: Sử dụng API `/api/admin/users` và dữ liệu chi nhánh đã được chuẩn hóa để liên kết với phân ca làm và tổng kết ca thu ngân.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 5 của Triết. Sẵn sàng tạo PR và bàn giao cho Đạt, Thọ tiếp tục tích hợp.
 
+## Ngày 5 (21/10/2026) — Thọ (AI-H)
+
+- **Nhánh làm việc:** `tho/day-05-shift-closing`
+- **Phạm vi được giao:** Tích hợp `ShiftService` quản lý phân ca, nhân sự chi nhánh và chốt/bàn giao ca trực thu ngân (Use Case XL-08); tính toán tổng hợp doanh thu trong ca (tiền mặt két, chuyển khoản VietQR, tiền sân, tiền dịch vụ/sản phẩm); kiểm kê đối soát tiền mặt thực tế và tính chênh lệch thừa/thiếu; lưu vết bàn giao ca và xuất biên bản kết ca.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/entity/Staff.java`: Thực thể nhân viên chi nhánh, liên kết mã chi nhánh, vị trí công tác, thông tin liên lạc và trạng thái.
+  - `src/main/java/vn/yain/entity/WorkShift.java`: Thực thể ca làm việc và bàn giao ca (`shiftCode`, `dayOfWeek`, `shiftType`, `duty`, `icon`, `startTime`, `endTime`, `status`).
+  - `src/main/java/vn/yain/repository/StaffRepository.java`: JPA repository quản lý nhân sự với các phương thức tìm kiếm theo mã, chi nhánh, email.
+  - `src/main/java/vn/yain/repository/WorkShiftRepository.java`: JPA repository quản lý lịch phân ca và các bản ghi bàn giao ca trực.
+  - `src/main/java/vn/yain/service/ShiftService.java`: Dịch vụ nghiệp vụ quản lý nhân sự, phân ca tuần và bàn giao ca thu ngân XL-08 (`getShiftSummary`, `closeShift`).
+  - `src/test/java/vn/yain/service/ShiftServiceTest.java`: Bộ 5 unit tests bao phủ 100% các ca kiểm thử: thống kê doanh thu tiền mặt và chuyển khoản, chốt ca khớp tiền mặt 100%, chốt ca thiếu tiền quỹ, CRUD nhân sự và phân ca/hủy ca.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 5 của Thọ.
+- **Chức năng đã xong:**
+  - Hoàn tất toàn bộ logic dịch vụ kết ca thu ngân XL-08 và quản lý phân ca tuần theo đúng mã nguồn gốc tham chiếu.
+  - Tích hợp tính năng đối soát tiền mặt thực tế so với sổ sách hệ thống với thông điệp rõ ràng (khớp quỹ, thừa quỹ, thiếu quỹ).
+  - Khởi tạo tự động dữ liệu mẫu cho nhân sự và lịch phân ca khi khởi động.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test -Dtest=ShiftServiceTest`: 5/5 unit tests PASSED (100%).
+  - `.\mvnw.cmd test`: Toàn bộ 63/63 tests của dự án PASSED, clean build thành công (`BUILD SUCCESS`).
+- **Phần cần người khác tích hợp (Patch gửi Triết):**
+  - Áp dụng patch cho `ApiController.java` (`GET /api/shifts/summary`, `POST /api/shifts/close`, `GET /api/shifts/weekly`, `POST /api/shifts/weekly`, `POST /api/shifts/assign`, `POST /api/shifts/remove`, `POST /api/shifts/reset-weekly`, `GET /api/staff`, `POST /api/staff`, `DELETE /api/staff/{staffCode}`).
+  - Áp dụng patch cho `DashboardController.java` (`@GetMapping("/manager/staff")`).
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 5 của Thọ. Sẵn sàng cho Ngày 6 (WebSocketConfig và cập nhật trạng thái realtime).
+
+
 
 
