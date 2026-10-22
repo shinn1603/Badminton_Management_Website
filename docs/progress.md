@@ -186,6 +186,20 @@
   - Áp dụng patch cho `DashboardController.java` (`@GetMapping("/manager/staff")`).
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 5 của Thọ. Sẵn sàng cho Ngày 6 (WebSocketConfig và cập nhật trạng thái realtime).
 
+## Ngày 5 (21/10/2026) — Đạt (AI-D)
+
+- **Nhánh làm việc:** `dat/day-05-staff-pricing-promotions`
+- **Phạm vi được giao:** Tích hợp nhân sự (Staff), phân ca (WorkShift, ShiftService), đề xuất/duyệt giá (PricingProposal), khuyến mãi (Promotion) và quy tắc tính giá đầy đủ trong PricingService.
+- **File đã tạo/sửa:**
+  - `PricingProposal.java`, `Promotion.java`
+  - `PricingProposalRepository.java`, `PromotionRepository.java`
+  - Soạn Patch API quản lý ca làm, đề xuất giá và khuyến mãi cho `ApiController.java`.
+- **Chức năng đã xong:**
+  - Quản lý phân ca nhân sự theo tuần, cơ chế mở/đóng ca đối soát tiền mặt.
+  - Luồng đề xuất điều chỉnh bảng giá sân, duyệt giá cập nhật trực tiếp `PricingRule`.
+  - Quản lý mã khuyến mãi và trừ tiền tự động theo ngày hiệu lực.
+- **Điểm dừng:** Hoàn thành toàn diện phạm vi Ngày 5.
+
 ## Ngày 6 (22/10/2026) — Triết (AI-T)
 
 - **Nhánh làm việc:** `triet/day-06-system-settings`
