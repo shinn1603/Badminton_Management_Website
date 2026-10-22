@@ -233,6 +233,28 @@
   - Kiểm thử đồng thời đa trình duyệt thực tế trên môi trường mạng ngoài sẽ được thực hiện khi deploy và smoke test ở Ngày 8.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 6 của Thọ. Sẵn sàng cho Ngày 7 (luồng thanh toán/VietQR webhook và hoàn thiện customer payment/POS).
 
+## Ngày 7 (23/10/2026) — Thọ (AI-H)
+
+- **Nhánh làm việc:** `tho/day-07-payment-notifications`
+- **Phạm vi được giao:** Tích hợp luồng payment/VietQR webhook theo bản gốc; xử lý an toàn thông báo lặp (Idempotency) và đối soát trạng thái/số tiền thanh toán; hoàn thiện giao diện thanh toán khách hàng (`customer/payment.html`) và phát thông báo thanh toán thành công thời gian thực.
+- **File đã tạo/sửa:**
+  - `src/main/resources/templates/customer/payment.html`: Giao diện thanh toán tiền cọc 30% trực tuyến với mã VietQR động sinh theo chuẩn Napas 247 (`img.vietqr.io`), đếm ngược phiên giữ chỗ 10:00, nút xác nhận chuyển khoản và đồng bộ thời gian thực.
+  - `src/main/java/vn/yain/service/PaymentWebhookService.java`: Dịch vụ xử lý webhook VietQR / Sepay / Casso với cơ chế chống xử lý lặp (Idempotency check: bỏ qua an toàn nếu đơn đã cọc hoặc giao dịch tham chiếu đã ghi nhận), đối soát số tiền chuyển thực tế so với tiền cọc, xác nhận cọc qua `BookingService` và phát thông báo sự kiện thanh toán.
+  - `src/main/java/vn/yain/controller/PaymentWebhookController.java`: Controller RESTful tiếp nhận Webhook thanh toán (`POST /api/webhook/vietqr`, `POST /webhook/vietqr`) và xác nhận cọc trực tiếp từ giao diện (`POST /api/bookings/{code}/deposit`).
+  - `src/test/java/vn/yain/service/PaymentWebhookServiceTest.java`: Bộ 5 unit & integration tests kiểm thử: tự động xác nhận cọc khi nhận webhook hợp lệ, cơ chế Idempotent bỏ qua webhook lặp, từ chối caller khi sai secret token, tích hợp MockMvc cho endpoint webhook và xác nhận cọc trực tiếp.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 7 của Thọ.
+- **Chức năng đã xong:**
+  - Hoàn tất toàn bộ chu trình thanh toán đặt cọc 30% từ màn hình khách hàng tới Webhook ngân hàng tự động.
+  - Ngăn chặn triệt để rủi ro nhân đôi giao dịch, nhân đôi tiền cọc hoặc nhân đôi điểm thưởng khi cổng thanh toán gửi lại webhook nhiều lần.
+  - Đồng bộ tự động trạng thái sân sang `Đã cọc 30%` và phát WebSocket notification tới thu ngân POS và khách hàng ngay khi có giao dịch thành công.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test -Dtest=PaymentWebhookServiceTest`: 5/5 tests PASSED (100%).
+  - `.\mvnw.cmd test`: Toàn bộ 73/73 tests của dự án PASSED, clean build thành công (`BUILD SUCCESS`).
+- **Điểm chưa xác minh:**
+  - Tích hợp tài khoản ngân hàng thực tế qua SePay/Casso webhook cần URL public (ngrok/Cloudflare tunnel) khi kiểm thử live ở Ngày 8.
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 7 của Thọ. Sẵn sàng cho Ngày 8 (kiểm thử toàn diện và chốt bản ứng viên).
+
+
 
 
 
