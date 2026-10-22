@@ -56,6 +56,11 @@ public class DashboardController {
         return "customer/profile";
     }
 
+    @GetMapping({ "/customer/policy", "/policy" })
+    public String customerPolicy() {
+        return "customer/policy";
+    }
+
     @GetMapping({ "/booking/grid", "/pos/grid" })
     public String bookingGrid() {
         return "pos/grid";
@@ -90,5 +95,16 @@ public class DashboardController {
             model.addAttribute("branches", branchRepository.findAll());
         }
         return "admin/permissions";
+    }
+
+    // ADMIN ENDPOINTS (DAY 6 SCOPE)
+    @GetMapping("/admin/settings")
+    public String adminSettings() {
+        return "admin/settings";
+    }
+
+    @GetMapping("/admin/logs")
+    public String adminLogs() {
+        return "admin/logs";
     }
 }

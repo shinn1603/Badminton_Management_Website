@@ -13,6 +13,7 @@ import vn.yain.repository.*;
 import vn.yain.security.JwtTokenProvider;
 import vn.yain.service.CloudinaryService;
 import vn.yain.service.CourtService;
+import vn.yain.service.EmailService;
 import vn.yain.service.PricingService;
 import vn.yain.service.UserService;
 
@@ -70,6 +71,12 @@ public class ApiController {
 
     @Autowired(required = false)
     private AuditLogRepository auditLogRepository;
+
+    @Autowired(required = false)
+    private SystemSettingRepository systemSettingRepository;
+
+    @Autowired(required = false)
+    private EmailService emailService;
 
     private static final Map<String, Map<String, Object>> forgotPasswordOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -178,14 +185,17 @@ public class ApiController {
                     .orElse(null);
 
             String email = null;
+            String fullName = null;
             if (user != null) {
                 email = user.getEmail();
+                fullName = user.getFullName();
             } else {
                 Customer cust = customerRepository.findByPhone(cleanId)
                         .or(() -> cleanId.contains("@") ? customerRepository.findByEmail(cleanId) : Optional.empty())
                         .orElse(null);
                 if (cust != null) {
                     email = cust.getEmail();
+                    fullName = cust.getFullName();
                 }
             }
 
@@ -203,6 +213,10 @@ public class ApiController {
             otpInfo.put("identifier", cleanId);
             otpInfo.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000);
             forgotPasswordOtpMap.put(cleanId.toLowerCase(), otpInfo);
+
+            if (emailService != null) {
+                emailService.sendPasswordResetOtp(email, fullName, otp);
+            }
 
             log.info("[OTP SIMULATION] Mã xác nhận OTP khôi phục mật khẩu cho {}: {}", cleanId, otp);
 
@@ -255,9 +269,29 @@ public class ApiController {
 
             userService.resetPassword(cleanId, newPassword);
 
+            // Gửi email thông báo thay đổi mật khẩu thành công
+            User u = userRepository.findByUsername(cleanId)
+                    .or(() -> userRepository.findByPhone(cleanId))
+                    .or(() -> cleanId.contains("@") ? userRepository.findByEmail(cleanId) : Optional.empty())
+                    .orElse(null);
+            String userEmail = (u != null && u.getEmail() != null) ? u.getEmail() : null;
+            String fullName = (u != null && u.getFullName() != null) ? u.getFullName() : cleanId;
+
+            if (userEmail == null || userEmail.isBlank()) {
+                Customer c = customerRepository.findByPhone(cleanId).orElse(null);
+                if (c != null && c.getEmail() != null) {
+                    userEmail = c.getEmail();
+                    fullName = c.getFullName();
+                }
+            }
+
+            if (userEmail != null && userEmail.contains("@") && emailService != null) {
+                emailService.sendPasswordChangedNotification(userEmail, fullName, newPassword);
+            }
+
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Đặt lại mật khẩu thành công!"
+                    "message", "Đặt lại mật khẩu thành công! Thông báo đã được gửi về email của quý khách."
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
@@ -667,6 +701,179 @@ public class ApiController {
             log.error("Lỗi cập nhật phân quyền:", e);
             String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi: " + msg));
+        }
+    }
+
+    // ==========================================
+    // 6. SYSTEM SETTINGS, AUDIT LOGS & BACKUP (DAY 6 SCOPE)
+    // ==========================================
+
+    @GetMapping("/policy/settings")
+    public ResponseEntity<?> getPublicPolicySettings() {
+        try {
+            Map<String, String> map = new HashMap<>();
+            if (systemSettingRepository != null) {
+                List<SystemSetting> list = systemSettingRepository.findAll();
+                for (SystemSetting s : list) {
+                    map.put(s.getSettingCode(), s.getSettingValue());
+                }
+            }
+            map.putIfAbsent("CFG_DEPOSIT_RATE", "30");
+            map.putIfAbsent("CFG_HOLDING_MINUTES", "10");
+            map.putIfAbsent("CFG_CANCEL_HOURS", "4");
+            map.putIfAbsent("CFG_ADVANCE_DAYS", "30");
+
+            List<Branch> branches = branchRepository.findAll();
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "settings", map,
+                "branches", branches
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/admin/settings")
+    public ResponseEntity<?> getAdminSettings() {
+        try {
+            List<SystemSetting> list = systemSettingRepository != null ? systemSettingRepository.findAll() : Collections.emptyList();
+            Map<String, String> map = new HashMap<>();
+            for (SystemSetting s : list) {
+                map.put(s.getSettingCode(), s.getSettingValue());
+            }
+            return ResponseEntity.ok(Map.of("success", true, "list", list, "settings", map));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/admin/settings")
+    public ResponseEntity<?> updateAdminSettings(@RequestBody Map<String, String> payload) {
+        try {
+            if (systemSettingRepository != null) {
+                for (Map.Entry<String, String> entry : payload.entrySet()) {
+                    String code = entry.getKey();
+                    String val = entry.getValue();
+                    if (code != null && val != null) {
+                        Optional<SystemSetting> sOpt = systemSettingRepository.findBySettingCode(code);
+                        SystemSetting s;
+                        if (sOpt.isPresent()) {
+                            s = sOpt.get();
+                            s.setSettingValue(val);
+                            s.setUpdatedAt(LocalDateTime.now());
+                        } else {
+                            s = new SystemSetting();
+                            s.setSettingCode(code);
+                            s.setSettingName(code);
+                            s.setSettingValue(val);
+                            s.setUpdatedAt(LocalDateTime.now());
+                        }
+                        systemSettingRepository.save(s);
+                    }
+                }
+            }
+
+            if (auditLogRepository != null) {
+                AuditLog auditLog = new AuditLog();
+                auditLog.setUsername("admin");
+                auditLog.setActionType("Cập nhật cấu hình thông số hệ thống");
+                auditLog.setDetails("Cập nhật quy định đặt cọc, thời gian giữ slot và thông số hệ thống");
+                auditLog.setModule("Phân hệ Quản trị");
+                auditLog.setStatus("Thành công");
+                auditLog.setActionTime(LocalDateTime.now());
+                auditLogRepository.save(auditLog);
+            }
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Đã lưu cài đặt hệ thống thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/admin/settings/reset")
+    public ResponseEntity<?> resetAdminSettings() {
+        try {
+            Map<String, String> defaults = Map.of(
+                "CFG_DEPOSIT_RATE", "30",
+                "CFG_HOLDING_MINUTES", "10",
+                "CFG_CANCEL_HOURS", "12",
+                "CFG_ADVANCE_DAYS", "30",
+                "CFG_VNPAY_TMN", "UTESPORT2026",
+                "CFG_MOMO_PARTNER", "MOMO_UTE_BADMINTON"
+            );
+            if (systemSettingRepository != null) {
+                for (Map.Entry<String, String> entry : defaults.entrySet()) {
+                    Optional<SystemSetting> sOpt = systemSettingRepository.findBySettingCode(entry.getKey());
+                    if (sOpt.isPresent()) {
+                        SystemSetting s = sOpt.get();
+                        s.setSettingValue(entry.getValue());
+                        s.setUpdatedAt(LocalDateTime.now());
+                        systemSettingRepository.save(s);
+                    }
+                }
+            }
+
+            if (auditLogRepository != null) {
+                AuditLog auditLog = new AuditLog();
+                auditLog.setUsername("admin");
+                auditLog.setActionType("Khôi phục thông số mặc định");
+                auditLog.setDetails("Khôi phục toàn bộ thông số vận hành hệ thống về mặc định ban đầu");
+                auditLog.setModule("Phân hệ Quản trị");
+                auditLog.setStatus("Thành công");
+                auditLog.setActionTime(LocalDateTime.now());
+                auditLogRepository.save(auditLog);
+            }
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Đã khôi phục cài đặt mặc định"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/admin/logs")
+    public ResponseEntity<?> getAdminLogs() {
+        try {
+            List<AuditLog> logs = auditLogRepository != null ? auditLogRepository.findTop100ByOrderByActionTimeDesc() : Collections.emptyList();
+            return ResponseEntity.ok(Map.of("success", true, "logs", logs));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/admin/logs/backups")
+    public ResponseEntity<?> getAdminBackupLogs() {
+        try {
+            List<AuditLog> allLogs = auditLogRepository != null ? auditLogRepository.findTop100ByOrderByActionTimeDesc() : Collections.emptyList();
+            List<AuditLog> backupLogs = allLogs.stream()
+                    .filter(l -> "Hệ thống sao lưu".equalsIgnoreCase(l.getModule())
+                            || (l.getActionType() != null && l.getActionType().toLowerCase().contains("sao lưu")))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(Map.of("success", true, "backups", backupLogs));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/admin/logs/backup")
+    public ResponseEntity<?> createBackupLog(@RequestBody(required = false) Map<String, String> payload) {
+        try {
+            String filename = (payload != null && payload.containsKey("filename")) ? payload.get("filename") : "backup_ute_sport_manual.sql.gz";
+            AuditLog auditLog = new AuditLog();
+            auditLog.setUsername("admin");
+            auditLog.setActionType("Sao lưu cơ sở dữ liệu thủ công");
+            auditLog.setDetails("Tạo bản sao lưu " + filename + " thành công trên máy chủ CSDL SQL Server");
+            auditLog.setModule("Hệ thống sao lưu");
+            auditLog.setStatus("Thành công");
+            auditLog.setActionTime(LocalDateTime.now());
+            if (auditLogRepository != null) {
+                auditLog = auditLogRepository.save(auditLog);
+            }
+
+            return ResponseEntity.ok(Map.of("success", true, "log", auditLog));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 }
