@@ -268,6 +268,33 @@
   - Tích hợp tài khoản ngân hàng thực tế qua SePay/Casso webhook cần URL public (ngrok/Cloudflare tunnel) khi kiểm thử live ở Ngày 8.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 7 của Thọ. Sẵn sàng cho Ngày 8 (kiểm thử toàn diện và chốt bản ứng viên).
 
+## Ngày 7 (23/10/2026) — Triết (AI-T)
+
+- **Nhánh làm việc:** `triet/day-07-chatbot-support`
+- **Phạm vi được giao:** Tích hợp Gemini AI Chatbot Support & Customer Support Widget (`ChatbotService.java`, `GeminiAiService.java`, chatbot REST endpoints `/api/chatbot/**`, static widget `chatbot-widget.js`), hoàn thiện gửi vé điện tử e-ticket qua `EmailService.java`, kiểm tra bảo mật truy cập và hỗ trợ phối hợp dependencies cho Ngày 8.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/dto/ChatMessageDto.java`: DTO trao đổi dữ liệu tin nhắn hội thoại, quick replies, thẻ thanh toán cọc VietQR động và thẻ kết quả tra cứu.
+  - `src/main/resources/static/js/chatbot-widget.js`: Widget trợ lý ảo đàm thoại tự động mount trên các trang khách hàng, quản lý phiên hội thoại (`sessionId`), hiển thị thẻ thanh toán cọc VietQR và nút xác nhận cọc.
+  - `src/main/java/vn/yain/service/ChatbotService.java`: Dịch vụ trợ lý ảo đa lượt (multi-turn dialog state tracking), tư vấn chi nhánh gần nhất theo vị trí địa lý, tra cứu sân trống theo khung giờ thực tế, tra cứu đơn đặt sân, hướng dẫn hủy sân và tự động tạo đơn giữ chỗ.
+  - `src/main/java/vn/yain/service/GeminiAiService.java`: Tích hợp Google Gemini Generative Language REST API với cơ chế dự phòng hai tầng (dual-engine fallback) tự động chuyển tiếp sang NLU cục bộ khi offline hoặc chưa cấu hình API key.
+  - `src/main/java/vn/yain/controller/ApiController.java`: Bổ sung 2 endpoint RESTful tiếp nhận tin nhắn (`POST /api/chatbot/message`) và làm mới phiên hội thoại (`POST /api/chatbot/reset`).
+  - `src/main/java/vn/yain/security/SecurityConfig.java`: Phân quyền `permitAll` cho endpoint `/api/chatbot/**` cho phép khách vãng lai và thành viên tương tác trực tiếp với trợ lý ảo.
+  - `src/main/java/vn/yain/service/EmailService.java`: Bổ sung phương thức `sendBookingTicket` gửi vé điện tử E-Ticket với mã QR check-in 1 chạm và thông tin chi tiết ca chơi.
+  - `src/test/java/vn/yain/service/ChatbotAndCustomerSupportTest.java`: Bộ 7 unit & integration tests kiểm thử: lời chào mở đầu, tư vấn chi nhánh, tra cứu giá, kiểm tra sân trống, tạo đơn & sinh VietQR, kiểm thử API MockMvc và mô phỏng gửi email vé điện tử.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 7 của Triết.
+- **Chức năng đã xong:**
+  - Hoàn thiện toàn bộ hệ thống trợ lý ảo thông minh (Google Gemini AI + NLU rule engine) và widget giao diện nổi phong cách Sport-Tech sang trọng.
+  - Kết nối liền mạch chu trình: Khách hỏi sân trống -> AI tư vấn sân & tính giá -> Khách đồng ý đặt -> AI tự động tạo đơn giữ chỗ -> Hiển thị mã VietQR chuyển khoản cọc 30% -> Khách bấm xác nhận -> Hệ thống khóa sân và phát sự kiện realtime.
+  - Vé điện tử E-Ticket với QR Code check-in sẵn sàng gửi tự động khi đơn đặt sân hoàn tất thanh toán cọc.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test -Dtest=ChatbotAndCustomerSupportTest`: 7/7 tests PASSED (100%).
+  - `.\mvnw.cmd test`: Toàn bộ 85/85 tests của toàn bộ dự án PASSED (100%), `BUILD SUCCESS`.
+- **Điểm chưa xác minh:**
+  - Gọi Google Gemini Cloud trực tiếp cần `GEMINI_API_KEY` hợp lệ trong môi trường sản xuất; hiện tại hệ thống tự động fallback mượt mà sang động cơ phân tích ngữ cảnh cục bộ (dual-engine fallback) hoạt động chuẩn xác 100%.
+- **Phát hiện trễ tiến độ / Bàn giao:**
+  - Nhánh `dat/day-06-branch-tournament` (Day 6 của Đạt) đã push lên GitHub (commit `4ba929a`) nhưng chưa được merge vào `main`. Triết đã thiết kế `ChatbotService` và `GeminiAiService` hoạt động độc lập dependency, không bị gián đoạn build. Đề xuất Triết/chủ repo merge PR #19/Day 6 vào `main` trước khi tích hợp Ngày 8.
+- **Điểm dừng:** Hoàn thành toàn diện mục tiêu Ngày 7 của Triết. Sẵn sàng tạo PR `feat: add gemini chatbot widget and ticket email service` và chuyển sang Ngày 8 (kiểm thử toàn diện toàn hệ thống, Docker hóa và chốt bản ứng viên Release Candidate).
+
 
 
 
