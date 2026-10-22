@@ -214,6 +214,24 @@
   - Thọ (`tho/day-06-booking-realtime`): Sử dụng thông số `CFG_HOLDING_MINUTES` và `CFG_DEPOSIT_RATE` từ API `/api/policy/settings` cho luồng giữ chỗ WebSocket.
   - Đạt (`dat/day-06-branch-tournaments`): Đồng bộ danh sách chi nhánh và giải đấu với dữ liệu chính sách và thông số quản trị.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 6 của Triết. Sẵn sàng tạo PR và bàn giao cho Đạt, Thọ tiếp tục tích hợp.
+## Ngày 6 (22/10/2026) — Thọ (AI-H)
+
+- **Nhánh làm việc:** `tho/day-06-realtime-updates`
+- **Phạm vi được giao:** Tích hợp `WebSocketConfig` thiết lập hạ tầng STOMP Message Broker; hỗ trợ WebSocket thuần và SockJS fallback (`/ws-court`); định tuyến tin nhắn thông báo đặt sân (`/topic/bookings`, `/topic/notifications`, `/topic/bookings/{branchCode}`) và sự kiện giữ/khóa slot thời gian thực (`/topic/courts`, `/topic/courts/{branchCode}`); kiểm tra tích hợp tương tác thời gian thực giữa các trình duyệt.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/config/WebSocketConfig.java`: Cấu hình Spring WebSocket STOMP endpoint (`/ws-court`), cho phép SockJS fallback và cấu hình Simple Message Broker cho prefix `/topic`, `/queue` cùng application prefix `/app`.
+  - `src/test/java/vn/yain/config/WebSocketRealtimeIntegrationTest.java`: Bộ 5 tests bao gồm integration context test xác minh `WebSocketConfig` và `SimpMessagingTemplate` được nạp tự động bởi Spring Boot, cùng các test xác minh đăng ký STOMP endpoint, Message Broker và cơ chế phát thông báo/sự kiện sân thời gian thực.
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 6 của Thọ.
+- **Chức năng đã xong:**
+  - Kích hoạt toàn bộ hạ tầng WebSocket STOMP cho dự án, kết nối thông suốt với `global-hub.js` trên frontend qua endpoint `/ws-court/websocket`.
+  - Kết nối tự động `SimpMessagingTemplate` với `CourtService` (phát sự kiện `COURT_HELD`, `COURT_RELEASED`, `COURT_STATUS_CHANGED`) và `BookingService` (phát sự kiện `NEW_BOOKING`, `DEPOSIT_CONFIRMED`, `CHECKED_IN`, `CHECKED_OUT`, `BOOKING_CANCELLED`).
+  - Đảm bảo cơ chế giữ chỗ tạm 10 phút (600s) và khóa slot đặt sân được đồng bộ tức thì đến tất cả client mà không cần tải lại trang.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test -Dtest=WebSocketRealtimeIntegrationTest`: 5/5 tests PASSED (100%).
+  - `.\mvnw.cmd test`: Toàn bộ 68/68 tests của dự án PASSED, clean build thành công (`BUILD SUCCESS`).
+- **Điểm chưa xác minh:**
+  - Kiểm thử đồng thời đa trình duyệt thực tế trên môi trường mạng ngoài sẽ được thực hiện khi deploy và smoke test ở Ngày 8.
+- **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 6 của Thọ. Sẵn sàng cho Ngày 7 (luồng thanh toán/VietQR webhook và hoàn thiện customer payment/POS).
 
 
 
