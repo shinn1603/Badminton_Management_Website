@@ -247,6 +247,19 @@
   - Kiểm thử đồng thời đa trình duyệt thực tế trên môi trường mạng ngoài sẽ được thực hiện khi deploy và smoke test ở Ngày 8.
 - **Điểm dừng:** Hoàn thành toàn bộ mục tiêu Ngày 6 của Thọ. Sẵn sàng cho Ngày 7 (luồng thanh toán/VietQR webhook và hoàn thiện customer payment/POS).
 
+## Ngày 6 (22/10/2026) — Đạt (AI-D)
+
+- **Nhánh làm việc:** `dat/day-06-branch-tournament`
+- **Phạm vi được giao:** Quản lý chi nhánh cơ sở (Branch), thực thể & dịch vụ tổ chức giải đấu (Tournament), luồng đăng ký tham gia (TournamentRegistration, TournamentService).
+- **File đã tạo/sửa:**
+  - `Tournament.java`, `TournamentRegistration.java`
+  - `BranchRepository.java`, `TournamentRepository.java`, `TournamentRegistrationRepository.java`
+  - Soạn Patch API chi nhánh, giải đấu và đăng ký giải cho `ApiController.java`.
+- **Chức năng đã xong:**
+  - Tra cứu, bổ sung thông tin chi nhánh hoạt động.
+  - Quản lý vòng đời giải đấu: tạo giải, phê duyệt giải, giới hạn số lượng vận động viên và ghi nhận đăng ký thi đấu.
+- **Điểm dừng:** Hoàn thành toàn diện phạm vi Ngày 6, sẵn sàng cho Ngày 7 (Báo cáo & Dashboard).
+
 ## Ngày 7 (23/10/2026) — Thọ (AI-H)
 
 - **Nhánh làm việc:** `tho/day-07-payment-notifications`
