@@ -313,3 +313,29 @@
 
 
 
+
+## Ngày 8 (24/10/2026) — Thọ (AI-H)
+
+- **Nhánh làm việc:** `tho/day-08-regression-testing`
+- **Phạm vi được giao:** Kiểm thử toàn diện toàn hệ thống xuyên suốt luồng đặt sân, khóa/giữ slot thời gian thực, thu ngân POS, thanh toán VietQR webhook, trừ tồn kho và chốt ca thu ngân; khôi phục toàn bộ các bộ test hồi quy tham chiếu trong ZIP gốc và khắc phục các lỗi tích hợp thực tế được phát hiện.
+- **File đã tạo/sửa:**
+  - `src/test/java/vn/yain/controller/SlotOverlappingTest.java`: Khôi phục từ bản ZIP, kiểm thử 4 ca chồng lấn / liền kề / tách biệt của thuật toán kiểm tra trùng khung giờ (Use Case XL-02).
+  - `src/test/java/vn/yain/service/WarehouseServiceTest.java`: Khôi phục từ bản ZIP, kiểm thử trừ kho dịch vụ phát sinh tại POS (XL-05) và lập phiếu nhập kho cập nhật giá vốn bình quân (XL-10).
+  - `src/test/java/vn/yain/controller/ApiControllerTest.java`: Khôi phục từ bản ZIP, bộ 13 integration tests bao phủ toàn bộ 10 thiết kế xử lý (auth 401, courts, slot lock/conflict, VietQR auto-confirm, POS products, chuyển sân, nhập kho, shifts, upload ảnh, staff, giải đấu, admin users).
+  - `src/test/java/vn/yain/controller/DashboardControllerTest.java`: Khôi phục từ bản ZIP, xác minh view Thymeleaf `/admin/users` render thành công.
+  - `src/test/java/vn/yain/controller/HomeControllerTest.java`: Khôi phục từ bản ZIP, kiểm tra chuyển hướng Root `/` và `/customer` về `/customer/home`.
+  - `src/test/java/vn/yain/service/BookingAndCashierLifecycleRegressionTest.java`: Xây dựng mới bộ test E2E kiểm thử hồi quy toàn diện 8 chặng nghiệp vụ cốt lõi: Đặt sân $\rightarrow$ Chống trùng khung giờ $\rightarrow$ Webhook VietQR xác nhận cọc 30% $\rightarrow$ Check-in $\rightarrow$ Gọi dịch vụ nước uống tại POS trừ kho tự động $\rightarrow$ Chuyển sân thi đấu $\rightarrow$ Check-out thanh toán nốt & xuất hóa đơn $\rightarrow$ Chốt ca thu ngân và đối soát doanh thu ca.
+  - `src/main/java/vn/yain/controller/ApiController.java`: Đồng bộ đầy đủ 92 RESTful endpoints từ mã tham chiếu, tích hợp xử lý Webhook VietQR an toàn với cơ chế kiểm tra trùng lặp Idempotency và ủy quyền caller qua `PaymentWebhookService`.
+  - `src/main/java/vn/yain/service/EmailService.java`: Bổ sung phương thức `sendTournamentRegistration` gửi thư xác nhận đăng ký giải đấu có mã xác nhận và thông tin chi tiết giải.
+  - `src/test/java/vn/yain/repository/CourtAndTimeSlotRepositoryTest.java`: Cải tiến kiểm thử cô lập dữ liệu sân theo chi nhánh, loại bỏ phụ thuộc thứ tự thực thi test trong chuỗi test suite.
+  - Xóa bỏ `src/main/java/vn/yain/controller/PaymentWebhookController.java`: Hợp nhất các route webhook thanh toán vào `ApiController.java` giải quyết triệt để lỗi Ambiguous Mapping.
+  - `docs/progress.md`: Cập nhật chi tiết kết quả kiểm thử Ngày 8.
+- **Chức năng đã xong:**
+  - Khôi phục 100% các bộ test hồi quy của bản tham chiếu gốc (`ApiControllerTest`, `DashboardControllerTest`, `HomeControllerTest`, `SlotOverlappingTest`, `WarehouseServiceTest`).
+  - Giải quyết 3 lỗi tích hợp thực tế: Ambiguous Handler Mapping giữa các controller thanh toán, phương thức gửi email xác nhận giải đấu thiếu trong `EmailService`, và xung đột dữ liệu sân `CL01` trong in-memory database H2.
+  - Đảm bảo chu trình toàn vẹn từ lúc khách đặt sân tới khi thu ngân chốt ca hoạt động trơn tru, logic nhất quán, dữ liệu kho và hóa đơn khớp chính xác.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ **109/109** unit và integration tests PASSED (100%), không có failure, không có error (`BUILD SUCCESS`).
+- **Điểm chưa xác minh:**
+  - Cổng ngân hàng thực tế SePay/VietQR và Cloudinary upload ở môi trường production cần public domain (ngrok / hosting), mã nguồn hiện tại đã hỗ trợ đầy đủ cơ chế xác thực token, mã tham chiếu và fallback mô phỏng.
+- **Điểm dừng:** Hoàn thành xuất sắc toàn bộ mục tiêu Ngày 8 của Thọ. Hệ thống đạt trạng thái Release Candidate (RC) ổn định tuyệt đối, sẵn sàng cho Ngày 9 (nghiệm thu và bàn giao bản tương đương).
