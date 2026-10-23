@@ -1,0 +1,81 @@
+﻿# ============================================================
+# Docker Compose - Badminton Management Project v1.0-RC1
+# Nhan Triet-Tho-Dat | UTE Sport 2026
+# ============================================================
+version: "3.9"
+
+services:
+  # ─── SQL Server (Microsoft SQL Server 2022 Express) ─────────────────────────
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: badminton_sqlserver
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_PASSWORD:-UTE@Badminton2026!}"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    networks:
+      - badminton_net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  # ─── Spring Boot Application ─────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: badminton_app
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=badminton;encrypt=false;trustServerCertificate=true"
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: "${DB_PASSWORD:-UTE@Badminton2026!}"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: "${JWT_SECRET:-UTE_BADMINTON_MANAGEMENT_SUPER_SECRET_KEY_2026_JWT_TOKEN_CHAIN_PRO}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      CLOUDINARY_CLOUD_NAME: "${CLOUDINARY_CLOUD_NAME:-utesport-arena}"
+      CLOUDINARY_API_KEY: "${CLOUDINARY_API_KEY:-}"
+      CLOUDINARY_API_SECRET: "${CLOUDINARY_API_SECRET:-}"
+      SPRING_MAIL_USERNAME: "${SPRING_MAIL_USERNAME:-utesport.badminton@gmail.com}"
+      SPRING_MAIL_PASSWORD: "${SPRING_MAIL_PASSWORD:-}"
+      VIETQR_WEBHOOK_TOKEN: "${VIETQR_WEBHOOK_TOKEN:-UTE_VIETQR_SECRET_TOKEN_2026}"
+      VIETQR_BANK_BIN: "${VIETQR_BANK_BIN:-970422}"
+      VIETQR_ACCOUNT_NO: "${VIETQR_ACCOUNT_NO:-0903123456}"
+      VIETQR_ACCOUNT_NAME: "${VIETQR_ACCOUNT_NAME:-UTE BADMINTON CLUB}"
+    volumes:
+      - app_uploads:/app/uploads
+      - app_logs:/app/logs
+    networks:
+      - badminton_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+# ─── Named Volumes ─────────────────────────────────────────────────────────────
+volumes:
+  sqlserver_data:
+  app_uploads:
+  app_logs:
+
+# ─── Network ───────────────────────────────────────────────────────────────────
+networks:
+  badminton_net:
+    driver: bridge
