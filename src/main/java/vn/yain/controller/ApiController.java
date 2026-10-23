@@ -11,6 +11,7 @@ import vn.yain.dto.CourtEventDto;
 import vn.yain.entity.*;
 import vn.yain.repository.*;
 import vn.yain.security.JwtTokenProvider;
+import vn.yain.service.ChatbotService;
 import vn.yain.service.CloudinaryService;
 import vn.yain.service.CourtService;
 import vn.yain.service.EmailService;
@@ -77,6 +78,9 @@ public class ApiController {
 
     @Autowired(required = false)
     private EmailService emailService;
+
+    @Autowired(required = false)
+    private ChatbotService chatbotService;
 
     private static final Map<String, Map<String, Object>> forgotPasswordOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -875,5 +879,33 @@ public class ApiController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
+    }
+
+    // ==========================================
+    // 5. CHATBOT CONSULTATION ENDPOINTS
+    // ==========================================
+
+    @PostMapping("/chatbot/message")
+    public ResponseEntity<?> sendChatMessage(@RequestBody Map<String, String> payload) {
+        if (chatbotService == null) {
+            return ResponseEntity.ok(Map.of(
+                    "text", "Hệ thống trợ lý ảo đang khởi tạo. Vui lòng thử lại sau.",
+                    "sender", "bot",
+                    "actionType", "NONE"
+            ));
+        }
+        String message = payload != null ? payload.get("message") : null;
+        String sessionId = payload != null ? payload.get("sessionId") : null;
+        vn.yain.dto.ChatMessageDto reply = chatbotService.processMessage(message, sessionId);
+        return ResponseEntity.ok(reply);
+    }
+
+    @PostMapping("/chatbot/reset")
+    public ResponseEntity<?> resetChatbotSession(@RequestBody Map<String, String> payload) {
+        if (chatbotService != null && payload != null) {
+            String sessionId = payload.get("sessionId");
+            chatbotService.resetSession(sessionId);
+        }
+        return ResponseEntity.ok(Map.of("status", "success", "message", "Session reset"));
     }
 }

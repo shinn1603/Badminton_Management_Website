@@ -183,6 +183,13 @@ public class EmailService {
     // 2. GỬI PHIẾU XÁC NHẬN ĐẶT SÂN & VÉ ĐIỆN TỬ (E-TICKET BM-KH02)
     // =========================================================================
 
+    public void sendBookingTicket(Booking booking, String targetEmail) {
+        if (booking != null && targetEmail != null && !targetEmail.isBlank()) {
+            booking.setCustomerEmail(targetEmail);
+        }
+        sendBookingConfirmation(booking);
+    }
+
     public void sendBookingConfirmation(Booking booking) {
         if (booking == null) return;
 

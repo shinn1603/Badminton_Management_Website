@@ -72,8 +72,8 @@ public class SecurityConfig {
                 // Allow public web routes
                 .requestMatchers("/", "/login", "/logout", "/policy", "/error").permitAll()
                 .requestMatchers("/customer/**", "/pos/**", "/manager/**", "/director/**", "/admin/**").permitAll()
-                // Allow public auth, upload and policy endpoints
-                .requestMatchers("/api/auth/**", "/api/upload/**", "/api/policy/**").permitAll()
+                // Allow public auth, upload, policy and chatbot endpoints
+                .requestMatchers("/api/auth/**", "/api/upload/**", "/api/policy/**", "/api/chatbot/**").permitAll()
                 // Public court, branch, products and pricing lookup
                 .requestMatchers(HttpMethod.GET, "/api/branches", "/api/branches/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courts", "/api/courts/**").permitAll()
