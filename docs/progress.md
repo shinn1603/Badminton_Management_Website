@@ -313,3 +313,30 @@
 
 
 
+
+## Ngay 8 (24/10/2026) — Triet (AI-T)
+
+- **Nhanh lam viec:** `triet/day-08-testing-docker-rc`
+- **Pham vi:** Docker hoa, merge regression suite (Tho), bo E2E integration tests toan he thong.
+- **File da tao:**
+  - `Dockerfile` (multi-stage JDK 24 build + JRE 21 runtime, non-root user, HEALTHCHECK)
+  - `docker-compose.yml` (SQL Server 2022 + App, health-check 2 tang, named volumes)
+  - `.env.example` (mau bien moi truong Docker)
+  - `src/test/java/vn/yain/integration/SystemIntegrationE2ETest.java` (10 E2E tests)
+- **Ket qua:** **119/119 tests PASSED, BUILD SUCCESS** (27.311s)
+- **Commit:** `b5ca54c` — `feat: dockerize app, add E2E integration tests, merge regression suite – v1.0-RC1`
+
+## Ngay 9 (25/10/2026) — Triet (AI-T)
+
+- **Nhanh lam viec:** `triet/day-09-final-release`
+- **Pham vi:** Hoan thien tai lieu he thong, README phien ban release, chot v1.0.0.
+- **File da sua:**
+  - `README.md`: Viet lai hoan toan cho ban release v1.0.0: badges, muc luc, so do kien truc ASCII, bang tai khoan demo, huong dan Docker step-by-step, bang 119 test theo module, bang bien moi truong day du.
+  - `docs/progress.md`: Cap nhat nhat ky tien do Ngay 8-9 cua Triet.
+- **Chuc nang da xong:**
+  - Tai lieu README day du cho nguoi dung moi co the clone va chay ngay.
+  - So do kien truc day du the hien toan bo tang (Browser/Security/Controller/Service/Repository/DB).
+  - Tai khoan demo cho tat ca 5 vai tro (Admin/Director/Manager/POS/Customer).
+  - Huong dan Docker step-by-step (docker compose up --build -d).
+  - Bang 20 test class / 119 test ca voi ten chinh xac.
+- **Diem dung:** Hoan thanh toan bo muc tieu Ngay 9 cua Triet. San sang tao PR #27 va tag v1.0.0.
