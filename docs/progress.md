@@ -319,9 +319,17 @@
   - Đối chiếu tổng doanh thu trên báo cáo khớp với tổng `finalAmount` của các `Invoice` có trạng thái `PAID`.
 - **Điểm dừng:** Hoàn thành toàn bộ tính năng phân công tới Ngày 7, không để nợ tính năng sang Ngày 8.
 
+## Ngày 8 (24/10/2026) — Đạt (AI-D)
 
-
-
+- **Nhánh làm việc:** `dat/day-08-testing-sql-verification`
+- **Phạm vi được giao:** Kiểm thử tích hợp kho, nhân sự, ca làm, giá, giải đấu, báo cáo; đối chiếu SQL procedures/triggers/functions và dữ liệu seed; tích hợp regression test.
+- **File đã tạo/sửa:**
+  - `src/test/java/vn/yain/service/ShiftServiceTest.java`: Tích hợp unit test kiểm tra phân ca, mở ca, kết ca thu ngân và tra cứu nhân sự.
+  - Rà soát `database/init_badminton.sql` và `database/procedures_triggers_functions.sql`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Chạy `./mvnw test -Dtest=ShiftServiceTest` xanh 100%.
+  - Kiểm thử smoke test luồng nhập phiếu kho -> tăng tồn kho -> xuất POS -> lên báo cáo doanh thu.
+- **Điểm dừng:** Chốt Release Candidate (RC) cùng Triết và Thọ.
 
 ## Ngày 8 (24/10/2026) — Thọ (AI-H)
 
