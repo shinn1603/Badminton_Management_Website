@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Tổng quan - UTE Sport</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/chart.umd.min.js"></script>
+  <script src="/js/auth-guard.js"></script>
+  <script src="/js/global-hub.js"></script>
+  <style>
+    /* Specific Dashboard Polish */
+    .dashboard-top-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .chart-container-wrap {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
+
+    .donut-center-stat {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .donut-center-num {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.1;
+    }
+
+    .donut-center-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="layout-container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="brand-header">
+        <div class="brand-logo-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="stroke-width: 2.2;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>UTE SPORT</h2>
+          <span>CHI NHÁNH THỦ ĐỨC</span>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="menu-title">Quản lý chi nhánh</div>
+        
+        <a href="/manager/dashboard" class="menu-item active">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span class="menu-text">Tổng quan</span>
+        </a>
+
+        <a href="/manager/bookings" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="menu-text">Đặt sân</span>
+          <span class="menu-tag">7 mới</span>
+        </a>
+
+
+        <a href="/manager/courts" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span class="menu-text">Danh mục sân</span>
+        </a>
+
+        <a href="/manager/pricing" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          <span class="menu-text">Cấu hình giá</span>
+        </a>
+
+        <a href="/manager/inventory" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          </svg>
+          <span class="menu-text">Kho vật tư</span>
+        </a>
+
+        <a href="/manager/receipts" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span class="menu-text">Nhập kho</span>
+        </a>
+
+        <a href="/manager/staff" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span class="menu-text">Nhân viên & Ca</span>
+        </a>
+
+        <a href="/manager/reports" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span class="menu-text">Báo cáo doanh thu</span>
+        </a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-avatar" id="sidebarAvatar">PB</div>
+        <div class="user-meta">
+          <div class="user-name" id="sidebarName">Trần Phúc Bảo</div>
+          <div class="user-title" id="sidebarTitle">Quản lý chi nhánh • CN Thủ Đức</div>
+        </div>
+        <a href="/login" style="margin-left: auto; color: #94a3b8;" title="Đăng xuất">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      <!-- HEADER BAR -->
+      <header class="header-bar">
+        <div class="header-left">
+          <button type="button" class="btn-icon" id="btnToggleSidebar" onclick="toggleSidebar()">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="branch-select-badge" onclick="alert('Đang hiển thị dữ liệu Chi nhánh 1 - Thủ Đức')">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <span>Trung Tâm Thể Thao UTE Sport - Thủ Đức</span>
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px; color: var(--text-muted);">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+
+          <div class="search-box-header">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Tìm kiếm khách hàng, sân, hoặc mã đặt sân..." id="globalSearchInput">
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Theme Toggle Button -->
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng / Tối">
+            <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+
+          <!-- Notification Bell -->
+          <button type="button" class="btn-icon notification-btn" onclick="showToast('Bạn có 3 đơn đặt sân mới chờ duyệt', 'info')">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-dot"></span>
+          </button>
+
+          <!-- User Profile Pill -->
+          <div class="user-pill-header" onclick="window.location.href='/login'">
+            <div class="user-avatar" style="width: 28px; height: 28px; font-size: 11px;">QL</div>
+            <div style="font-size: 12.5px; font-weight: 600; color: var(--text-dark);">Quản lý trung tâm</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="page-content">
+        <!-- TOP SECTION: HERO BANNER (REFERENCE IMAGE 4) -->
+        <div class="dashboard-top-section">
+          <div class="hero-banner">
+            <div class="hero-banner-content">
+              <h1 class="hero-title">Dashboard Quản Lý Sân Cầu Lông - UTE Sport</h1>
+              <p class="hero-subtitle">Vận hành thảm Yonex BWF & Enlio tiêu chuẩn quốc tế — Quản lý đặt sân tối ưu</p>
+              <div class="hero-badges-wrap">
+                <span class="hero-badge-pill">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: #10b981;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  Thảm Yonex BWF tiêu chuẩn
+                </span>
+                <span class="hero-badge-pill">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: #10b981;">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Đặt sân nhanh chóng
+                </span>
+                <span class="hero-badge-pill">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: #10b981;">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  </svg>
+                  Vận hành tập trung
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- STATS KPI CARDS & QUICK ACTIONS (REFERENCE IMAGE 1 & 4) -->
+          <div class="stats-header-row">
+            <!-- Stat 1 -->
+            <div class="stat-card" onclick="window.location.href='/manager/bookings'">
+              <div class="stat-card-top">
+                <span class="stat-label">Tổng lượt đặt</span>
+                <div class="stat-icon-wrap stat-icon-green">
+                  <svg class="svg-icon" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="kpiTotalBookings">--</div>
+              <div class="stat-trend stat-trend-up" id="kpiBookingTrend">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                <span>↑ 12% so với tuần trước</span>
+              </div>
+            </div>
+
+            <!-- Stat 2 -->
+            <div class="stat-card" onclick="window.location.href='/manager/reports'">
+              <div class="stat-card-top">
+                <span class="stat-label">Doanh thu hôm nay</span>
+                <div class="stat-icon-wrap stat-icon-blue">
+                  <svg class="svg-icon" viewBox="0 0 24 24">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="kpiTodayRevenue">--</div>
+              <div class="stat-trend stat-trend-up" id="kpiRevenueTrend">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                <span>↑ 18% so với hôm qua</span>
+              </div>
+            </div>
+
+            <!-- Stat 3 -->
+            <div class="stat-card" onclick="window.location.href='/manager/courts'">
+              <div class="stat-card-top">
+                <span class="stat-label">Tỷ lệ lấp đầy</span>
+                <div class="stat-icon-wrap stat-icon-orange">
+                  <svg class="svg-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="kpiOccupancyRate">--%</div>
+              <div class="stat-trend stat-trend-up" id="kpiOccupancyTrend">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                <span>↑ 6% so với tuần trước</span>
+              </div>
+            </div>
+
+            <!-- Stat 4 -->
+            <div class="stat-card" onclick="window.location.href='/manager/staff'">
+              <div class="stat-card-top">
+                <span class="stat-label">Khách hàng mới</span>
+                <div class="stat-icon-wrap stat-icon-purple">
+                  <svg class="svg-icon" viewBox="0 0 24 24">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-value" id="kpiNewCustomers">--</div>
+              <div class="stat-trend stat-trend-up" id="kpiCustomerTrend">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                <span>↑ 20% so với tuần trước</span>
+              </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="quick-action-group">
+              <button type="button" class="btn btn-primary" onclick="openCreateBookingModal()">
+                <svg class="svg-icon" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Tạo đặt sân</span>
+              </button>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-outline" style="flex: 1; padding: 7px 10px; font-size: 11.5px;" onclick="openCreateCustomerModal()">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                  </svg>
+                  <span>Thêm khách</span>
+                </button>
+                <button type="button" class="btn btn-outline" style="flex: 1; padding: 7px 10px; font-size: 11.5px;" onclick="showToast('Đang xuất báo cáo tổng hợp PDF...', 'success')">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Xuất báo cáo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DASHBOARD MAIN TWO-COLUMN SECTION -->
+        <div class="dashboard-grid-main">
+          <!-- LEFT 65%: CHARTS & LOWER STATUS CARDS -->
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- CHARTS DUAL ROW -->
+            <div class="charts-dual-row">
+              <!-- CHART 1: COMBO BOOKINGS & REVENUE -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--primary);">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Lượt đặt sân & Doanh thu theo ngày</span>
+                  </div>
+                  <select class="form-control" style="padding: 4px 10px; font-size: 12px; width: auto;" onchange="updateComboChart(this.value)">
+                    <option value="7">7 ngày qua</option>
+                    <option value="14">14 ngày qua</option>
+                    <option value="30">30 ngày qua</option>
+                  </select>
+                </div>
+                <div class="card-body">
+                  <div class="chart-container-wrap">
+                    <canvas id="comboChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CHART 2: DONUT CATEGORY BREAKDOWN -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--secondary);">
+                      <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    <span>Cơ cấu loại thảm sân</span>
+                  </div>
+                  <select class="form-control" style="padding: 4px 10px; font-size: 12px; width: auto;">
+                    <option>Tháng này</option>
+                    <option>Quý này</option>
+                  </select>
+                </div>
+                <div class="card-body">
+                  <div class="chart-container-wrap" style="position: relative; height: 260px;">
+                    <canvas id="donutChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- COURT THUMBNAIL CARDS (REFERENCE IMAGE 1 & 4) -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--primary);">
+                    <circle cx="12" cy="12" r="10"></circle>
+                  </svg>
+                  <span>Trạng thái sân thể thao chi nhánh</span>
+                </div>
+                <a href="/manager/courts" style="font-size: 12.5px; font-weight: 600; color: var(--primary);">Xem tất cả →</a>
+              </div>
+              <div class="card-body">
+                <div class="courts-thumbs-grid">
+                  <!-- Court 1 -->
+                  <div class="court-thumb-card" onclick="window.location.href='/manager/courts'">
+                    <div class="court-thumb-img-wrap">
+                      <img src="/images/badminton-court.jpg" alt="Sân Cầu Lông 1">
+                      <span class="badge badge-available court-thumb-badge">● Trống</span>
+                    </div>
+                    <div class="court-thumb-body">
+                      <div class="court-thumb-title">Sân cầu lông 1</div>
+                      <div class="court-thumb-meta">Thảm Taraflex cao cấp • 05:00 - 23:00</div>
+                    </div>
+                  </div>
+
+                  <!-- Court 2 -->
+                  <div class="court-thumb-card" onclick="window.location.href='/manager/courts'">
+                    <div class="court-thumb-img-wrap">
+                      <img src="/images/badminton-court.jpg" alt="Sân Cầu Lông 2">
+                      <span class="badge badge-in-use court-thumb-badge">● Đang sử dụng</span>
+                    </div>
+                    <div class="court-thumb-body">
+                      <div class="court-thumb-title">Sân cầu lông 2</div>
+                      <div class="court-thumb-meta">Sân tiêu chuẩn thi đấu • 05:00 - 23:00</div>
+                    </div>
+                  </div>
+
+                  <!-- Court 3 -->
+                  <div class="court-thumb-card" onclick="window.location.href='/manager/courts'">
+                    <div class="court-thumb-img-wrap">
+                      <img src="/images/badminton-court.jpg" alt="Sân Cầu Lông 3">
+                      <span class="badge badge-available court-thumb-badge">● Trống</span>
+                    </div>
+                    <div class="court-thumb-body">
+                      <div class="court-thumb-title">Sân Cầu Lông 3</div>
+                      <div class="court-thumb-meta">Thảm Enlio tiêu chuẩn • 06:00 - 22:00</div>
+                    </div>
+                  </div>
+
+                  <!-- Court 4 -->
+                  <div class="court-thumb-card" onclick="window.location.href='/manager/courts'">
+                    <div class="court-thumb-img-wrap">
+                      <img src="/images/badminton-court.jpg" alt="Sân Cầu Lông 4 (VIP)">
+                      <span class="badge badge-maintenance court-thumb-badge">● Bảo trì đèn</span>
+                    </div>
+                    <div class="court-thumb-body">
+                      <div class="court-thumb-title">Sân Cầu Lông 4 (VIP)</div>
+                      <div class="court-thumb-meta">Thảm Yonex BWF • Hoàn thành 14:00</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RECENT BOOKINGS TABLE (REFERENCE IMAGE 1) -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--primary);">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  <span>Đặt sân gần đây</span>
+                </div>
+                <a href="/manager/bookings" style="font-size: 12.5px; font-weight: 600; color: var(--primary);">Xem tất cả đơn →</a>
+              </div>
+              <div class="card-body" style="padding: 0;">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Sân</th>
+                        <th>Thời gian</th>
+                        <th>Số tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recentBookingsTbody">
+                      <tr>
+                        <td><strong>#DS0101</strong></td>
+                        <td>Nguyễn Hoàng Nam <br><span style="font-size: 11px; color: var(--text-muted);">0903123456</span></td>
+                        <td>Sân Cầu Lông 2</td>
+                        <td>Hôm nay • 08:00 - 10:00</td>
+                        <td><strong>180.000đ</strong></td>
+                        <td><span class="badge badge-in-use">Đang sử dụng</span></td>
+                        <td>
+                          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openBookingDetailModal('DS0101')">Chi tiết</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>#DS0102</strong></td>
+                        <td>Lê Bá Đạt <br><span style="font-size: 11px; color: var(--text-muted);">0912345678</span></td>
+                        <td>Sân Cầu Lông 1</td>
+                        <td>Hôm nay • 09:00 - 10:00</td>
+                        <td><strong>120.000đ</strong></td>
+                        <td><span class="badge badge-completed">Hoàn thành</span></td>
+                        <td>
+                          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openBookingDetailModal('DS0102')">Chi tiết</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>#DS0103</strong></td>
+                        <td>Phạm Gia Huy <br><span style="font-size: 11px; color: var(--text-muted);">0988777666</span></td>
+                        <td>Sân Cầu Lông 5 (VIP)</td>
+                        <td>Hôm nay • 18:00 - 20:00</td>
+                        <td><strong>240.000đ</strong></td>
+                        <td><span class="badge badge-in-use">Đang sử dụng</span></td>
+                        <td>
+                          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openBookingDetailModal('DS0103')">Chi tiết</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong>#DS0104</strong></td>
+                        <td>Vũ Thị Mai Anh <br><span style="font-size: 11px; color: var(--text-muted);">0977555444</span></td>
+                        <td>Sân Cầu Lông 3</td>
+                        <td>Hôm nay • 19:00 - 20:00</td>
+                        <td><strong>90.000đ</strong></td>
+                        <td><span class="badge badge-pending">Chờ xác nhận</span></td>
+                        <td>
+                          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openBookingDetailModal('DS0104')">Chi tiết</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT 35%: TIMELINE SCHEDULE & PROMO BANNER -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- TIMELINE SCHEDULE CARD (REFERENCE IMAGE 1) -->
+            <div class="card timeline-schedule-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--primary);">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>Lịch sân hôm nay</span>
+                </div>
+                <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px;" onclick="window.location.href='/manager/bookings'">Xem đầy đủ</button>
+              </div>
+              <div class="card-body">
+                <!-- Today info header without date switcher tab -->
+                <div style="font-size: 12.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                  <span id="timelineTodayLabel">Hôm nay</span>
+                  <span class="badge badge-available" style="font-size: 11px;">Dữ liệu thời gian thực</span>
+                </div>
+
+                <!-- Slots List (Rendered dynamically from CSDL) -->
+                <div class="timeline-slots-list" id="timelineSlotsList">
+                  <div style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải lịch sân hôm nay từ cơ sở dữ liệu...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- QUICK MODAL "+ TẠO ĐẶT SÂN" -->
+  <div class="modal-overlay" id="createBookingModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Tạo phiếu đặt sân nhanh</h3>
+        <button type="button" class="btn-icon" onclick="closeCreateBookingModal()">✕</button>
+      </div>
+      <form id="createBookingForm" onsubmit="handleCreateBooking(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên khách hàng</label>
+            <input type="text" id="mCustName" class="form-control" placeholder="Ví dụ: Trần Phúc Bảo" required maxlength="50" autocomplete="off" oninput="this.value = this.value.replace(/[0-9]/g, '').replace(/[^\p{L}\s'-]/gu, '')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input type="tel" id="mCustPhone" class="form-control" placeholder="09xx xxx xxx" required maxlength="10" inputmode="numeric" autocomplete="off" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 10)">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Chọn sân</label>
+              <select id="mCourtSelect" class="form-control" required onchange="calculateModalTotal()">
+                <option value="Sân Cầu Lông 1">Sân Cầu Lông 1 (90k/h)</option>
+                <option value="Sân Cầu Lông 2">Sân Cầu Lông 2 (90k/h)</option>
+                <option value="Sân Cầu Lông 3">Sân Cầu Lông 3 (90k/h)</option>
+                <option value="Sân Cầu Lông 4 (VIP)">Sân Cầu Lông 4 (VIP 120k/h)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ngày chơi</label>
+              <input type="date" id="mBookingDate" class="form-control" required>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Khung giờ</label>
+              <select id="mTimeSlot" class="form-control" required onchange="calculateModalTotal()">
+                <option value="1">08:00 - 09:00 (1 giờ)</option>
+                <option value="2" selected>08:00 - 10:00 (2 giờ)</option>
+                <option value="1">17:00 - 18:00 (1 giờ)</option>
+                <option value="2">18:00 - 20:00 (2 giờ)</option>
+                <option value="2">20:00 - 22:00 (2 giờ)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tạm tính (đ)</label>
+              <input type="text" id="mTotalDisplay" class="form-control" value="180.000đ" readonly style="font-weight: 700; color: var(--primary);">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hình thức đặt</label>
+            <select id="mStatusSelect" class="form-control">
+              <option value="Chờ xác nhận">Chờ xác nhận (Khách online)</option>
+              <option value="Đã xác nhận" selected>Đã xác nhận (Khách hẹn trước)</option>
+              <option value="Đang sử dụng">Khách đang vào chơi (POS trực tiếp)</option>
+              <option value="Đã cọc 30%">Đã cọc 30% qua QR</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeCreateBookingModal()">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary">Xác nhận tạo đơn</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL "THÊM KHÁCH HÀNG MỚI" -->
+  <div class="modal-overlay" id="createCustomerModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm khách hàng thành viên mới</h3>
+        <button type="button" class="btn-icon" onclick="closeCreateCustomerModal()">✕</button>
+      </div>
+      <form id="createCustomerForm" onsubmit="handleCreateCustomer(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Họ và tên khách hàng <span style="color:#ef4444">*</span></label>
+            <input type="text" id="mNewCustName" class="form-control" placeholder="Ví dụ: Trần Văn Nam" required maxlength="50" autocomplete="off" oninput="this.value = this.value.replace(/[0-9]/g, '').replace(/[^\p{L}\s'-]/gu, '')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại liên hệ <span style="color:#ef4444">*</span></label>
+            <input type="tel" id="mNewCustPhone" class="form-control" placeholder="09xx xxx xxx" required maxlength="10" inputmode="numeric" autocomplete="off" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 10)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Địa chỉ Email</label>
+            <input type="email" id="mNewCustEmail" class="form-control" placeholder="khachhang@gmail.com" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hạng thành viên</label>
+            <select id="mNewCustTier" class="form-control">
+              <option value="Đồng" selected>Hạng Đồng (Mặc định)</option>
+              <option value="Bạc">Hạng Bạc (Ưu đãi 5%)</option>
+              <option value="Vàng">Hạng Vàng (Ưu đãi 10%)</option>
+              <option value="Kim Cương">Hạng Kim Cương (VIP 15%)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeCreateCustomerModal()">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary">Lưu khách hàng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL "CHI TIẾT PHIẾU ĐẶT SÂN" -->
+  <div class="modal-overlay" id="bookingDetailModal">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="dtModalTitle">Chi tiết phiếu đặt sân</h3>
+        <button type="button" class="btn-icon" onclick="closeBookingDetailModal()">✕</button>
+      </div>
+      <div class="modal-body" id="dtModalBody">
+        <!-- Content will be rendered dynamically -->
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button type="button" class="btn btn-outline" onclick="closeBookingDetailModal()">Đóng</button>
+        <button type="button" class="btn btn-primary" onclick="window.location.href='/manager/bookings'">Xem trên Quản lý Đặt sân →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- DASHBOARD JAVASCRIPT & CHARTS -->
+  <script>
+    // THEME TOGGLE
+    function initTheme() {
+      const saved = localStorage.getItem('utesport_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+    initTheme();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('utesport_theme', next);
+      showToast(`Đã chuyển sang chế độ ${next === 'dark' ? 'Tối (Dark Mode)' : 'Sáng (Light Mode)'}`, 'info');
+      // Re-render chart styles
+      renderCharts();
+    }
+
+    // SIDEBAR TOGGLE
+    function toggleSidebar() {
+      const sidebar = document.getElementById('appSidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+
+    // TOAST NOTIFICATION: Handled globally by /js/global-hub.js with z-index 999999 and modal support
+
+    // MODAL CONTROL
+    function openCreateBookingModal() {
+      document.getElementById('createBookingModal').classList.add('active');
+      document.getElementById('mBookingDate').value = new Date().toISOString().split('T')[0];
+      calculateModalTotal();
+    }
+    function closeCreateBookingModal() {
+      document.getElementById('createBookingModal').classList.remove('active');
+    }
+
+    function calculateModalTotal() {
+      const court = document.getElementById('mCourtSelect').value;
+      const hours = parseInt(document.getElementById('mTimeSlot').value || '1', 10);
+      const rate = court.includes('VIP') ? 120000 : 90000;
+      const total = rate * hours;
+      document.getElementById('mTotalDisplay').value = total.toLocaleString('vi-VN') + 'đ';
+    }
+
+    function handleCreateBooking(e) {
+      e.preventDefault();
+      const cust = document.getElementById('mCustName').value.trim();
+      const phone = document.getElementById('mCustPhone').value.trim();
+      if (/\d/.test(cust) || !/^[\p{L}\s'-]{2,50}$/u.test(cust)) {
+        alert('Tên khách hàng chỉ được chứa chữ cái (không bao gồm số)!');
+        return;
+      }
+      if (!/^0\d{9}$/.test(phone)) {
+        alert('Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số (bắt đầu bằng số 0).');
+        return;
+      }
+      const court = document.getElementById('mCourtSelect').value;
+      const status = document.getElementById('mStatusSelect').value;
+      const total = document.getElementById('mTotalDisplay').value;
+
+      const code = 'DS' + Math.floor(1000 + Math.random() * 9000);
+      const newB = {
+        bookingCode: code,
+        customerName: cust,
+        customerPhone: phone,
+        courtCode: court,
+        branchCode: 'CN01',
+        bookingDate: document.getElementById('mBookingDate').value || new Date().toISOString().split('T')[0],
+        timeSlot: '08:00 - 10:00',
+        totalPrice: parseInt(document.getElementById('mTotalDisplay').value.replace(/\D/g, '')) || 180000,
+        status: status,
+        notes: 'Đặt nhanh qua dashboard'
+      };
+      cachedBookings.unshift(newB);
+      renderRecentBookings(cachedBookings);
+      closeCreateBookingModal();
+      showToast(`Đã tạo thành công đơn #${code} cho ${cust}!`, 'success');
+    }
+
+    // CUSTOMER MODAL HANDLERS
+    function openCreateCustomerModal() {
+      const modal = document.getElementById('createCustomerModal');
+      if (modal) {
+        document.getElementById('createCustomerForm').reset();
+        modal.classList.add('active');
+      }
+    }
+
+    function closeCreateCustomerModal() {
+      const modal = document.getElementById('createCustomerModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    async function handleCreateCustomer(e) {
+      e.preventDefault();
+      const fullName = document.getElementById('mNewCustName').value.trim();
+      const phone = document.getElementById('mNewCustPhone').value.trim();
+      const email = document.getElementById('mNewCustEmail').value.trim();
+      const membershipTier = document.getElementById('mNewCustTier').value;
+
+      if (!fullName) {
+        showToast('Vui lòng nhập họ và tên khách hàng!', 'warning');
+        return;
+      }
+      if (!/^0\d{9}$/.test(phone)) {
+        showToast('Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số (bắt đầu bằng 0).', 'warning');
+        return;
+      }
+
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/customers', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ fullName, phone, email, membershipTier })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Đã thêm khách hàng [${fullName}] (${data.customer ? data.customer.customerCode : 'thành công'})!`, 'success');
+          closeCreateCustomerModal();
+          loadManagerDashboardData();
+        } else {
+          showToast(data.message || 'Lỗi khi lưu khách hàng!', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi gửi dữ liệu khách hàng: ' + err.message, 'error');
+      }
+    }
+
+    // BOOKING DETAIL MODAL HANDLERS
+    let cachedBookings = [];
+
+    function openBookingDetailModal(bookingCode) {
+      const cleanCode = String(bookingCode).replace('#', '').trim();
+      const b = cachedBookings.find(x => String(x.bookingCode).replace('#', '').trim() === cleanCode);
+      const modal = document.getElementById('bookingDetailModal');
+      const title = document.getElementById('dtModalTitle');
+      const body = document.getElementById('dtModalBody');
+      if (!modal || !body) return;
+
+      title.innerText = 'Chi tiết phiếu đặt sân #' + cleanCode;
+      if (!b) {
+        body.innerHTML = `<div style="text-align: center; padding: 24px; color: var(--text-muted);">Đang tìm thông tin chi tiết cho đơn #${cleanCode}...</div>`;
+        modal.classList.add('active');
+        fetch(`/api/bookings`)
+          .then(res => res.json())
+          .then(list => {
+            const found = list.find(x => String(x.bookingCode).replace('#', '').trim() === cleanCode);
+            if (found) {
+              cachedBookings.push(found);
+              openBookingDetailModal(cleanCode);
+            } else {
+              body.innerHTML = `<div style="text-align: center; padding: 24px; color: var(--text-muted);">Không tìm thấy thông tin đơn #${cleanCode} trong hệ thống.</div>`;
+            }
+          })
+          .catch(() => {
+            body.innerHTML = `<div style="text-align: center; padding: 24px; color: var(--text-muted);">Lỗi kết nối khi tải đơn #${cleanCode}.</div>`;
+          });
+        return;
+      }
+
+      const statusClass = b.status === 'Đang sử dụng' ? 'badge-in-use' :
+                          b.status === 'Hoàn thành' ? 'badge-completed' :
+                          b.status === 'Đã cọc 30%' ? 'badge-pending' : 'badge-available';
+
+      const deposit = Number(b.depositAmount) || 0;
+      const total = Number(b.totalPrice) || 0;
+      const remain = Math.max(0, total - deposit);
+
+      body.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">
+            <div>
+              <div style="font-size: 17px; font-weight: 800; color: var(--text-dark);">#${escapeHtml(b.bookingCode)}</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">Thời gian tạo: ${b.createdAt ? escapeHtml(b.createdAt.replace('T', ' ').substring(0, 16)) : 'Hôm nay'}</div>
+            </div>
+            <span class="badge ${statusClass}" style="font-size: 12px; padding: 5px 12px;">${escapeHtml(b.status || 'Đã xác nhận')}</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Khách hàng:</div>
+              <div style="font-weight: 700; color: var(--text-dark);">${escapeHtml(b.customerName || 'Khách vãng lai')}</div>
+              <div style="color: var(--text-muted); font-size: 12px;">SĐT: ${escapeHtml(b.customerPhone || 'Không có')}</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Sân thi đấu:</div>
+              <div style="font-weight: 700; color: var(--primary);">${escapeHtml(b.courtCode || 'CL01')}</div>
+              <div style="color: var(--text-muted); font-size: 12px;">Chi nhánh: ${escapeHtml(b.branchCode || 'CN01 (Thủ Đức)')}</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; background: var(--bg-hover); padding: 10px 12px; border-radius: 8px;">
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Ngày đặt chơi:</div>
+              <div style="font-weight: 700; color: var(--text-dark);">${escapeHtml(b.bookingDate || 'Hôm nay')}</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted); font-size: 11px;">Khung giờ:</div>
+              <div style="font-weight: 700; color: var(--text-dark);">${escapeHtml(b.timeSlot || '08:00 - 10:00')}</div>
+            </div>
+          </div>
+
+          <div style="padding: 12px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px;">
+              <span>Tổng tiền thanh toán:</span>
+              <strong style="color: var(--primary); font-size: 16px;">${total.toLocaleString('vi-VN')} đ</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">
+              <span>Tiền cọc đã trả:</span>
+              <span style="font-weight: 600;">${deposit.toLocaleString('vi-VN')} đ (${escapeHtml(b.paymentMethod || 'Tiền mặt')})</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px; border-top: 1px dashed rgba(16, 185, 129, 0.3); padding-top: 6px;">
+              <span>Còn lại cần thanh toán:</span>
+              <strong style="color: #ef4444;">${remain.toLocaleString('vi-VN')} đ</strong>
+            </div>
+          </div>
+
+          ${b.notes ? `
+            <div style="font-size: 12px; color: var(--text-muted); background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+              <strong>Ghi chú:</strong> ${escapeHtml(b.notes)}
+            </div>
+          ` : ''}
+        </div>
+      `;
+      modal.classList.add('active');
+    }
+
+    function closeBookingDetailModal() {
+      const modal = document.getElementById('bookingDetailModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    // CHARTS RENDERING (DYNAMIC FROM CSDL)
+    let comboChartInstance = null;
+    let donutChartInstance = null;
+
+    function renderComboChart(labels, bookingCounts, revenues) {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+
+      const ctxCombo = document.getElementById('comboChart').getContext('2d');
+      if (comboChartInstance) comboChartInstance.destroy();
+
+      comboChartInstance = new Chart(ctxCombo, {
+        data: {
+          labels: labels || ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Lượt đặt sân',
+              data: bookingCounts || [32, 45, 52, 58, 48, 72, 65],
+              backgroundColor: '#10b981',
+              borderRadius: 6,
+              barThickness: 24,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: 'Doanh thu (triệu đ)',
+              data: revenues || [4.2, 5.8, 7.1, 7.5, 6.8, 10.5, 9.2],
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              borderWidth: 3,
+              tension: 0.35,
+              fill: true,
+              pointBackgroundColor: '#3b82f6',
+              pointRadius: 4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: textColor, font: { family: 'Inter', size: 12 } }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor }
+            },
+            y: {
+              type: 'linear',
+              position: 'left',
+              grid: { color: gridColor },
+              ticks: { color: textColor }
+            },
+            y1: {
+              type: 'linear',
+              position: 'right',
+              grid: { display: false },
+              ticks: { color: textColor }
+            }
+          }
+        }
+      });
+    }
+
+    function renderDonutChart(labels, data, centerTotal) {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+
+      const ctxDonut = document.getElementById('donutChart').getContext('2d');
+      if (donutChartInstance) donutChartInstance.destroy();
+
+      const centerTextPlugin = {
+        id: 'centerText',
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || !meta.data || !meta.data.length) return;
+          const x = meta.data[0].x;
+          const y = meta.data[0].y;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = isDark ? '#ffffff' : '#0f172a';
+          ctx.fillText(String(centerTotal || '248'), x, y - 9);
+          
+          ctx.font = '600 11px "Inter", sans-serif';
+          ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+          ctx.fillText('LƯỢT ĐẶT', x, y + 13);
+          ctx.restore();
+        }
+      };
+
+      donutChartInstance = new Chart(ctxDonut, {
+        type: 'doughnut',
+        data: {
+          labels: labels || ['Thảm VIP Yonex (48%)', 'Thảm Tiêu chuẩn Enlio (32%)', 'Thảm Quốc Tế (20%)'],
+          datasets: [{
+            data: data || [48, 32, 20],
+            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+            borderWidth: 0,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: textColor,
+                font: { family: 'Inter', size: 12, weight: '500' },
+                boxWidth: 8,
+                padding: 14,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            }
+          }
+        },
+        plugins: [centerTextPlugin]
+      });
+    }
+
+    function renderTimelineSlots(items) {
+      const container = document.getElementById('timelineSlotsList');
+      if (!container) return;
+      if (!items || items.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">Hôm nay chưa có lượt đặt sân nào. Sân đang sẵn sàng đón khách!</div>';
+        return;
+      }
+      container.innerHTML = items.map(item => `
+        <div class="timeline-slot-item" style="border-left: 3px solid ${item.badgeClass === 'badge-in-use' ? '#2563eb' : item.badgeClass === 'badge-pending' ? '#f59e0b' : '#10b981'};">
+          <span class="timeline-hour">${escapeHtml(item.hour || '08:00')}</span>
+          <div class="timeline-court-info">
+            <div class="timeline-court-name">${escapeHtml(item.courtName || item.courtCode || 'Sân Cầu Lông')}</div>
+            <div class="timeline-court-sub">${escapeHtml(item.customerName || 'Khách vãng lai')} • ${escapeHtml(item.subText || 'Đã đặt chỗ')}</div>
+          </div>
+          <span class="badge ${item.badgeClass || 'badge-available'}">${escapeHtml(item.status || 'Trống')}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderRecentBookings(bookings) {
+      const tbody = document.getElementById('recentBookingsTbody');
+      if (!tbody) return;
+      if (!bookings || bookings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Chưa có đơn đặt sân nào</td></tr>';
+        return;
+      }
+      tbody.innerHTML = bookings.slice(0, 7).map(b => {
+        const statusClass = b.status === 'Đang sử dụng' ? 'badge-in-use' :
+                            b.status === 'Hoàn thành' ? 'badge-completed' :
+                            b.status === 'Đã cọc 30%' ? 'badge-pending' : 'badge-available';
+        return `
+          <tr>
+            <td><strong>#${escapeHtml(b.bookingCode)}</strong></td>
+            <td>${escapeHtml(b.customerName)} <br><span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customerPhone || '')}</span></td>
+            <td>${escapeHtml(b.courtCode)}</td>
+            <td>${escapeHtml(b.bookingDate || '')} • ${escapeHtml(b.timeSlot || '')}</td>
+            <td><strong>${(Number(b.totalPrice) || 0).toLocaleString('vi-VN')}đ</strong></td>
+            <td><span class="badge ${statusClass}">${escapeHtml(b.status || 'Đã xác nhận')}</span></td>
+            <td>
+              <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openBookingDetailModal('${escapeHtml(b.bookingCode)}')">Chi tiết</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function loadManagerDashboardData(days = 7) {
+      // Set today dynamic date label
+      const now = new Date();
+      const todayStr = `Hôm nay, ${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      const todayLabelEl = document.getElementById('timelineTodayLabel');
+      if (todayLabelEl) todayLabelEl.innerText = todayStr;
+
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/manager/stats?branchCode=CN01&days=${days}`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            // Update KPIs from CSDL
+            if (data.totalBookings !== undefined) {
+              const el = document.getElementById('kpiTotalBookings');
+              if (el) el.innerText = data.totalBookings;
+            }
+            if (data.todayRevenue !== undefined) {
+              const el = document.getElementById('kpiTodayRevenue');
+              if (el) el.innerText = Number(data.todayRevenue).toLocaleString('vi-VN') + 'đ';
+            }
+            if (data.occupancyRate !== undefined) {
+              const el = document.getElementById('kpiOccupancyRate');
+              if (el) el.innerText = data.occupancyRate + '%';
+            }
+            if (data.newCustomers !== undefined) {
+              const el = document.getElementById('kpiNewCustomers');
+              if (el) el.innerText = data.newCustomers;
+            }
+
+            // Update Charts
+            if (data.chart) {
+              renderComboChart(data.chart.labels, data.chart.bookingCounts, data.chart.revenues);
+            }
+            if (data.donut) {
+              renderDonutChart(data.donut.labels, data.donut.data, data.donut.totalCenter || data.totalBookings || 248);
+            }
+
+            // Update Timeline
+            if (data.timeline) {
+              renderTimelineSlots(data.timeline);
+            }
+
+            // Update Bookings
+            if (data.recentBookings && data.recentBookings.length > 0) {
+              cachedBookings = data.recentBookings;
+              renderRecentBookings(cachedBookings);
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi kết nối /api/manager/stats:', err);
+      }
+
+      // Fallback: Default mock visual
+      renderComboChart();
+      renderDonutChart();
+    }
+
+    function updateComboChart(days) {
+      loadManagerDashboardData(days);
+      showToast(`Đã tải dữ liệu báo cáo trong ${days} ngày qua từ CSDL!`, 'info');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Run charts and real SQL load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadManagerDashboardData(7);
+    });
+
+    // Realtime reactive reload on WebSocket booking events
+    window.addEventListener('badminton:booking-event', () => {
+      loadManagerDashboardData(7);
+    });
+  </script>
+  <script src="/js/global-hub.js"></script>
+</body>
+</html>
+

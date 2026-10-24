@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cấu hình bảng giá - UTE Sport</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/auth-guard.js"></script>
+  <script src="/js/global-hub.js"></script>
+  <style>
+    .pricing-grid-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 992px) {
+      .pricing-grid-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="layout-container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="brand-header">
+        <div class="brand-logo-wrap">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="stroke-width: 2.2;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h2>UTE SPORT</h2>
+          <span>CHI NHÁNH THỦ ĐỨC</span>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="menu-title">Quản lý chi nhánh</div>
+        
+        <a href="/manager/dashboard" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span class="menu-text">Tổng quan</span>
+        </a>
+
+        <a href="/manager/bookings" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="menu-text">Đặt sân</span>
+          <span class="menu-tag">7 mới</span>
+        </a>
+
+
+
+        <a href="/manager/courts" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span class="menu-text">Danh mục sân</span>
+        </a>
+
+        <a href="/manager/pricing" class="menu-item active">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          <span class="menu-text">Cấu hình giá</span>
+        </a>
+
+        <a href="/manager/inventory" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          </svg>
+          <span class="menu-text">Kho vật tư</span>
+        </a>
+
+        <a href="/manager/receipts" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span class="menu-text">Nhập kho</span>
+        </a>
+
+        <a href="/manager/staff" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span class="menu-text">Nhân viên & Ca</span>
+        </a>
+
+        <a href="/manager/reports" class="menu-item">
+          <svg class="svg-icon" viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span class="menu-text">Báo cáo doanh thu</span>
+        </a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-avatar">QL</div>
+        <div class="user-meta">
+          <div class="user-name">Trần Phúc Bảo</div>
+          <div class="user-title">Quản lý cơ sở Thủ Đức</div>
+        </div>
+        <a href="/login" style="margin-left: auto; color: #94a3b8;" title="Đăng xuất">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      <header class="header-bar">
+        <div class="header-left">
+          <button type="button" class="btn-icon" id="btnToggleSidebar" onclick="toggleSidebar()">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <div class="branch-select-badge" style="display: flex; align-items: center; gap: 8px;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <select id="branchFilterSelect" onchange="onBranchChange()" style="border: none; background: transparent; font-weight: 700; color: var(--text-dark); cursor: pointer; outline: none; font-size: 13px;">
+              <option value="CN01" selected>CN01 - Thủ Đức (Chi nhánh quản lý)</option>
+            </select>
+          </div>
+
+          <div class="search-box-header">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Tìm kiếm khung giờ, loại ngày, chính sách giá..." id="pricingSearchInput" oninput="filterPricingData()">
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng / Tối">
+            <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+
+          <button type="button" class="btn btn-outline" onclick="loadManagerPricingData()" title="Làm mới từ CSDL">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            <span>Đồng bộ</span>
+          </button>
+
+          <button type="button" class="btn btn-primary" onclick="openPriceModal()">
+            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Gửi đề xuất chỉnh giá lên Giám đốc</span>
+          </button>
+
+          <div class="user-pill-header" onclick="window.location.href='/login'">
+            <div class="user-avatar" style="width: 28px; height: 28px; font-size: 11px;">QL</div>
+            <div style="font-size: 12.5px; font-weight: 600; color: var(--text-dark);">Quản lý cơ sở</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="page-content">
+        <!-- LUXURY HERO BANNER -->
+        <div class="hero-banner" style="margin-bottom: 24px;">
+          <div class="hero-banner-content">
+            <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
+              <span style="display: inline-block; width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span>
+              <span id="pricingHeroBadge">Chính Sách Bảng Giá Sân Chi Nhánh • SQL Server Realtime</span>
+            </div>
+            <h1 class="hero-title" style="margin-bottom: 8px;">Cấu Hình Giá Theo Khung Giờ & Loại Sân</h1>
+            <p class="hero-subtitle" style="margin-bottom: 0;">Xem biểu giá hiện hành đồng bộ từ SQL Server và gửi đơn đề xuất điều chỉnh giá sân lên Ban Giám Đốc chuỗi phê duyệt theo quy trình nghiệp vụ chuẩn.</p>
+          </div>
+        </div>
+
+
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <!-- BẢNG GIÁ CHI NHÁNH HIỆN HÀNH TỪ DATABASE -->
+          <div class="card" style="background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); overflow: hidden;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 class="card-title" id="pricingTableTitle" style="margin-bottom: 4px; font-size: 16px; font-weight: 700;">Biểu giá sân hiện hành tại Chi nhánh</h3>
+                <div style="font-size: 12.5px; color: var(--text-muted);">Dữ liệu đồng bộ trực tiếp từ Database SQL Server, áp dụng trên POS và Cổng khách hàng</div>
+              </div>
+              <button class="btn btn-primary" onclick="openPriceModal()" style="font-size: 12.5px; padding: 7px 14px;">
+                + Gửi đề xuất chỉnh giá lên Giám đốc
+              </button>
+            </div>
+
+            <div class="table-container">
+              <table class="clean-table" id="tableCurrentPricing">
+                <thead>
+                  <tr>
+                    <th style="width: 90px;">Mã giá</th>
+                    <th>Chi nhánh</th>
+                    <th>Khung giờ</th>
+                    <th>Thời gian</th>
+                    <th>Áp dụng ngày</th>
+                    <th style="text-align: right;">Đơn giá áp dụng</th>
+                    <th style="text-align: center; width: 130px;">Trạng thái</th>
+                    <th style="text-align: right; width: 140px;">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="bodyCurrentPricing">
+                  <tr>
+                    <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">Đang tải biểu giá từ Database...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- DÒNG THÔNG TIN TỔNG QUAN CHUNG DƯỚI BẢNG DỮ LIỆU -->
+            <div class="data-summary-strip" style="margin: 12px 20px 18px 20px;">
+              <div class="data-summary-group">
+                <span class="data-summary-item">Khung giờ áp dụng: <strong id="kpiTotalRules" style="color: var(--primary);">0 khung giờ</strong></span>
+                <span style="opacity: 0.4;">•</span>
+                <span class="data-summary-item">Giá thấp nhất: <strong id="kpiMinPrice" style="color: #3b82f6;">0 đ/h</strong></span>
+              </div>
+              <div class="data-summary-group" style="font-size: 12.5px;">
+                <span class="data-summary-item">Giá giờ vàng (Peak): <strong id="kpiMaxPrice" style="color: #f59e0b;">0 đ/h</strong></span>
+                <span style="opacity: 0.4;">•</span>
+                <span class="data-summary-item">Đề xuất chờ duyệt: <strong id="kpiPendingProposals" style="color: #8b5cf6;">0 đề xuất</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LỊCH SỬ ĐỀ XUẤT ĐIỀU CHỈNH GIÁ GỬI GIÁM ĐỐC -->
+          <div class="card" style="background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); overflow: hidden;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 class="card-title" style="margin-bottom: 4px; font-size: 16px; font-weight: 700;">Lịch sử đề xuất điều chỉnh giá gửi Ban Giám Đốc</h3>
+                <div style="font-size: 12.5px; color: var(--text-muted);">Theo dõi tình trạng phê duyệt của các đề xuất điều chỉnh giá sân do chi nhánh gửi lên</div>
+              </div>
+              <span id="badgeProposalCount" style="padding: 4px 12px; border-radius: 9999px; background: rgba(245, 158, 11, 0.15); color: #d97706; font-size: 12px; font-weight: 700;">
+                0 đề xuất
+              </span>
+            </div>
+
+            <div class="table-container">
+              <table class="clean-table" id="tableProposalsHistory">
+                <thead>
+                  <tr>
+                    <th style="width: 90px;">Mã ĐX</th>
+                    <th>Chi nhánh</th>
+                    <th>Loại sân áp dụng</th>
+                    <th>Khung giờ</th>
+                    <th style="text-align: right;">Giá hiện tại</th>
+                    <th style="text-align: right;">Giá đề xuất</th>
+                    <th style="max-width: 230px;">Lý do gửi Giám đốc</th>
+                    <th style="text-align: center; width: 130px;">Tình trạng</th>
+                    <th style="font-size: 12px; color: var(--text-muted);">Ghi chú Giám đốc</th>
+                  </tr>
+                </thead>
+                <tbody id="bodyProposalsHistory">
+                  <tr>
+                    <td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">Đang tải lịch sử đề xuất...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL GỬI ĐỀ XUẤT CHỈNH GIÁ LÊN BAN GIÁM ĐỐC -->
+  <div class="modal-overlay" id="priceModal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="modalTitle">Đề xuất điều chỉnh giá sân gửi Ban Giám Đốc</h3>
+        <button class="modal-close-btn" onclick="closePriceModal()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="padding: 10px 14px; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); font-size: 12px; color: #1e40af; margin-bottom: 16px;">
+          Đơn đề xuất sẽ được chuyển thẳng đến tài khoản Giám đốc chuỗi để thẩm định và phê duyệt trước khi áp dụng thực tế.
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Chi nhánh đề xuất *</label>
+            <select class="form-control" id="inpProposalBranch" onchange="onModalBranchChange()">
+              <option value="CN01" selected>CN01 - Thủ Đức (UTE Sport)</option>
+              <option value="CN02">CN02 - Bình Thạnh</option>
+              <option value="CN03">CN03 - Quận 9</option>
+              <option value="CN04">CN04 - Gò Vấp</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Người gửi đề xuất</label>
+            <input type="text" class="form-control" id="inpProposerName" value="Trần Phúc Bảo" readonly style="background: var(--surface-subtle);">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Loại sân</label>
+            <select class="form-control" id="inpCourtType">
+              <option value="Sân Tiêu chuẩn BWF" selected>Sân Tiêu chuẩn BWF</option>
+              <option value="Sân VIP Lining">Sân VIP Lining</option>
+              <option value="Sân VIP Yonex">Sân VIP Yonex</option>
+              <option value="Sân VIP Victor">Sân VIP Victor</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Khung giờ biểu giá *</label>
+            <select class="form-control" id="inpTimeSlot" onchange="onModalSlotChange()">
+              <option value="">-- Chọn khung giờ --</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div>
+            <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Mức giá hiện tại (VNĐ/h)</label>
+            <input type="number" class="form-control" id="inpCurrentPrice" value="130000" readonly style="background: var(--surface-subtle);">
+          </div>
+          <div>
+            <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Mức giá đề xuất mới (VNĐ/h) <span style="color: red;">*</span></label>
+            <input type="number" class="form-control" id="inpProposedPrice" placeholder="Ví dụ: 145000" step="5000">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Lý do đề xuất điều chỉnh <span style="color: red;">*</span></label>
+          <textarea class="form-control" id="inpReason" rows="3" placeholder="Nêu rõ lý do: ví dụ tăng chi phí điện máy lạnh, nâng cấp thảm thi đấu Yonex mới, hoặc kích cầu giờ thấp điểm..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 14px 20px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px; background: var(--surface-subtle);">
+        <button class="btn btn-outline" onclick="closePriceModal()">Hủy bỏ</button>
+        <button class="btn btn-primary" id="btnSubmitProposal" onclick="submitProposalToDirector()">Gửi đề xuất lên Giám đốc</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/global-hub.js"></script>
+  <script>
+    let allPricingRules = [];
+    let allPricingProposals = [];
+    let branchNamesMap = {
+      'CN01': 'Chi nhánh Thủ Đức',
+      'CN02': 'Chi nhánh Bình Thạnh',
+      'CN03': 'Chi nhánh Quận 9',
+      'CN04': 'Chi nhánh Gò Vấp'
+    };
+
+    function getActiveBranch() {
+      const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
+        || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser());
+      if (user && (user.role === 'MANAGER' || (user.branchCode && user.role !== 'DIRECTOR' && user.role !== 'ADMIN'))) {
+        return user.branchCode || 'CN01';
+      }
+      const select = document.getElementById('branchFilterSelect');
+      if (select && select.value) return select.value;
+      return (user && user.branchCode) ? user.branchCode : 'CN01';
+    }
+
+    function initBranchSecurity() {
+      const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
+        || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser());
+      const select = document.getElementById('branchFilterSelect');
+      if (!select) return;
+      if (user && (user.role === 'DIRECTOR' || user.role === 'ADMIN')) {
+        select.innerHTML = `
+          <option value="CN01" selected>CN01 - Thủ Đức (UTE Sport)</option>
+          <option value="CN02">CN02 - Bình Thạnh</option>
+          <option value="CN03">CN03 - Quận 9</option>
+          <option value="CN04">CN04 - Gò Vấp</option>
+          <option value="ALL">Toàn bộ chi nhánh</option>
+        `;
+        select.disabled = false;
+        select.style.cursor = 'pointer';
+      } else {
+        const br = (user && user.branchCode) ? user.branchCode : 'CN01';
+        select.innerHTML = `<option value="${br}" selected>${br} - Thủ Đức (Chi nhánh quản lý)</option>`;
+        select.value = br;
+        select.disabled = true;
+        select.style.cursor = 'not-allowed';
+        select.title = 'Phân quyền: Bạn chỉ có quyền quản lý chính sách giá cơ sở được phân công (' + br + ')';
+
+        const modalBranch = document.getElementById('inpProposalBranch');
+        if (modalBranch) {
+          modalBranch.value = br;
+          modalBranch.disabled = true;
+        }
+      }
+    }
+
+    function onBranchChange() {
+      applyFiltersAndRender();
+    }
+
+    function formatVND(amount) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
+    }
+
+    function openPriceModal(prefillBranch, prefillSlotInfo, prefillRate) {
+      const modal = document.getElementById('priceModal');
+      const activeBranch = prefillBranch || (getActiveBranch() === 'ALL' ? 'CN01' : getActiveBranch());
+      
+      const branchSelect = document.getElementById('inpProposalBranch');
+      if (branchSelect) branchSelect.value = activeBranch;
+
+      // Populate current user
+      const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
+        || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser());
+      if (user && user.fullName) {
+        document.getElementById('inpProposerName').value = user.fullName;
+      }
+
+      populateModalSlotOptions(activeBranch, prefillSlotInfo, prefillRate);
+      modal.classList.add('open');
+    }
+
+    function closePriceModal() {
+      document.getElementById('priceModal').classList.remove('open');
+    }
+
+    function onModalBranchChange() {
+      const bCode = document.getElementById('inpProposalBranch').value;
+      populateModalSlotOptions(bCode);
+    }
+
+    function populateModalSlotOptions(branchCode, selectSlotInfo, explicitRate) {
+      const slotSelect = document.getElementById('inpTimeSlot');
+      if (!slotSelect) return;
+
+      const rulesForBranch = allPricingRules.filter(r => r.branchCode === branchCode);
+      slotSelect.innerHTML = '';
+
+      if (rulesForBranch.length === 0) {
+        // Fallback default slots
+        const defaultSlots = [
+          { name: '17:00 - 22:00 (Giờ vàng cao điểm)', rate: 130000 },
+          { name: '09:00 - 17:00 (Ban ngày)', rate: 90000 },
+          { name: '06:00 - 09:00 (Sáng sớm)', rate: 80000 },
+          { name: '22:00 - 23:00 (Tối muộn)', rate: 90000 }
+        ];
+        defaultSlots.forEach(ds => {
+          const opt = document.createElement('option');
+          opt.value = ds.name;
+          opt.dataset.rate = ds.rate;
+          opt.textContent = `${ds.name} - ${formatVND(ds.rate)}/h`;
+          slotSelect.appendChild(opt);
+        });
+      } else {
+        rulesForBranch.forEach(r => {
+          const slotLabel = `${r.slotTime} (${r.slotType || 'Tiêu chuẩn'} - ${r.dayType})`;
+          const opt = document.createElement('option');
+          opt.value = `${r.slotTime} (${r.slotType || 'Tiêu chuẩn'})`;
+          opt.dataset.rate = r.hourlyRate || 90000;
+          opt.textContent = `${slotLabel} - ${formatVND(r.hourlyRate)}/h`;
+          if (selectSlotInfo && (r.slotTime.includes(selectSlotInfo) || opt.value.includes(selectSlotInfo))) {
+            opt.selected = true;
+          }
+          slotSelect.appendChild(opt);
+        });
+      }
+
+      if (explicitRate !== undefined) {
+        document.getElementById('inpCurrentPrice').value = explicitRate;
+      } else {
+        onModalSlotChange();
+      }
+    }
+
+    function onModalSlotChange() {
+      const slotSelect = document.getElementById('inpTimeSlot');
+      const curPriceInput = document.getElementById('inpCurrentPrice');
+      const selectedOption = slotSelect.options[slotSelect.selectedIndex];
+      if (selectedOption && selectedOption.dataset.rate) {
+        curPriceInput.value = selectedOption.dataset.rate;
+      } else {
+        curPriceInput.value = '90000';
+      }
+    }
+
+    function openProposalForRule(pricingCode, branchCode, slotTime, hourlyRate) {
+      openPriceModal(branchCode, slotTime, hourlyRate);
+    }
+
+    async function loadManagerPricingData() {
+      const tbodyRules = document.getElementById('bodyCurrentPricing');
+      const tbodyProps = document.getElementById('bodyProposalsHistory');
+      if (tbodyRules && allPricingRules.length === 0) {
+        tbodyRules.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">Đang tải biểu giá từ Database SQL Server...</td></tr>';
+      }
+
+      try {
+        const res = await fetch('/api/director/pricing');
+        if (res.ok) {
+          const data = await res.json();
+          allPricingRules = data.rules || [];
+          allPricingProposals = data.proposals || [];
+
+          if (Array.isArray(data.branches)) {
+            data.branches.forEach(b => {
+              if (b.branchCode && b.branchName) branchNamesMap[b.branchCode] = b.branchName;
+            });
+          }
+
+          applyFiltersAndRender();
+        } else {
+          showToast('Không thể tải dữ liệu bảng giá từ máy chủ!', 'warning');
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải dữ liệu bảng giá:', err);
+        if (tbodyRules) {
+          tbodyRules.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: #ef4444;">Không thể kết nối máy chủ SQL Server!</td></tr>';
+        }
+      }
+    }
+
+    function applyFiltersAndRender() {
+      const activeBranch = getActiveBranch();
+      const searchQuery = (document.getElementById('pricingSearchInput')?.value || '').toLowerCase().trim();
+
+      // Dynamic titles
+      const bTitle = (activeBranch === 'ALL') ? 'Toàn bộ hệ thống' : (branchNamesMap[activeBranch] || activeBranch);
+      const heroBadge = document.getElementById('pricingHeroBadge');
+      if (heroBadge) heroBadge.textContent = `Chính Sách Bảng Giá Sân ${bTitle} • SQL Server Realtime`;
+      const tableTitle = document.getElementById('pricingTableTitle');
+      if (tableTitle) tableTitle.textContent = `Biểu giá sân hiện hành tại ${bTitle}`;
+
+      // Filter Rules
+      let filteredRules = (activeBranch === 'ALL')
+        ? allPricingRules
+        : allPricingRules.filter(r => r.branchCode === activeBranch);
+
+      if (searchQuery) {
+        filteredRules = filteredRules.filter(r => {
+          const txt = `${r.pricingCode} ${r.branchCode} ${r.branchName} ${r.slotType} ${r.slotTime} ${r.dayType} ${r.hourlyRate}`.toLowerCase();
+          return txt.includes(searchQuery);
+        });
+      }
+
+      // Filter Proposals
+      let filteredProposals = (activeBranch === 'ALL')
+        ? allPricingProposals
+        : allPricingProposals.filter(p => p.branchCode === activeBranch);
+
+      if (searchQuery) {
+        filteredProposals = filteredProposals.filter(p => {
+          const txt = `${p.proposalCode} ${p.branchCode} ${p.courtType} ${p.slotInfo} ${p.reason} ${p.status}`.toLowerCase();
+          return txt.includes(searchQuery);
+        });
+      }
+
+      // Update KPIs
+      updatePricingKpis(filteredRules, filteredProposals);
+
+      // Render
+      renderBranchRules(filteredRules);
+      renderBranchProposals(filteredProposals);
+    }
+
+    function filterPricingData() {
+      applyFiltersAndRender();
+    }
+
+    function updatePricingKpis(rules, proposals) {
+      const kpiRules = document.getElementById('kpiTotalRules');
+      const kpiMin = document.getElementById('kpiMinPrice');
+      const kpiMax = document.getElementById('kpiMaxPrice');
+      const kpiPending = document.getElementById('kpiPendingProposals');
+
+      if (kpiRules) kpiRules.textContent = `${rules.length} khung giờ`;
+
+      if (rules.length > 0) {
+        let minRate = Infinity;
+        let maxRate = 0;
+        rules.forEach(r => {
+          const rate = Number(r.hourlyRate) || 0;
+          if (rate > 0 && rate < minRate) minRate = rate;
+          if (rate > maxRate) maxRate = rate;
+        });
+        if (kpiMin) kpiMin.textContent = `${formatVND(minRate === Infinity ? 0 : minRate)}/h`;
+        if (kpiMax) kpiMax.textContent = `${formatVND(maxRate)}/h`;
+      } else {
+        if (kpiMin) kpiMin.textContent = '0 đ/h';
+        if (kpiMax) kpiMax.textContent = '0 đ/h';
+      }
+
+      const pendingCount = proposals.filter(p => p.status === 'Chờ phê duyệt').length;
+      if (kpiPending) kpiPending.textContent = `${pendingCount} đề xuất`;
+    }
+
+    function renderBranchRules(rules) {
+      const tbody = document.getElementById('bodyCurrentPricing');
+      if (!tbody) return;
+
+      if (!rules || rules.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">Chưa có biểu giá cấu hình cho chi nhánh này trong CSDL SQL Server</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rules.map(r => `
+        <tr>
+          <td style="font-family: monospace; font-weight: 700; color: var(--primary);">${r.pricingCode}</td>
+          <td><span class="badge badge-outline" style="font-size: 11px;">${r.branchCode || 'CN01'}</span></td>
+          <td><strong>${r.slotType || 'Khung giờ chuẩn'}</strong></td>
+          <td><span class="badge" style="background: var(--surface-subtle);">${r.slotTime}</span></td>
+          <td>${r.dayType}</td>
+          <td style="text-align: right; font-weight: 800; color: var(--primary); font-size: 14px;">${formatVND(r.hourlyRate)}</td>
+          <td style="text-align: center;"><span class="badge badge-success">Đang áp dụng</span></td>
+          <td style="text-align: right;">
+            <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11.5px;" 
+                    onclick="openProposalForRule('${r.pricingCode}', '${r.branchCode}', '${r.slotTime}', ${r.hourlyRate})">
+              Đề xuất đổi giá
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBranchProposals(proposals) {
+      const tbody = document.getElementById('bodyProposalsHistory');
+      const badge = document.getElementById('badgeProposalCount');
+      if (!tbody) return;
+
+      if (badge) badge.textContent = `${proposals.length} đề xuất`;
+
+      if (!proposals || proposals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 28px; color: var(--text-muted);">Chưa có đề xuất điều chỉnh giá nào được gửi từ chi nhánh</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = proposals.map(p => {
+        const isPending = (p.status === 'Chờ phê duyệt');
+        const isApproved = (p.status === 'Đã phê duyệt');
+        const badgeClass = isPending ? 'badge-warning' : (isApproved ? 'badge-success' : 'badge-danger');
+
+        const diff = p.proposedPrice - p.currentPrice;
+        const diffPct = p.currentPrice > 0 ? ((diff / p.currentPrice) * 100).toFixed(1) : 0;
+        const diffSign = diff >= 0 ? `+${diffPct}%` : `${diffPct}%`;
+        const diffColor = diff >= 0 ? '#10b981' : '#ef4444';
+
+        return `
+          <tr>
+            <td style="font-weight: 700; color: var(--primary); font-size: 13px;">${p.proposalCode}</td>
+            <td><span class="badge badge-outline" style="font-size: 11px;">${p.branchCode || 'CN01'}</span></td>
+            <td><strong>${p.courtType}</strong></td>
+            <td><span class="badge" style="background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa;">${p.slotInfo}</span></td>
+            <td style="text-align: right; color: var(--text-muted);">${formatVND(p.currentPrice)}</td>
+            <td style="text-align: right; font-weight: 700; color: var(--primary);">
+              ${formatVND(p.proposedPrice)}
+              <div style="font-size: 10.5px; color: ${diffColor};">(${diffSign})</div>
+            </td>
+            <td style="max-width: 230px; font-size: 12px; color: var(--text-muted);">${p.reason}</td>
+            <td style="text-align: center;"><span class="badge ${badgeClass}">${p.status}</span></td>
+            <td style="font-size: 11.5px; color: ${isApproved ? 'var(--primary)' : (isPending ? 'var(--text-muted)' : '#ef4444')};">
+              ${p.note ? p.note : (isApproved ? 'Giám đốc đã duyệt và cập nhật biểu giá' : (isPending ? 'Đang chờ Giám đốc duyệt' : 'Đã từ chối'))}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function submitProposalToDirector() {
+      const branchCode = document.getElementById('inpProposalBranch').value || 'CN01';
+      const courtType = document.getElementById('inpCourtType').value;
+      const slotInfo = document.getElementById('inpTimeSlot').value;
+      const currentPrice = document.getElementById('inpCurrentPrice').value;
+      const proposedPrice = document.getElementById('inpProposedPrice').value;
+      const reason = document.getElementById('inpReason').value.trim();
+      const proposerName = document.getElementById('inpProposerName').value || 'Quản lý chi nhánh';
+
+      if (!proposedPrice || Number(proposedPrice) <= 0) {
+        showToast('Vui lòng nhập mức giá đề xuất mới hợp lệ!', 'warning');
+        return;
+      }
+      if (!reason) {
+        showToast('Vui lòng nhập lý do đề xuất điều chỉnh giá để Giám đốc thẩm định!', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitProposal');
+      btn.disabled = true;
+      btn.textContent = 'Đang gửi lên Giám đốc...';
+
+      try {
+        const payload = {
+          branchCode: branchCode,
+          proposerName: proposerName,
+          courtType: courtType,
+          slotInfo: slotInfo,
+          currentPrice: Number(currentPrice),
+          proposedPrice: Number(proposedPrice),
+          reason: reason
+        };
+
+        const res = await fetch('/api/manager/pricing/proposals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          showToast(result.message || 'Đã gửi đề xuất điều chỉnh giá lên Giám đốc thành công!', 'success');
+          closePriceModal();
+          document.getElementById('inpProposedPrice').value = '';
+          document.getElementById('inpReason').value = '';
+          await loadManagerPricingData();
+        } else {
+          const errData = await res.json();
+          showToast(errData.message || 'Có lỗi xảy ra khi gửi đề xuất!', 'error');
+        }
+      } catch (err) {
+        console.error('Lỗi gửi đề xuất:', err);
+        showToast('Lỗi kết nối máy chủ SQL Server!', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Gửi đề xuất lên Giám đốc';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initBranchSecurity();
+      loadManagerPricingData();
+    });
+
+    window.addEventListener('badminton:pricing-event', () => {
+      loadManagerPricingData();
+    });
+    window.addEventListener('badminton:booking-event', () => {
+      loadManagerPricingData();
+    });
+  </script>
+</body>
+</html>

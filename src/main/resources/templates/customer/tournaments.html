@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sự Kiện & Đăng Ký Giải Đấu Phong Trào - UTE Badminton</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    :root {
+      --cust-bg: var(--bg-page);
+      --cust-surface: var(--surface);
+      --cust-border: var(--border-subtle);
+      --cust-primary: var(--primary);
+      --cust-primary-hover: var(--primary-hover);
+      --cust-primary-light: var(--primary-light);
+      --cust-primary-border: var(--primary-border);
+      --cust-accent: var(--accent);
+      --cust-accent-light: var(--accent-light);
+      --cust-accent-border: var(--accent-border);
+      --cust-text-main: var(--text-dark);
+      --cust-text-body: var(--text-body);
+      --cust-text-muted: var(--text-muted);
+    }
+
+    body {
+      background-color: var(--cust-bg);
+      color: var(--cust-text-body);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Common Header */
+    .cust-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--cust-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .cust-nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cust-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--cust-text-main);
+    }
+    .cust-brand-logo {
+      width: 40px;
+      height: 40px;
+      background: var(--cust-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.2);
+    }
+    .cust-brand-title {
+      font-size: 16.5px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .cust-brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--cust-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cust-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .cust-nav-item {
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--cust-text-muted);
+      transition: all 0.15s ease;
+      position: relative;
+      padding: 8px 0;
+    }
+    .cust-nav-item:hover { color: var(--cust-text-main); }
+    .cust-nav-item.active {
+      color: var(--cust-primary);
+      font-weight: 600;
+    }
+    .cust-nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--cust-primary);
+      border-radius: 2px;
+    }
+
+    /* Tournament Layout */
+    .tour-container {
+      max-width: 1140px;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+    }
+
+    /* Emerald Luxury Tournament Hero Banner */
+    .tour-hero {
+      background: radial-gradient(circle at 20% 30%, rgba(6, 78, 59, 0.95) 0%, rgba(4, 20, 16, 0.98) 100%),
+        url('/images/badminton_arena_hero.jpg') center/cover no-repeat;
+      background-blend-mode: overlay;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #ffffff;
+      padding: 44px 40px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .tour-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.2) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .tour-hero h1 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 10px;
+      letter-spacing: -0.6px;
+      color: #ffffff;
+    }
+    .tour-hero h1 span {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .tour-hero p {
+      color: #cbd5e1;
+      font-size: 14.5px;
+      max-width: 720px;
+      line-height: 1.65;
+    }
+
+    /* Luxury Tournament Card */
+    .tour-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      transition: all 0.2s ease;
+    }
+    .tour-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(16, 185, 129, 0.12);
+    }
+    .tour-card-banner {
+      background: var(--surface-subtle);
+      border-right: 1px solid var(--border-subtle);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .tour-card-content {
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .tour-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--cust-text-main);
+      margin-bottom: 6px;
+    }
+    .tour-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 14px 0;
+      font-size: 12.5px;
+    }
+    .tour-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--cust-text-body);
+    }
+    .tour-prize-row {
+      background: #fafafa;
+      border: 1px solid var(--cust-border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 12px 0;
+      font-size: 12.5px;
+    }
+    .tour-progress-wrap {
+      margin: 12px 0;
+    }
+
+    @media (max-width: 860px) {
+      .tour-card { grid-template-columns: 1fr; }
+      .tour-card-banner { border-right: none; border-bottom: 1px solid var(--cust-border); }
+    }
+  
+    /* LUXURY TOP NAVBAR & FOOTER STYLES */
+    .cust-navbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .cust-nav-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: nowrap;
+    }
+    .cust-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-dark);
+      flex-shrink: 0;
+    }
+    .cust-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      flex-shrink: 0;
+    }
+    .cust-brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--text-dark);
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .cust-brand-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      white-space: nowrap;
+    }
+    .cust-nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 1;
+    }
+    .cust-nav-link {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      position: relative;
+      padding: 8px 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .cust-nav-link:hover, .cust-nav-link.active {
+      color: var(--primary);
+    }
+    .cust-nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    }
+    .cust-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+      .cust-nav-menu { display: none; }
+    }
+
+    /* LUXURY FOOTER */
+    .cust-footer-dark {
+      background: #061813;
+      color: #94a3b8;
+      padding: 56px 24px 28px;
+      border-top: 1px solid rgba(16, 185, 129, 0.2);
+      font-size: 13px;
+      margin-top: 60px;
+    }
+    .cust-footer-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 1100px) {
+      .cust-footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .cust-footer-inner { grid-template-columns: 1fr; }
+    }
+    .footer-col-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 18px;
+    }
+    .footer-links-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-links-list a {
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .footer-links-list a:hover {
+      color: #10b981;
+    }
+    .footer-bottom-bar {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Customer Header -->
+    <!-- 1. TOP NAVBAR -->
+  <header class="cust-navbar">
+    <div class="cust-nav-inner">
+      <a href="/customer/home" class="cust-brand-wrap">
+        <div class="cust-logo-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 22px; height: 22px; stroke-width: 2.2;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="cust-brand-title">UTE SPORT</div>
+          <div class="cust-brand-sub">Hệ Thống Sân Cầu Lông</div>
+        </div>
+      </a>
+
+      <nav class="cust-nav-menu">
+        <a href="/customer/home" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          Trang chủ
+        </a>
+        <a href="/customer/booking" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Đặt sân
+        </a>
+        <a href="/customer/tournaments" class="cust-nav-link active">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+          Giải đấu
+        </a>
+        <a href="/customer/history" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Lịch sử đặt
+        </a>
+        <a href="/customer/profile" class="cust-nav-link">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Hội viên
+        </a>
+      </nav>
+
+      <div class="cust-nav-actions">
+        <!-- THEME TOGGLE BUTTON -->
+        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối" style="padding: 8px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;">
+          <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+          </svg>
+        </button>
+
+        <!-- DYNAMIC USER AUTH WIDGET -->
+        <div id="navUserArea">
+          <a href="/customer/auth" class="btn btn-primary" id="btnNavAuth" style="padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Đăng Nhập / Đăng Ký
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tour-container">
+    <!-- Hero Banner -->
+    <div class="tour-hero">
+      <div style="position: relative; z-index: 2;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 12px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 14px;">
+          <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; display: inline-block;"></span>
+          <span>Giải Đấu CLB</span>
+        </div>
+        <h1>Hệ Thống Giải Đấu Cầu Lông <span>UTE Open 2026</span></h1>
+        <p>
+          Sân chơi giao lưu cọ xát dành cho các câu lạc bộ phong trào. Thi đấu trên sân thảm tiêu chuẩn, giải thưởng hấp dẫn.
+        </p>
+      </div>
+    </div>
+
+    <!-- Tournament Rules Notification -->
+    <div style="background: var(--cust-primary-light); border: 1px solid var(--cust-primary-border); border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; font-size: 12.5px; color: var(--cust-primary-hover); line-height: 1.5; display: flex; align-items: center; gap: 10px;">
+      <svg class="svg-icon" style="width: 18px; height: 18px; flex-shrink: 0; color: var(--cust-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <div>
+        <strong>Điều lệ:</strong> Dành cho VĐV phong trào, tối đa 2 nội dung/người. Cổng đăng ký đóng trước 3 ngày khai mạc hoặc khi đủ số lượng cặp.
+      </div>
+    </div>
+
+    <!-- Dynamic Tournaments Container -->
+    <div id="tournamentsContainer" style="display: flex; flex-direction: column; gap: 24px;">
+      <div style="background: var(--cust-surface); border: 1px solid var(--cust-border); border-radius: 12px; padding: 48px 24px; text-align: center;">
+        <div style="font-size: 14px; color: var(--cust-text-muted); font-weight: 500;">
+          Đang đồng bộ danh sách giải đấu từ cơ sở dữ liệu hệ thống...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tournament Registration Modal -->
+  <div class="modal-overlay" id="regModal">
+    <div class="modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--cust-primary); font-weight: 600;">Đăng Ký Trực Tuyến</div>
+          <h3 style="font-size: 15px; margin-top: 2px;">Phiếu Đăng Ký Tham Gia Thi Đấu</h3>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="closeTourModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form onsubmit="handleTournamentSubmit(event)">
+          <input type="hidden" id="modalTourCode" value="GD01">
+          <div class="form-group">
+            <label class="form-label">Giải Đấu Đăng Ký</label>
+            <input type="text" id="modalTourName" class="form-control" readonly style="background: #f1f5f9; font-weight: 600;">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Nội Dung Thi Đấu *</label>
+              <select class="form-control" id="tourCategory" required>
+                <option value="Đơn nam">Đơn nam</option>
+                <option value="Đôi nam">Đôi nam</option>
+                <option value="Đôi nam nữ" selected>Đôi nam nữ</option>
+                <option value="Đôi nữ">Đôi nữ</option>
+                <option value="Đơn nữ">Đơn nữ</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Tên CLB / Đội Đại Diện *</label>
+              <input type="text" class="form-control" id="tourClubName" placeholder="Ví dụ: CLB Sư Phạm Kỹ Thuật" required value="CLB UTE Masters">
+            </div>
+          </div>
+
+          <div style="margin: 16px 0 8px; font-size: 12.5px; font-weight: 700; color: var(--cust-primary-hover); border-bottom: 1px solid var(--cust-border); padding-bottom: 4px;">
+            1. Thông Tin Vận Động Viên 1 (Đội Trưởng)
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Họ và Tên VĐV 1 *</label>
+              <input type="text" class="form-control" id="tourPlayer1Name" value="Nguyễn Văn An" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Số ĐT Liên Hệ *</label>
+              <input type="tel" class="form-control" id="tourPlayer1Phone" value="0912345678" required>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Email Nhận Phiếu Xác Nhận *</label>
+              <input type="email" class="form-control" id="tourPlayer1Email" placeholder="vd: athlete@utesport.vn" required value="athlete@utesport.vn">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Số CCCD / Mã Số Sinh Viên *</label>
+              <input type="text" class="form-control" id="tourPlayer1Cccd" placeholder="079xxxxxxxx hoặc 24110xxx" required value="24110234">
+            </div>
+          </div>
+
+          <div style="margin: 16px 0 8px; font-size: 12.5px; font-weight: 700; color: var(--cust-primary-hover); border-bottom: 1px solid var(--cust-border); padding-bottom: 4px;">
+            2. Thông Tin Vận Động Viên 2 (Đồng Đội)
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Họ và Tên VĐV 2 *</label>
+              <input type="text" class="form-control" id="tourPlayer2Name" placeholder="Nhập tên VĐV cùng đội" required value="Trần Thị Mai">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Số ĐT Liên Hệ VĐV 2 *</label>
+              <input type="tel" class="form-control" id="tourPlayer2Phone" placeholder="09xxxxxxxx" required value="0987654321">
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Số CCCD / MSSV *</label>
+              <input type="text" class="form-control" id="tourPlayer2Cccd" placeholder="079xxxxxxxx hoặc 24110xxx" required value="24110888">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Trình Độ</label>
+              <select class="form-control">
+                <option>Trung bình khá</option>
+                <option selected>Khá</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin: 14px 0;">
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11.5px; color: var(--cust-text-muted); cursor: pointer;">
+              <input type="checkbox" required checked style="accent-color: var(--cust-primary); margin-top: 2px;">
+              <span>Chúng tôi cam kết là VĐV phong trào và tuân thủ quyết định của ban tổ chức &amp; tổ trọng tài.</span>
+            </label>
+          </div>
+
+          <div class="modal-footer" style="padding: 12px 0 0; background: transparent; border-top: none;">
+            <button type="button" class="btn btn-outline" onclick="closeTourModal()">Hủy</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitTourReg" style="height: 38px; padding: 0 20px; font-weight: 600;">
+              Gửi Hồ Sơ Đăng Ký (300.000đ / cặp)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentCustomer = null;
+    let allTournaments = [];
+
+    async function loadCustomerProfile() {
+      const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+      if (!token) return;
+      try {
+        const res = await fetch('/api/customer/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success) {
+            currentCustomer = data;
+            const p1 = document.getElementById('tourPlayer1Name');
+            const ph1 = document.getElementById('tourPlayer1Phone');
+            if (p1 && data.fullName) p1.value = data.fullName;
+            if (ph1 && data.phone) ph1.value = data.phone;
+          }
+        }
+      } catch (e) {
+        console.warn('Không thể nạp thông tin hội viên:', e);
+      }
+    }
+
+    function openRegisterModal(code, name, fee, catParam) {
+      document.getElementById('modalTourCode').value = code || 'GD01';
+      document.getElementById('modalTourName').value = name || 'Giải Cầu Lông UTE Open';
+      const feeNum = Number(fee || 0);
+      const submitBtn = document.getElementById('btnSubmitTourReg');
+      if (submitBtn) {
+        if (feeNum > 0) {
+          submitBtn.textContent = `Gửi Hồ Sơ Đăng Ký (${feeNum.toLocaleString('vi-VN')}đ / cặp)`;
+        } else {
+          submitBtn.textContent = 'Gửi Hồ Sơ Đăng Ký (Miễn phí tham gia)';
+        }
+      }
+      if (currentCustomer) {
+        const p1 = document.getElementById('tourPlayer1Name');
+        const ph1 = document.getElementById('tourPlayer1Phone');
+        if (p1 && currentCustomer.fullName) p1.value = currentCustomer.fullName;
+        if (ph1 && currentCustomer.phone) ph1.value = currentCustomer.phone;
+      }
+
+      // Khóa đúng nội dung thi đấu theo thể thức của giải đấu
+      const catSelect = document.getElementById('tourCategory');
+      if (catSelect) {
+        const t = (typeof allTournaments !== 'undefined') ? allTournaments.find(item => item.tournamentCode === code) : null;
+        const category = catParam || (t && t.category ? t.category : '');
+        const lowerName = (name || '').toLowerCase();
+        const rules = ((t && t.rules) ? t.rules : '').toLowerCase();
+
+        catSelect.innerHTML = '';
+        if (category && category !== 'Tổng hợp nhiều nội dung') {
+          catSelect.innerHTML = `<option value="${category}" selected>${category} (Nội dung chính thức)</option>`;
+        } else if (lowerName.includes('đôi nam nữ') || rules.includes('đôi nam nữ') && !lowerName.includes('doanh nghiệp')) {
+          catSelect.innerHTML = `<option value="Đôi nam nữ" selected>Đôi nam nữ (Nội dung chính thức)</option>`;
+        } else if (lowerName.includes('đơn nam') || rules.includes('đơn nam')) {
+          catSelect.innerHTML = `<option value="Đơn nam" selected>Đơn nam (Nội dung chính thức)</option>`;
+        } else if (lowerName.includes('đơn nữ') || rules.includes('đơn nữ')) {
+          catSelect.innerHTML = `<option value="Đơn nữ" selected>Đơn nữ (Nội dung chính thức)</option>`;
+        } else if (lowerName.includes('đôi nữ')) {
+          catSelect.innerHTML = `<option value="Đôi nữ" selected>Đôi nữ (Nội dung chính thức)</option>`;
+        } else if (lowerName.includes('đôi nam') && !lowerName.includes('đôi nam nữ')) {
+          catSelect.innerHTML = `<option value="Đôi nam" selected>Đôi nam (Nội dung chính thức)</option>`;
+        } else {
+          catSelect.innerHTML = `
+            <option value="Đôi nam">Đôi nam</option>
+            <option value="Đôi nam nữ" selected>Đôi nam nữ</option>
+            <option value="Đôi nữ">Đôi nữ</option>
+            <option value="Đơn nam">Đơn nam</option>
+            <option value="Đơn nữ">Đơn nữ</option>
+          `;
+        }
+      }
+
+      document.getElementById('regModal').classList.add('open');
+    }
+
+    function closeTourModal() {
+      document.getElementById('regModal').classList.remove('open');
+    }
+
+    function renderTournaments(list) {
+      const container = document.getElementById('tournamentsContainer');
+      if (!container) return;
+
+      if (!Array.isArray(list) || list.length === 0) {
+        container.innerHTML = `
+          <div style="background: var(--cust-surface); border: 1px dashed var(--cust-border); border-radius: 12px; padding: 48px 24px; text-align: center;">
+            <div style="font-size: 16px; font-weight: 700; color: var(--cust-text-main); margin-bottom: 8px;">Hiện tại chưa có giải đấu nào mở đăng ký</div>
+            <div style="font-size: 13px; color: var(--cust-text-muted);">Ban tổ chức sẽ sớm cập nhật lịch thi đấu mới nhất trên toàn hệ thống các chi nhánh.</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      list.forEach(t => {
+        const code = t.tournamentCode || 'GD';
+        const name = t.tournamentName || 'Giải Cầu Lông Phong Trào';
+        const current = Number(t.currentParticipants != null ? t.currentParticipants : 0);
+        const max = Number(t.maxParticipants != null ? t.maxParticipants : 32);
+        const fee = Number(t.entryFee != null ? t.entryFee : 0);
+        const prize = Number(t.totalPrize != null ? t.totalPrize : 0);
+        const status = t.status || 'Đang mở đăng ký';
+        const branchName = t.branchName || 'Toàn hệ thống UTE Badminton';
+
+        let startDateStr = 'Sắp công bố';
+        if (t.startDate) {
+          try {
+            const d = new Date(t.startDate);
+            if (!isNaN(d.getTime())) {
+              startDateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            }
+          } catch (e) {}
+        }
+
+        let endDateStr = 'Cập nhật sau';
+        if (t.endDate) {
+          try {
+            const d = new Date(t.endDate);
+            if (!isNaN(d.getTime())) {
+              endDateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+            }
+          } catch (e) {}
+        }
+
+        const pct = max > 0 ? Math.min(100, Math.round((current / max) * 100)) : 0;
+        const remaining = Math.max(0, max - current);
+
+        const isFull = current >= max || status === 'Hết chỗ';
+        const isClosed = status === 'Đã đóng đăng ký';
+        const isUpcoming = status === 'Sắp mở đăng ký';
+        const isCompleted = status === 'Đã hoàn thành';
+
+        let badgeClass = 'badge-success';
+        let badgeText = 'ĐANG MỞ ĐĂNG KÝ';
+        let barColor = 'var(--cust-primary)';
+        let slotText = `Đã đăng ký: <strong>${current} / ${max} Cặp</strong> (Còn ${remaining} slot)`;
+        let btnText = 'Đăng Ký Tham Gia Ngay';
+        let btnDisabled = false;
+        let btnClass = 'btn btn-primary';
+
+        if (isCompleted) {
+          badgeClass = 'badge';
+          badgeText = 'ĐÃ HOÀN THÀNH';
+          barColor = '#94a3b8';
+          slotText = `Đã kết thúc (${current}/${max} Cặp)`;
+          btnText = 'Giải Đấu Đã Kết Thúc';
+          btnDisabled = true;
+          btnClass = 'btn btn-outline';
+        } else if (isFull) {
+          badgeClass = 'badge';
+          badgeText = 'ĐÃ HẾT CHỖ';
+          barColor = '#ef4444';
+          slotText = `<span style="color: #ef4444; font-weight: 700;">Đã đủ: ${max} / ${max} Cặp (Đã hết chỗ)</span>`;
+          btnText = 'Đã Hết Chỗ';
+          btnDisabled = true;
+          btnClass = 'btn btn-outline';
+        } else if (isClosed) {
+          badgeClass = 'badge badge-warning';
+          badgeText = 'ĐÃ ĐÓNG ĐĂNG KÝ';
+          barColor = '#f59e0b';
+          slotText = `<span style="color: #f59e0b; font-weight: 700;">Đã đóng cổng (${current} / ${max} Cặp)</span>`;
+          btnText = 'Đã Đóng Cổng';
+          btnDisabled = true;
+          btnClass = 'btn btn-outline';
+        } else if (isUpcoming) {
+          badgeClass = 'badge badge-blue';
+          badgeText = 'SẮP MỞ ĐĂNG KÝ';
+          barColor = '#2563eb';
+          slotText = `Chưa mở đăng ký (Quy mô ${max} Cặp)`;
+          btnText = 'Sắp Mở Cổng';
+          btnDisabled = true;
+          btnClass = 'btn btn-outline';
+        }
+
+        const feeDisplay = fee > 0 ? (fee.toLocaleString('vi-VN') + ' đ / cặp') : 'Miễn phí tham gia';
+        const prizeDisplay = prize > 0 ? (prize.toLocaleString('vi-VN') + ' đ') : 'Cúp & Kỷ niệm chương';
+        const safeName = name.replace(/'/g, "\\'");
+
+        html += `
+          <div class="tour-card" id="card-${code}">
+            <div class="tour-card-banner">
+              <div>
+                <span class="badge ${badgeClass}" id="tourBadge-${code}">${badgeText}</span>
+                <div style="font-size: 20px; font-weight: 800; margin-top: 10px; color: var(--cust-text-main); text-transform: uppercase;">${code}</div>
+                <div style="font-size: 12px; color: var(--cust-text-muted); margin-top: 2px;" id="tourDate-${code}">Khởi tranh: ${startDateStr}</div>
+              </div>
+              <div style="margin-top: 24px;">
+                <div style="font-size: 11px; text-transform: uppercase; color: var(--cust-text-muted); font-weight: 600;">Tổng giải thưởng</div>
+                <div style="font-size: 22px; font-weight: 800; color: var(--cust-primary-hover);" id="tourPrize-${code}">${prizeDisplay}</div>
+                <div style="font-size: 11px; color: var(--cust-text-muted);">+ Cúp Vàng &amp; Kỷ niệm chương</div>
+              </div>
+            </div>
+
+            <div class="tour-card-content">
+              <div>
+                <h2 class="tour-title" id="tourTitle-${code}">${name}</h2>
+                <div style="font-size: 12.5px; color: var(--cust-text-muted); line-height: 1.5; margin-bottom: 12px;">
+                  ${t.rules ? t.rules : 'Giải đấu giao lưu cầu lông chính thức do hệ thống CLB UTE Badminton Arena tổ chức.'}
+                </div>
+
+                <div class="tour-meta-grid">
+                  <div class="tour-meta-item">
+                    <strong>Địa điểm:</strong> ${branchName}
+                  </div>
+                  <div class="tour-meta-item">
+                    <strong>Nội dung:</strong> <span style="font-weight: 600; color: var(--cust-primary);">${t.category || 'Đôi nam nữ'}</span>
+                  </div>
+                  <div class="tour-meta-item">
+                    <strong>Lệ phí tham gia:</strong> ${feeDisplay}
+                  </div>
+                  <div class="tour-meta-item">
+                    <strong>Thời gian kết thúc:</strong> ${endDateStr}
+                  </div>
+                </div>
+
+                <div class="tour-progress-wrap">
+                  <div style="display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 4px;">
+                    <span style="color: var(--cust-text-muted);">Số slot đăng ký:</span>
+                    <strong style="color: var(--cust-primary-hover);" id="tourSlotText-${code}">${slotText}</strong>
+                  </div>
+                  <div style="height: 6px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;">
+                    <div id="tourProgressBar-${code}" style="height: 100%; width: ${isUpcoming ? 0 : pct}%; background: ${barColor}; border-radius: 9999px; transition: width 0.3s ease;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--cust-border);">
+                <span style="font-size: 11.5px; color: var(--cust-text-muted);">Mã giải: <strong style="color: var(--cust-primary);">${code}</strong> &bull; Áp dụng luật BWF</span>
+                <button type="button" class="${btnClass}" id="tourBtn-${code}" ${btnDisabled ? 'disabled style="padding: 0 18px; border-radius: 6px; cursor: not-allowed; opacity: 0.6; height: 36px; font-size: 12.5px;"' : `onclick="openRegisterModal('${code}', '${safeName}', ${fee}, '${t.category || ''}')" style="padding: 0 20px; font-weight: 600; border-radius: 6px; height: 36px; font-size: 12.5px;"`}>
+                  ${btnText}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function loadTournaments() {
+      try {
+        const res = await fetch('/api/tournaments');
+        if (res.ok) {
+          const list = await res.json();
+          allTournaments = Array.isArray(list) ? list : [];
+          renderTournaments(allTournaments);
+        } else {
+          document.getElementById('tournamentsContainer').innerHTML = `
+            <div style="background: var(--cust-surface); border: 1px solid var(--cust-border); border-radius: 12px; padding: 36px 20px; text-align: center; color: var(--cust-text-muted);">
+              Không thể tải dữ liệu giải đấu từ cơ sở dữ liệu. Vui lòng tải lại trang!
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.warn('Lỗi kết nối giải đấu:', err);
+        document.getElementById('tournamentsContainer').innerHTML = `
+          <div style="background: var(--cust-surface); border: 1px solid var(--cust-border); border-radius: 12px; padding: 36px 20px; text-align: center; color: var(--cust-text-muted);">
+            Lỗi kết nối máy chủ dữ liệu. Vui lòng kiểm tra lại đường truyền mạng!
+          </div>
+        `;
+      }
+    }
+
+    async function handleTournamentSubmit(e) {
+      e.preventDefault();
+      const code = document.getElementById('modalTourCode').value || 'GD01';
+      const name = document.getElementById('modalTourName').value;
+      const teamName = document.getElementById('tourClubName').value;
+      const category = document.getElementById('tourCategory').value;
+      const player1 = document.getElementById('tourPlayer1Name').value;
+      const phone1 = document.getElementById('tourPlayer1Phone').value;
+      const submitBtn = document.getElementById('btnSubmitTourReg');
+
+      const originalBtnText = submitBtn ? submitBtn.textContent : 'Gửi Hồ Sơ Đăng Ký';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang lưu vào SQL Server...';
+      }
+
+      const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+      }
+
+      const email1 = document.getElementById('tourPlayer1Email') ? document.getElementById('tourPlayer1Email').value.trim() : '';
+
+      try {
+        const res = await fetch('/api/tournaments/register', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            tournamentCode: code,
+            tournamentName: name,
+            teamName: teamName,
+            category: category,
+            player1Name: player1,
+            phone: phone1,
+            email: email1,
+            customerCode: currentCustomer ? currentCustomer.customerCode : ''
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Đăng ký thành công! Phiếu xác nhận & vé giải đấu đã được gửi tới email ${email1 || phone1}.`, 'success');
+          closeTourModal();
+          await loadTournaments();
+        } else {
+          showToast(data.message || 'Không thể đăng ký giải đấu.', 'warning');
+          await loadTournaments();
+        }
+      } catch (err) {
+        console.error('Lỗi gửi hồ sơ đăng ký:', err);
+        showToast('Có lỗi kết nối máy chủ. Vui lòng thử lại sau!', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText;
+        }
+      }
+    }
+
+    async function loadFooterBranches() {
+      try {
+        const res = await fetch('/api/branches');
+        if (!res.ok) return;
+        const branches = await res.json();
+        if (Array.isArray(branches) && branches.length > 0) {
+          const footerList = document.getElementById('footerBranchList');
+          if (footerList) {
+            footerList.innerHTML = branches.map(b => `
+              <li>• ${b.branchCode}: ${b.branchName} (${b.address || 'TP.HCM'})</li>
+            `).join('') + '<li>• Giờ mở cửa: <strong>05:30 - 22:30</strong> (Thứ 2 - CN)</li>';
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi tải chi nhánh chân trang:', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTournaments();
+      loadCustomerProfile();
+      loadFooterBranches();
+    });
+  </script>
+  
+  <footer class="cust-footer-dark">
+    <div class="cust-footer-inner">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+          <div class="cust-logo-icon" style="width: 38px; height: 38px;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+          </div>
+          <span style="font-size: 18px; font-weight: 900; color: #ffffff;">UTE SPORT ARENA</span>
+        </div>
+        <p style="line-height: 1.6; margin-bottom: 18px;">
+          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF. Tiên phong ứng dụng công nghệ khóa giữ chỗ thời gian thực, đối soát thanh toán tự động VietQR và dịch vụ chăm sóc người chơi hàng đầu.
+        </p>
+        <div>
+          <span style="color: #6ee7b7; font-weight: 700;">Hotline Đặt Sân:</span>
+          <strong style="color: #ffffff; font-size: 15px;"> 1900 6868 - 028 3722 1223</strong>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Chi Nhánh Sân Cầu Lông</div>
+        <ul class="footer-links-list" id="footerBranchList">
+          <li>• CN 1: Võ Văn Ngân, TP. Thủ Đức</li>
+          <li>• CN 2: Nguyễn Thị Thập, Quận 7</li>
+          <li>• CN 3: Điện Biên Phủ, Bình Thạnh</li>
+          <li>• CN 4: Quang Trung, Gò Vấp</li>
+          <li>• Giờ mở cửa: <strong>05:30 - 22:30</strong> (Thứ 2 - CN)</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Dịch Vụ & Hội Viên</div>
+        <ul class="footer-links-list">
+          <li><a href="/customer/booking">Đặt Sân Trực Tuyến</a></li>
+          <li><a href="/customer/tournaments">Đăng Ký Giải Đấu UTE</a></li>
+          <li><a href="/customer/profile">Tích Điểm Thẻ Hội Viên</a></li>
+          <li><a href="/customer/history">Tra Cứu Lịch Sử & Check-in</a></li>
+          <li><a href="/customer/policy">Chính Sách Hoàn Cọc 100%</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Hệ Thống & Quản Trị</div>
+        <ul class="footer-links-list">
+          <li><a href="/login">Đăng Nhập Cán Bộ & Nhân Viên</a></li>
+          <li><a href="/pos/grid">Giao Diện Thu Ngân POS</a></li>
+          <li><a href="/manager/dashboard">Dashboard Quản Lý Chi Nhánh</a></li>
+          <li><a href="/director/dashboard">Dashboard Điều Hành Chuỗi</a></li>
+          <li><a href="/admin/users">Quản Trị Người Dùng & Phân Quyền</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+      <div>
+        © 2026 <strong>UTE Sport Badminton Management System</strong> • Nhóm 11 (Thọ - Bảo - Tâm - Hương)
+      </div>
+      <div style="display: flex; gap: 20px;">
+        <span>Tiêu chuẩn thảm thi đấu BWF</span>
+        <span>Thanh toán VietQR tự động</span>
+        <span>Hỗ trợ kỹ thuật 24/7</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/global-hub.js"></script>
+  <script src="/js/auth-guard.js"></script>
+</body>
+</html>
+
