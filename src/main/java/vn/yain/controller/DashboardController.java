@@ -25,7 +25,7 @@ public class DashboardController {
         return "login";
     }
 
-    // CUSTOMER PORTAL ENDPOINTS
+    // CUSTOMER PORTAL ENDPOINTS (Phan he Cong Khach Hang - Tran Bieu Huong)
     @GetMapping("/customer/home")
     public String customerHome() {
         return "customer/home";
@@ -56,28 +56,36 @@ public class DashboardController {
         return "customer/profile";
     }
 
+    @GetMapping("/customer/tournaments")
+    public String customerTournaments() {
+        return "customer/tournaments";
+    }
+
     @GetMapping({ "/customer/policy", "/policy" })
     public String customerPolicy() {
         return "customer/policy";
     }
 
-    @GetMapping({ "/booking/grid", "/pos/grid" })
-    public String bookingGrid() {
-        return "pos/grid";
+    @GetMapping("/director/dashboard")
+    public String directorDashboard() {
+        return "director/dashboard";
     }
 
-    // MANAGER ENDPOINTS
-    @GetMapping({ "/manager/bookings", "/pos/bookings" })
-    public String managerBookings() {
-        return "manager/bookings";
+    @GetMapping("/director/branches")
+    public String directorBranches() {
+        return "director/branches";
     }
 
-    @GetMapping("/manager/courts")
-    public String managerCourts() {
-        return "manager/courts";
+    @GetMapping("/director/pricing")
+    public String directorPricing() {
+        return "director/pricing";
     }
 
-    // ADMIN ENDPOINTS (DAY 5 SCOPE)
+    @GetMapping("/director/tournaments")
+    public String directorTournaments() {
+        return "director/tournaments";
+    }
+
     @GetMapping("/admin/users")
     public String adminUsers(Model model) {
         if (userService != null) {
@@ -97,7 +105,6 @@ public class DashboardController {
         return "admin/permissions";
     }
 
-    // ADMIN ENDPOINTS (DAY 6 SCOPE)
     @GetMapping("/admin/settings")
     public String adminSettings() {
         return "admin/settings";
@@ -106,5 +113,51 @@ public class DashboardController {
     @GetMapping("/admin/logs")
     public String adminLogs() {
         return "admin/logs";
+    }
+
+    @GetMapping({ "/booking/grid", "/pos/grid" })
+    public String bookingGrid() {
+        return "pos/grid";
+    }
+
+    // MANAGER ENDPOINTS
+    @GetMapping("/manager/dashboard")
+    public String managerDashboard() {
+        return "manager/dashboard";
+    }
+
+    @GetMapping({ "/manager/bookings", "/pos/bookings" })
+    public String managerBookings() {
+        return "manager/bookings";
+    }
+
+    @GetMapping("/manager/courts")
+    public String managerCourts() {
+        return "manager/courts";
+    }
+
+    @GetMapping("/manager/pricing")
+    public String managerPricing() {
+        return "manager/pricing";
+    }
+
+    @GetMapping("/manager/inventory")
+    public String managerInventory() {
+        return "manager/inventory";
+    }
+
+    @GetMapping("/manager/receipts")
+    public String managerReceipts() {
+        return "manager/receipts";
+    }
+
+    @GetMapping("/manager/staff")
+    public String managerStaff() {
+        return "manager/staff";
+    }
+
+    @GetMapping("/manager/reports")
+    public String managerReports() {
+        return "manager/reports";
     }
 }

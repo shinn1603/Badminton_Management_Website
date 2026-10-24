@@ -308,7 +308,16 @@
   - Nhánh `dat/day-06-branch-tournament` (Day 6 của Đạt) đã push lên GitHub (commit `4ba929a`) nhưng chưa được merge vào `main`. Triết đã thiết kế `ChatbotService` và `GeminiAiService` hoạt động độc lập dependency, không bị gián đoạn build. Đề xuất Triết/chủ repo merge PR #19/Day 6 vào `main` trước khi tích hợp Ngày 8.
 - **Điểm dừng:** Hoàn thành toàn diện mục tiêu Ngày 7 của Triết. Sẵn sàng tạo PR `feat: add gemini chatbot widget and ticket email service` và chuyển sang Ngày 8 (kiểm thử toàn diện toàn hệ thống, Docker hóa và chốt bản ứng viên Release Candidate).
 
+## Ngày 7 (23/10/2026) — Đạt (AI-D)
 
+- **Nhánh làm việc:** `dat/day-07-reports-dashboards`
+- **Phạm vi được giao:** Tích hợp dịch vụ thống kê, báo cáo doanh thu, chi phí nhập kho, số liệu đặt sân, bộ lọc theo chi nhánh/thời gian cho Manager và Director.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/service/ReportService.java`: Tổng hợp doanh thu từ hóa đơn đã thanh toán (`PAID`), chi phí từ `StockReceipt`, tỷ lệ hoàn thành/hủy `Booking` và cảnh báo tồn kho tối thiểu.
+  - Soạn Patch API `/api/reports/summary` và `/api/reports/daily-revenue` gửi Triết gộp vào `ApiController.java`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Đối chiếu tổng doanh thu trên báo cáo khớp với tổng `finalAmount` của các `Invoice` có trạng thái `PAID`.
+- **Điểm dừng:** Hoàn thành toàn bộ tính năng phân công tới Ngày 7, không để nợ tính năng sang Ngày 8.
 
 
 
