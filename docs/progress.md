@@ -381,3 +381,17 @@
   - Tich hop tai khoan ngan hang thuc te qua SePay/Casso webhook can URL public (ngrok/Cloudflare tunnel) khi demo.
   - Cau hinh SMTP email thuc va GEMINI_API_KEY chinh thuc can duoc set trong file `.env` truoc khi demo nguon.
 - **Diem dung:** Hoan thanh toan bo muc tieu Ngay 8 cua Triet. Ban ung vien v1.0-RC1 da san sang cho buoi bao ve va demo ngay 25/10/2026.
+
+## Ngày 9 (25/10/2026) — Đạt (AI-D) — NGHIỆM THU & BÀN GIAO
+
+- **Nhánh làm việc:** `dat/day-09-final-acceptance`
+- **Phạm vi thực hiện:** Demo nghiệm thu toàn diện phân hệ Kho, Nhân sự - Phân ca, Bảng giá - Khuyến mãi, Chi nhánh - Giải đấu, Báo cáo thống kê Giám đốc/Quản lý.
+- **Kết quả kiểm tra nghiệm thu (Acceptance Verification):**
+  - `[x]` **Kho & Bán lẻ:** CRUD Sản phẩm/Thiết bị, tạo phiếu nhập kho cộng tồn tự động, trừ tồn kho bán lẻ qua POS hoạt động chính xác, chặn âm kho.
+  - `[x]` **Nhân sự & Ca làm:** Lịch phân ca theo tuần, mở/đóng ca thu ngân khớp số liệu giao dịch; pass toàn bộ unit test `ShiftServiceTest`.
+  - `[x]` **Giá & Khuyến mãi:** Tính giá sân theo khung giờ/loại ngày, quy trình tạo và phê duyệt đề xuất giá (`PricingProposal`), áp dụng khuyến mãi hợp lệ.
+  - `[x]` **Chi nhánh & Giải đấu:** Quản lý đa chi nhánh, tạo/duyệt giải đấu và kiểm soát số lượng vận động viên đăng ký.
+  - `[x]` **Báo cáo & Dashboard:** Biểu đồ doanh thu ngày và tổng hợp KPI khớp với hóa đơn thanh toán thực tế.
+  - `[x]` **Cơ sở dữ liệu:** Đã đối chiếu hoàn tất `init_badminton.sql` và `procedures_triggers_functions.sql`.
+- **Điểm chưa xác minh:** Không còn. Toàn bộ các module của Đạt đã được kiểm chứng thực tế.
+- **Điểm dừng cuối:** Hoàn thành 100% khối lượng công việc của Đạt (AI-D) trong kế hoạch 9 ngày, bàn giao cho Triết gộp nhánh và đóng tag `v1.0.0`.
