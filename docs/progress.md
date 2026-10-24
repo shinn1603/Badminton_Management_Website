@@ -364,3 +364,24 @@
   - Tich hop tai khoan ngan hang thuc te qua SePay/Casso webhook can URL public (ngrok/Cloudflare tunnel) khi demo.
   - Cau hinh SMTP email thuc va GEMINI_API_KEY chinh thuc can duoc set trong file `.env` truoc khi demo nguon.
 - **Diem dung:** Hoan thanh toan bo muc tieu Ngay 8 cua Triet. Ban ung vien v1.0-RC1 da san sang cho buoi bao ve va demo ngay 25/10/2026.
+
+## Ngày 9 (25/10/2026) — Thọ (AI-H)
+
+- **Nhánh làm việc:** `tho/day-09-final-acceptance`
+- **Phạm vi được giao:** Nghiệm thu toàn diện và bàn giao bản tương đương theo Mục 8 của Kế hoạch 9 Ngày; demo thực tế đầy đủ hai luồng nghiệp vụ cốt lõi: Luồng Khách hàng (Customer Flow) và Luồng Thu ngân / POS (Cashier Flow); đối chiếu và xác nhận 15/15 tiêu chí nghiệm thu so với bản ZIP tham chiếu gốc; hoàn tất báo cáo nghiệm thu và sẵn sàng chốt tag `v1.0.0`.
+- **File đã tạo/sửa:**
+  - `src/test/java/vn/yain/service/CustomerAndCashierAcceptanceDemoTest.java`: Bộ 2 kiểm thử tự động toàn diện mô phỏng 100% kịch bản demo thực tế cho cả luồng Khách hàng (Tìm sân -> Giữ slot 10p -> Đặt sân tính cọc 30% -> Chuyển khoản VietQR -> Xử lý Webhook tự động -> Chống lặp Idempotent -> Lịch sử vé E-Ticket) và luồng Thu ngân / POS (Lưới ma trận 26 sân -> Quét QR Check-in -> Chuyển sân VIP -> Gọi đồ F&B trừ kho tự động -> Check-out xuất hóa đơn thanh toán nốt -> Chốt ca thu ngân kiểm quỹ đối soát doanh thu).
+  - `docs/acceptance_report.md`: Báo cáo nghiệm thu & bàn giao hệ thống Ngày 9 toàn diện; đánh dấu hoàn tất 15/15 tiêu chí Mục 8; sơ đồ hóa chi tiết kịch bản Walkthrough từng bước của 2 luồng nghiệp vụ; bảng tổng hợp chi tiết 121 bài test; biên bản xác nhận bàn giao của Thọ (AI-H).
+  - `docs/progress.md`: Cập nhật nhật ký tiến độ Ngày 9 của Thọ.
+- **Chức năng đã xong:**
+  - Hoàn tất 100% nghiệm thu hai luồng nghiệp vụ cốt lõi mà Thọ phụ trách: Luồng Khách hàng và Luồng Thu ngân POS.
+  - Xác nhận tính toàn vẹn và nhất quán dữ liệu giữa Sân thi đấu - Đơn đặt sân - Kho hàng - Hóa đơn - Phiếu thu và Ca thu ngân.
+  - Xử lý mượt mà và an toàn các nghiệp vụ đặc thù: giữ chỗ tạm 600s, chống chồng lấn khung giờ, xử lý lặp Webhook ngân hàng, cập nhật giá vốn bình quân gia quyền khi nhập kho, và chốt ca thu ngân khớp quỹ 100%.
+  - Khẳng định 100% tính năng trong phân hệ phụ trách tương đương bản mã nguồn ZIP gốc.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test "-Dmaven.compiler.release=24" "-Dtest=CustomerAndCashierAcceptanceDemoTest"`: 2/2 tests PASSED (100%).
+  - `.\mvnw.cmd test "-Dmaven.compiler.release=24"`: **121/121 tests PASSED (0 Failures, 0 Errors, 0 Skipped), BUILD SUCCESS** trong 37.4s.
+- **Bàn giao:**
+  - Chuyển giao toàn bộ kết quả nghiệm thu cho Triết (AI-T) để gộp nhánh, đối chiếu tài liệu README và gắn tag phát hành chính thức `v1.0.0`.
+- **Điểm dừng:** Hoàn thành xuất sắc toàn bộ nhiệm vụ Ngày 9 của Thọ (AI-H). Sẵn sàng tạo PR `docs: finalize release notes and acceptance checklist`.
+
