@@ -339,3 +339,28 @@
 - **Điểm chưa xác minh:**
   - Cổng ngân hàng thực tế SePay/VietQR và Cloudinary upload ở môi trường production cần public domain (ngrok / hosting), mã nguồn hiện tại đã hỗ trợ đầy đủ cơ chế xác thực token, mã tham chiếu và fallback mô phỏng.
 - **Điểm dừng:** Hoàn thành xuất sắc toàn bộ mục tiêu Ngày 8 của Thọ. Hệ thống đạt trạng thái Release Candidate (RC) ổn định tuyệt đối, sẵn sàng cho Ngày 9 (nghiệm thu và bàn giao bản tương đương).
+
+## Ngay 8 (24/10/2026) — Triet (AI-T)
+
+- **Nhanh lam viec:** `triet/day-08-testing-docker-rc`
+- **Pham vi duoc giao:** Kiem thu toan dien toan he thong, Docker hoa va chot ban ung vien Release Candidate v1.0-RC1; merge va kiem tra tich hop ket qua Regression Test cua Tho (`tho/day-08-regression-testing`).
+- **File da tao/sua:**
+  - `Dockerfile`: Multi-stage build (eclipse-temurin:24-jdk builder + eclipse-temurin:21-jre-jammy runtime), chay user khong root, HEALTHCHECK tu dong, JVM toi uu (-Xms256m -Xmx512m), kich hoat profile prod mac dinh.
+  - `docker-compose.yml`: Dich vu SQL Server 2022 Express + Spring Boot App voi health-check 2 tang, volume ben vung cho du lieu CSDL/uploads/logs, mang rieng `badminton_net`.
+  - `.env.example`: Mau bien moi truong Docker Compose cho phan phoi (DB_PASSWORD, JWT_SECRET, GEMINI_API_KEY, Cloudinary, Gmail SMTP, VietQR).
+  - `src/test/java/vn/yain/integration/SystemIntegrationE2ETest.java`: Bo 10 integration tests dau cuoi xac nhan san sang Release Candidate: context load, JWT auth, chatbot khong can xac thuc, API chinh sach cong khai, chatbot reset phien, webhook bao ve, Thymeleaf routing, Admin API security, JPA repositories hoat dong, ChatbotService NLU fallback.
+  - `docs/progress.md`: Cap nhat nhat ky tien do Ngay 8 cua Triet.
+- **Ket qua Regression Test tu Tho (`tho/day-08-regression-testing`):**
+  - Merge thanh cong (no conflicts) cac test moi: `BookingAndCashierLifecycleRegressionTest`, `WarehouseServiceTest`, `ApiControllerTest`, `DashboardControllerTest`, `HomeControllerTest`, `SlotOverlappingTest`.
+  - Bo Regression Test cua Tho kiem tra toan bo chu trinh: Dat san -> Khoa slot -> Webhook VietQR xac nhan cop -> Check-in -> Goi dich vu POS tru kho -> Chuyen san -> Check-out xuat hoa don -> Chot ca thu ngan.
+- **Chuc nang da xong:**
+  - Docker hoa toan bo ung dung (Dockerfile + docker-compose.yml) san sang deploy mot lenh (`docker compose up -d`).
+  - Bo test E2E kiem tra 10 lu?ng nghiep vu dau cuoi xac nhan RC.
+  - Xac nhan toan bo 119/119 tests PASSED (BUILD SUCCESS) - bao gom tests tu Ngay 1 den Ngay 8 cua ca 3 thanh vien.
+- **Kiem tra da chay va ket qua:**
+  - `.\\mvnw.cmd clean test "-Dmaven.compiler.release=24"`: **119/119 tests PASSED (0 Failures, 0 Errors), BUILD SUCCESS** trong 27.311s.
+- **Diem chua xac minh:**
+  - Docker image chua duoc build tren may build CI/CD; can `docker compose up --build` de xac nhan Dockerfile chay khong loi tren moi truong Linux.
+  - Tich hop tai khoan ngan hang thuc te qua SePay/Casso webhook can URL public (ngrok/Cloudflare tunnel) khi demo.
+  - Cau hinh SMTP email thuc va GEMINI_API_KEY chinh thuc can duoc set trong file `.env` truoc khi demo nguon.
+- **Diem dung:** Hoan thanh toan bo muc tieu Ngay 8 cua Triet. Ban ung vien v1.0-RC1 da san sang cho buoi bao ve va demo ngay 25/10/2026.
