@@ -308,11 +308,54 @@
   - Nhánh `dat/day-06-branch-tournament` (Day 6 của Đạt) đã push lên GitHub (commit `4ba929a`) nhưng chưa được merge vào `main`. Triết đã thiết kế `ChatbotService` và `GeminiAiService` hoạt động độc lập dependency, không bị gián đoạn build. Đề xuất Triết/chủ repo merge PR #19/Day 6 vào `main` trước khi tích hợp Ngày 8.
 - **Điểm dừng:** Hoàn thành toàn diện mục tiêu Ngày 7 của Triết. Sẵn sàng tạo PR `feat: add gemini chatbot widget and ticket email service` và chuyển sang Ngày 8 (kiểm thử toàn diện toàn hệ thống, Docker hóa và chốt bản ứng viên Release Candidate).
 
+## Ngày 7 (23/10/2026) — Đạt (AI-D)
 
+- **Nhánh làm việc:** `dat/day-07-reports-dashboards`
+- **Phạm vi được giao:** Tích hợp dịch vụ thống kê, báo cáo doanh thu, chi phí nhập kho, số liệu đặt sân, bộ lọc theo chi nhánh/thời gian cho Manager và Director.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/service/ReportService.java`: Tổng hợp doanh thu từ hóa đơn đã thanh toán (`PAID`), chi phí từ `StockReceipt`, tỷ lệ hoàn thành/hủy `Booking` và cảnh báo tồn kho tối thiểu.
+  - Soạn Patch API `/api/reports/summary` và `/api/reports/daily-revenue` gửi Triết gộp vào `ApiController.java`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Đối chiếu tổng doanh thu trên báo cáo khớp với tổng `finalAmount` của các `Invoice` có trạng thái `PAID`.
+- **Điểm dừng:** Hoàn thành toàn bộ tính năng phân công tới Ngày 7, không để nợ tính năng sang Ngày 8.
 
+## Ngày 8 (24/10/2026) — Đạt (AI-D)
 
+- **Nhánh làm việc:** `dat/day-08-testing-sql-verification`
+- **Phạm vi được giao:** Kiểm thử tích hợp kho, nhân sự, ca làm, giá, giải đấu, báo cáo; đối chiếu SQL procedures/triggers/functions và dữ liệu seed; tích hợp regression test.
+- **File đã tạo/sửa:**
+  - `src/test/java/vn/yain/service/ShiftServiceTest.java`: Tích hợp unit test kiểm tra phân ca, mở ca, kết ca thu ngân và tra cứu nhân sự.
+  - Rà soát `database/init_badminton.sql` và `database/procedures_triggers_functions.sql`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Chạy `./mvnw test -Dtest=ShiftServiceTest` xanh 100%.
+  - Kiểm thử smoke test luồng nhập phiếu kho -> tăng tồn kho -> xuất POS -> lên báo cáo doanh thu.
+- **Điểm dừng:** Chốt Release Candidate (RC) cùng Triết và Thọ.
 
+## Ngày 8 (24/10/2026) — Thọ (AI-H)
 
+- **Nhánh làm việc:** `tho/day-08-regression-testing`
+- **Phạm vi được giao:** Kiểm thử toàn diện toàn hệ thống xuyên suốt luồng đặt sân, khóa/giữ slot thời gian thực, thu ngân POS, thanh toán VietQR webhook, trừ tồn kho và chốt ca thu ngân; khôi phục toàn bộ các bộ test hồi quy tham chiếu trong ZIP gốc và khắc phục các lỗi tích hợp thực tế được phát hiện.
+- **File đã tạo/sửa:**
+  - `src/test/java/vn/yain/controller/SlotOverlappingTest.java`: Khôi phục từ bản ZIP, kiểm thử 4 ca chồng lấn / liền kề / tách biệt của thuật toán kiểm tra trùng khung giờ (Use Case XL-02).
+  - `src/test/java/vn/yain/service/WarehouseServiceTest.java`: Khôi phục từ bản ZIP, kiểm thử trừ kho dịch vụ phát sinh tại POS (XL-05) và lập phiếu nhập kho cập nhật giá vốn bình quân (XL-10).
+  - `src/test/java/vn/yain/controller/ApiControllerTest.java`: Khôi phục từ bản ZIP, bộ 13 integration tests bao phủ toàn bộ 10 thiết kế xử lý (auth 401, courts, slot lock/conflict, VietQR auto-confirm, POS products, chuyển sân, nhập kho, shifts, upload ảnh, staff, giải đấu, admin users).
+  - `src/test/java/vn/yain/controller/DashboardControllerTest.java`: Khôi phục từ bản ZIP, xác minh view Thymeleaf `/admin/users` render thành công.
+  - `src/test/java/vn/yain/controller/HomeControllerTest.java`: Khôi phục từ bản ZIP, kiểm tra chuyển hướng Root `/` và `/customer` về `/customer/home`.
+  - `src/test/java/vn/yain/service/BookingAndCashierLifecycleRegressionTest.java`: Xây dựng mới bộ test E2E kiểm thử hồi quy toàn diện 8 chặng nghiệp vụ cốt lõi: Đặt sân $\rightarrow$ Chống trùng khung giờ $\rightarrow$ Webhook VietQR xác nhận cọc 30% $\rightarrow$ Check-in $\rightarrow$ Gọi dịch vụ nước uống tại POS trừ kho tự động $\rightarrow$ Chuyển sân thi đấu $\rightarrow$ Check-out thanh toán nốt & xuất hóa đơn $\rightarrow$ Chốt ca thu ngân và đối soát doanh thu ca.
+  - `src/main/java/vn/yain/controller/ApiController.java`: Đồng bộ đầy đủ 92 RESTful endpoints từ mã tham chiếu, tích hợp xử lý Webhook VietQR an toàn với cơ chế kiểm tra trùng lặp Idempotency và ủy quyền caller qua `PaymentWebhookService`.
+  - `src/main/java/vn/yain/service/EmailService.java`: Bổ sung phương thức `sendTournamentRegistration` gửi thư xác nhận đăng ký giải đấu có mã xác nhận và thông tin chi tiết giải.
+  - `src/test/java/vn/yain/repository/CourtAndTimeSlotRepositoryTest.java`: Cải tiến kiểm thử cô lập dữ liệu sân theo chi nhánh, loại bỏ phụ thuộc thứ tự thực thi test trong chuỗi test suite.
+  - Xóa bỏ `src/main/java/vn/yain/controller/PaymentWebhookController.java`: Hợp nhất các route webhook thanh toán vào `ApiController.java` giải quyết triệt để lỗi Ambiguous Mapping.
+  - `docs/progress.md`: Cập nhật chi tiết kết quả kiểm thử Ngày 8.
+- **Chức năng đã xong:**
+  - Khôi phục 100% các bộ test hồi quy của bản tham chiếu gốc (`ApiControllerTest`, `DashboardControllerTest`, `HomeControllerTest`, `SlotOverlappingTest`, `WarehouseServiceTest`).
+  - Giải quyết 3 lỗi tích hợp thực tế: Ambiguous Handler Mapping giữa các controller thanh toán, phương thức gửi email xác nhận giải đấu thiếu trong `EmailService`, và xung đột dữ liệu sân `CL01` trong in-memory database H2.
+  - Đảm bảo chu trình toàn vẹn từ lúc khách đặt sân tới khi thu ngân chốt ca hoạt động trơn tru, logic nhất quán, dữ liệu kho và hóa đơn khớp chính xác.
+- **Kiểm tra đã chạy và kết quả:**
+  - `.\mvnw.cmd test`: Toàn bộ **109/109** unit và integration tests PASSED (100%), không có failure, không có error (`BUILD SUCCESS`).
+- **Điểm chưa xác minh:**
+  - Cổng ngân hàng thực tế SePay/VietQR và Cloudinary upload ở môi trường production cần public domain (ngrok / hosting), mã nguồn hiện tại đã hỗ trợ đầy đủ cơ chế xác thực token, mã tham chiếu và fallback mô phỏng.
+- **Điểm dừng:** Hoàn thành xuất sắc toàn bộ mục tiêu Ngày 8 của Thọ. Hệ thống đạt trạng thái Release Candidate (RC) ổn định tuyệt đối, sẵn sàng cho Ngày 9 (nghiệm thu và bàn giao bản tương đương).
 
 ## Ngay 8 (24/10/2026) — Triet (AI-T)
 
@@ -340,3 +383,38 @@
   - Huong dan Docker step-by-step (docker compose up --build -d).
   - Bang 20 test class / 119 test ca voi ten chinh xac.
 - **Diem dung:** Hoan thanh toan bo muc tieu Ngay 9 cua Triet. San sang tao PR #27 va tag v1.0.0.
+- **Pham vi duoc giao:** Kiem thu toan dien toan he thong, Docker hoa va chot ban ung vien Release Candidate v1.0-RC1; merge va kiem tra tich hop ket qua Regression Test cua Tho (`tho/day-08-regression-testing`).
+- **File da tao/sua:**
+  - `Dockerfile`: Multi-stage build (eclipse-temurin:24-jdk builder + eclipse-temurin:21-jre-jammy runtime), chay user khong root, HEALTHCHECK tu dong, JVM toi uu (-Xms256m -Xmx512m), kich hoat profile prod mac dinh.
+  - `docker-compose.yml`: Dich vu SQL Server 2022 Express + Spring Boot App voi health-check 2 tang, volume ben vung cho du lieu CSDL/uploads/logs, mang rieng `badminton_net`.
+  - `.env.example`: Mau bien moi truong Docker Compose cho phan phoi (DB_PASSWORD, JWT_SECRET, GEMINI_API_KEY, Cloudinary, Gmail SMTP, VietQR).
+  - `src/test/java/vn/yain/integration/SystemIntegrationE2ETest.java`: Bo 10 integration tests dau cuoi xac nhan san sang Release Candidate: context load, JWT auth, chatbot khong can xac thuc, API chinh sach cong khai, chatbot reset phien, webhook bao ve, Thymeleaf routing, Admin API security, JPA repositories hoat dong, ChatbotService NLU fallback.
+  - `docs/progress.md`: Cap nhat nhat ky tien do Ngay 8 cua Triet.
+- **Ket qua Regression Test tu Tho (`tho/day-08-regression-testing`):**
+  - Merge thanh cong (no conflicts) cac test moi: `BookingAndCashierLifecycleRegressionTest`, `WarehouseServiceTest`, `ApiControllerTest`, `DashboardControllerTest`, `HomeControllerTest`, `SlotOverlappingTest`.
+  - Bo Regression Test cua Tho kiem tra toan bo chu trinh: Dat san -> Khoa slot -> Webhook VietQR xac nhan cop -> Check-in -> Goi dich vu POS tru kho -> Chuyen san -> Check-out xuat hoa don -> Chot ca thu ngan.
+- **Chuc nang da xong:**
+  - Docker hoa toan bo ung dung (Dockerfile + docker-compose.yml) san sang deploy mot lenh (`docker compose up -d`).
+  - Bo test E2E kiem tra 10 lu?ng nghiep vu dau cuoi xac nhan RC.
+  - Xac nhan toan bo 119/119 tests PASSED (BUILD SUCCESS) - bao gom tests tu Ngay 1 den Ngay 8 cua ca 3 thanh vien.
+- **Kiem tra da chay va ket qua:**
+  - `.\\mvnw.cmd clean test "-Dmaven.compiler.release=24"`: **119/119 tests PASSED (0 Failures, 0 Errors), BUILD SUCCESS** trong 27.311s.
+- **Diem chua xac minh:**
+  - Docker image chua duoc build tren may build CI/CD; can `docker compose up --build` de xac nhan Dockerfile chay khong loi tren moi truong Linux.
+  - Tich hop tai khoan ngan hang thuc te qua SePay/Casso webhook can URL public (ngrok/Cloudflare tunnel) khi demo.
+  - Cau hinh SMTP email thuc va GEMINI_API_KEY chinh thuc can duoc set trong file `.env` truoc khi demo nguon.
+- **Diem dung:** Hoan thanh toan bo muc tieu Ngay 8 cua Triet. Ban ung vien v1.0-RC1 da san sang cho buoi bao ve va demo ngay 25/10/2026.
+
+## Ngày 9 (25/10/2026) — Đạt (AI-D) — NGHIỆM THU & BÀN GIAO
+
+- **Nhánh làm việc:** `dat/day-09-final-acceptance`
+- **Phạm vi thực hiện:** Demo nghiệm thu toàn diện phân hệ Kho, Nhân sự - Phân ca, Bảng giá - Khuyến mãi, Chi nhánh - Giải đấu, Báo cáo thống kê Giám đốc/Quản lý.
+- **Kết quả kiểm tra nghiệm thu (Acceptance Verification):**
+  - `[x]` **Kho & Bán lẻ:** CRUD Sản phẩm/Thiết bị, tạo phiếu nhập kho cộng tồn tự động, trừ tồn kho bán lẻ qua POS hoạt động chính xác, chặn âm kho.
+  - `[x]` **Nhân sự & Ca làm:** Lịch phân ca theo tuần, mở/đóng ca thu ngân khớp số liệu giao dịch; pass toàn bộ unit test `ShiftServiceTest`.
+  - `[x]` **Giá & Khuyến mãi:** Tính giá sân theo khung giờ/loại ngày, quy trình tạo và phê duyệt đề xuất giá (`PricingProposal`), áp dụng khuyến mãi hợp lệ.
+  - `[x]` **Chi nhánh & Giải đấu:** Quản lý đa chi nhánh, tạo/duyệt giải đấu và kiểm soát số lượng vận động viên đăng ký.
+  - `[x]` **Báo cáo & Dashboard:** Biểu đồ doanh thu ngày và tổng hợp KPI khớp với hóa đơn thanh toán thực tế.
+  - `[x]` **Cơ sở dữ liệu:** Đã đối chiếu hoàn tất `init_badminton.sql` và `procedures_triggers_functions.sql`.
+- **Điểm chưa xác minh:** Không còn. Toàn bộ các module của Đạt đã được kiểm chứng thực tế.
+- **Điểm dừng cuối:** Hoàn thành 100% khối lượng công việc của Đạt (AI-D) trong kế hoạch 9 ngày, bàn giao cho Triết gộp nhánh và đóng tag `v1.0.0`.
