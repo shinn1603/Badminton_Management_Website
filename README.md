@@ -1,150 +1,311 @@
-# UTE SPORT - Hệ thống Quản lý Chuỗi Sân Cầu Lông
+# UTE SPORT — Hệ thống Quản lý Chuỗi Sân Cầu Lông
 
-![Java](https://img.shields.io/badge/Java-26-ED8B00?style=for-the-badge&logo=java&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.1-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
-![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=Thymeleaf&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
-![H2 Database](https://img.shields.io/badge/H2-Database-003B57?style=for-the-badge)
-![Security](https://img.shields.io/badge/Spring_Security-6.x-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![Java](https://img.shields.io/badge/Java-24%2F26-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.1-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Thymeleaf](https://img.shields.io/badge/Thymeleaf-3.x-005F0F?style=for-the-badge&logo=thymeleaf&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6.x-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Tests](https://img.shields.io/badge/Tests-119%20passed-brightgreen?style=for-the-badge)
 
-**BÁO CÁO ĐỒ ÁN CÔNG NGHỆ PHẦN MỀM / PHÁT TRIỂN ỨNG DỤNG WEB**
+> **Đồ án môn Công nghệ Phần mềm / Phát triển Ứng dụng Web**  
+> Nhóm: Nguyễn Phước Thọ · Nguyễn Phước Minh Triết · Trần Tiến Đạt  
+> Phiên bản: **v1.0.0** — Ngày phát hành: 25/10/2026
+
+---
+
+## Mục lục
+
+1. [Giới thiệu tổng quan](#1-giới-thiệu-tổng-quan)
+2. [Phân hệ chức năng & RBAC](#2-phân-hệ-chức-năng--rbac)
+3. [Kiến trúc hệ thống](#3-kiến-trúc-hệ-thống)
+4. [Cấu trúc thư mục](#4-cấu-trúc-thư-mục)
+5. [Tài khoản demo](#5-tài-khoản-demo)
+6. [Hướng dẫn chạy nhanh (Dev Mode)](#6-hướng-dẫn-chạy-nhanh-dev-mode)
+7. [Hướng dẫn chạy với Docker](#7-hướng-dẫn-chạy-với-docker)
+8. [Chạy kiểm thử tự động](#8-chạy-kiểm-thử-tự-động)
+9. [Biến môi trường](#9-biến-môi-trường)
+10. [Thành viên thực hiện](#10-thành-viên-thực-hiện)
 
 ---
 
 ## 1. Giới thiệu tổng quan
 
-**UTE SPORT** là nền tảng quản lý và vận hành chuỗi sân cầu lông tiêu chuẩn quốc tế. Hệ thống được xây dựng nhằm tự động hóa quy trình đặt lịch trực tuyến, quản lý điểm bán hàng thu ngân (POS) tại quầy, quản trị kho hàng hóa và dụng cụ cho thuê, phân ca nhân sự, quản lý biểu phí linh hoạt và báo cáo phân tích hiệu suất kinh doanh đa chi nhánh.
+**UTE SPORT** là nền tảng quản lý và vận hành chuỗi sân cầu lông tiêu chuẩn. Hệ thống tự động hóa toàn bộ quy trình:
 
-Dự án phát triển trên nền tảng **Java 26 / Spring Boot 4.1.1** với kiến trúc phân tầng (Controller – Service – Repository – Entity), bảo mật phân quyền RBAC và giao diện Thymeleaf thiết kế theo phong cách Emerald Luxury.
-
----
-
-## 2. Các phân hệ chức năng chính (Role-Based Access Control)
-
-Hệ thống được thiết kế phân quyền nghiêm ngặt với 5 không gian nghiệp vụ độc lập:
-
-1. **Khách hàng (`/customer/*`)**:
-   - Tra cứu danh sách sân, loại sân, tiện ích từng chi nhánh.
-   - Lưới chọn khung giờ đặt sân trực quan theo thời gian thực (06:00 – 23:00).
-   - Thanh toán tiền cọc qua mã VietQR động, theo dõi lịch sử và quản lý hồ sơ hội viên.
-2. **Thu ngân tại quầy (`/pos/*`)**:
-   - Lưới trạng thái sân trực quan (Trống, Đã đặt, Đang sử dụng, Bảo trì).
-   - Tiếp nhận khách check-in mã QR, check-out trả sân.
-   - Bán lẻ đồ uống/thực phẩm (F&B) và cho thuê vợt/cầu lông kèm theo đơn đặt sân.
-   - Thanh toán hóa đơn tổng hợp và in phiếu.
-3. **Quản lý chi nhánh (`/manager/*`)**:
-   - Giám sát tình trạng hoạt động và tỷ lệ lấp đầy các sân trong chi nhánh.
-   - Quản lý tồn kho hàng hóa, lập phiếu nhập kho (`StockReceipt`).
-   - Xếp lịch làm việc và quản lý ca trực của nhân viên thu ngân/phục vụ.
-   - Đề xuất thay đổi bảng giá sân theo khung giờ cao điểm / ngày lễ.
-4. **Giám đốc chuỗi (`/director/*`)**:
-   - Dashboard tổng hợp doanh thu, so sánh tăng trưởng giữa các chi nhánh.
-   - Phê duyệt các đề xuất giá và chính sách khuyến mãi.
-   - Quản lý và duyệt tổ chức các giải đấu cầu lông mở rộng.
-5. **Quản trị hệ thống (`/admin/*`)**:
-   - Quản lý toàn bộ tài khoản người dùng, phân quyền truy cập vai trò.
-   - Cấu hình các tham số hệ thống toàn cục.
-   - Giám sát nhật ký hoạt động hệ thống (`AuditLog`).
+- **Đặt sân trực tuyến** với mã VietQR thanh toán cọc 30% tự động.
+- **Quầy thu ngân POS** check-in/check-out QR, bán lẻ F&B và dụng cụ cho thuê.
+- **Quản trị kho** theo dõi tồn kho và nhập hàng.
+- **Phân ca nhân sự** xếp lịch và chốt ca với đối soát tiền mặt.
+- **Bảng giá linh hoạt** khung giờ vàng / ngày lễ với quy trình duyệt giá.
+- **Báo cáo thống kê** doanh thu đa chi nhánh trực quan.
+- **Trợ lý ảo AI** tích hợp Google Gemini + NLU fallback cục bộ.
+- **Thông báo WebSocket** cập nhật trạng thái sân thời gian thực.
 
 ---
 
-## 3. Kiến trúc & Công nghệ sử dụng
+## 2. Phân hệ chức năng & RBAC
 
-- **Backend**: Java 24/26, Spring Boot 4.1.1, Spring Data JPA / Hibernate ORM, Spring Security.
-- **Frontend**: Thymeleaf Template Engine, HTML5 Semantic, CSS3 Custom Tokens (Emerald Theme), Vanilla JavaScript.
-- **Cơ sở dữ liệu**:
-  - **Môi trường phát triển & Kiểm thử (Dev/Test)**: In-Memory H2 Database (hỗ trợ `MODE=MSSQLServer`, tích hợp sẵn Web Console).
-  - **Môi trường triển khai (Production)**: Microsoft SQL Server 2022 (quản lý 25 bảng quan hệ, Stored Procedures, Functions & Triggers).
-- **Công cụ Build**: Apache Maven (Maven Wrapper `mvnw`).
+| Vai trò | URL Prefix | Chức năng chính |
+|---|---|---|
+| **Khách hàng** | `/customer/*` | Xem sân, đặt lịch, thanh toán VietQR, hồ sơ hội viên, lịch sử |
+| **Thu ngân POS** | `/pos/*` | Lưới sân realtime, check-in/out QR, bán F&B, in hóa đơn |
+| **Quản lý CN** | `/manager/*` | Tồn kho, lịch nhân sự, đề xuất giá, sơ đồ sân |
+| **Giám đốc** | `/director/*` | Dashboard đa CN, duyệt giá, quản lý giải đấu |
+| **Admin HT** | `/admin/*` | Tài khoản, phân quyền, cấu hình hệ thống, audit log |
 
 ---
 
-## 4. Cấu trúc thư mục dự án
+## 3. Kiến trúc hệ thống
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        BROWSER / CLIENT                         │
+│         Thymeleaf HTML · Vanilla JS · WebSocket STOMP           │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP / WebSocket
+┌────────────────────────────▼────────────────────────────────────┐
+│                  SPRING BOOT APPLICATION (port 8080)            │
+│                                                                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐    │
+│  │ Security     │  │ Controllers  │  │  WebSocketConfig   │    │
+│  │ (JWT Filter) │  │ Dashboard    │  │  STOMP /ws-court   │    │
+│  │ SecurityConfig│  │ ApiController│  │  SimpMessaging     │    │
+│  └──────┬───────┘  └──────┬───────┘  └────────────────────┘    │
+│         │                 │                                     │
+│  ┌──────▼─────────────────▼─────────────────────────────────┐  │
+│  │                   SERVICE LAYER                           │  │
+│  │  UserService · BookingService · CourtService              │  │
+│  │  PricingService · PaymentWebhookService · ShiftService    │  │
+│  │  WarehouseService · TournamentService · ChatbotService    │  │
+│  │  GeminiAiService · EmailService · CloudinaryService       │  │
+│  └──────────────────────────┬────────────────────────────────┘  │
+│                             │ Spring Data JPA                   │
+│  ┌──────────────────────────▼────────────────────────────────┐  │
+│  │                 REPOSITORY LAYER (20 Repos)               │  │
+│  └──────────────────────────┬────────────────────────────────┘  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ JDBC
+           ┌─────────────────┴──────────────────┐
+           │                                    │
+    ┌──────▼──────┐                    ┌────────▼────────┐
+    │  H2 In-Mem  │                    │  SQL Server 2022│
+    │  (Dev/Test) │                    │  (Production)   │
+    └─────────────┘                    └─────────────────┘
+```
+
+**Tích hợp bên ngoài:**
+
+| Dịch vụ | Mục đích |
+|---|---|
+| VietQR / SePay / Casso | Thanh toán cọc 30% và webhook xác nhận tự động |
+| Google Gemini AI API | Chatbot tư vấn đặt sân (fallback NLU cục bộ khi offline) |
+| Cloudinary CDN | Upload và lưu trữ ảnh sân, avatar hội viên |
+| Gmail SMTP | Gửi OTP quên mật khẩu, vé điện tử e-ticket, thông báo |
+
+---
+
+## 4. Cấu trúc thư mục
 
 ```text
 FINAL_REPORT/
-├── .mvn/wrapper/                 # Maven Wrapper cấu hình và thư viện
-├── database/                     # Kịch bản khởi tạo CSDL SQL Server và tài liệu kỹ thuật
-│   ├── init_badminton.sql        # Script tạo 25 bảng, ràng buộc và dữ liệu mẫu ban đầu
-│   ├── procedures_triggers_functions.sql # Stored procedures, triggers, nghiệp vụ slot
-│   └── README.md                 # Tài liệu đặc tả kỹ thuật CSDL
-├── src/
-│   ├── main/
-│   │   ├── java/vn/yain/
-│   │   │   ├── config/           # Cấu hình hệ thống
-│   │   │   ├── controller/       # Controllers điều hướng và REST APIs
-│   │   │   ├── entity/           # JPA Entities ánh xạ CSDL
-│   │   │   ├── repository/       # Spring Data JPA Repositories
-│   │   │   ├── security/         # Cấu hình Spring Security & JWT
-│   │   │   ├── service/          # Business logic services
-│   │   │   └── BadmintonManagementProjectApplication.java
-│   │   └── resources/
-│   │       ├── static/           # Tài nguyên tĩnh (CSS tokens, JS modules, hình ảnh)
-│   │       ├── templates/        # Giao diện hiển thị Thymeleaf
-│   │       ├── application.properties      # Cấu hình chung
-│   │       ├── application-dev.properties  # Cấu hình H2 in-memory
-│   │       └── application-prod.properties # Cấu hình Microsoft SQL Server
-│   └── test/                     # Bộ kiểm thử tự động (Unit & Integration tests)
-├── .gitignore
-├── mvnw / mvnw.cmd
-├── pom.xml                       # Quản lý dependency Maven
-└── README.md                     # Tài liệu tổng quan dự án
+├── .mvn/wrapper/                   # Maven Wrapper
+├── database/
+│   ├── init_badminton.sql          # 25 bảng + ràng buộc + dữ liệu mẫu
+│   ├── procedures_triggers.sql     # Stored Procedures, Triggers, Functions
+│   └── README.md                   # Đặc tả kỹ thuật CSDL
+├── docs/
+│   └── progress.md                 # Nhật ký tiến độ tích hợp 9 ngày
+├── src/main/java/vn/yain/
+│   ├── config/                     # WebSocketConfig
+│   ├── controller/                 # ApiController, DashboardController, HomeController
+│   │                               # PaymentWebhookController, GlobalExceptionHandler
+│   ├── dto/                        # ChatMessageDto, CourtEventDto
+│   ├── entity/                     # 20+ JPA Entities (Court, Booking, Invoice, ...)
+│   ├── repository/                 # 20 Spring Data JPA Repositories
+│   ├── security/                   # JwtTokenProvider, JwtAuthFilter, SecurityConfig
+│   └── service/                    # 12 Business Services
+├── src/main/resources/
+│   ├── static/css/                 # Emerald Luxury Design Tokens
+│   ├── static/js/                  # auth-guard.js, global-hub.js, chatbot-widget.js
+│   ├── templates/                  # Thymeleaf views (customer, pos, manager, admin)
+│   ├── application.properties      # Cấu hình chung (profile: dev mặc định)
+│   ├── application-dev.properties  # H2 in-memory
+│   └── application-prod.properties # Microsoft SQL Server 2022
+├── src/test/                       # 119 Unit & Integration Tests
+├── Dockerfile                      # Multi-stage: JDK 24 build → JRE 21 runtime
+├── docker-compose.yml              # SQL Server 2022 + App container
+├── .env.example                    # Mẫu biến môi trường Docker
+├── pom.xml
+└── README.md
 ```
 
 ---
 
-## 5. Hướng dẫn cài đặt & Khởi chạy dự án
+## 5. Tài khoản demo
+
+> **Áp dụng cho môi trường Dev (H2) sau khi ứng dụng khởi động lần đầu.**  
+> Dữ liệu mẫu được seed tự động từ `DataInitializer`.
+
+| Vai trò | Username | Mật khẩu | Truy cập |
+|---|---|---|---|
+| **Admin Hệ thống** | `admin` | `Admin@2026!` | `/admin/*` — toàn quyền |
+| **Giám đốc chuỗi** | `director01` | `Director@2026!` | `/director/*` |
+| **Quản lý CN01** | `manager01` | `Manager@2026!` | `/manager/*` (CN01) |
+| **Thu ngân POS** | `cashier01` | `Cashier@2026!` | `/pos/*` (CN01) |
+| **Khách hàng HV** | `thopham` | `Tho@2026!` | `/customer/*` |
+| **Khách hàng HV** | `trietng` | `Triet@2026!` | `/customer/*` |
+
+> **Đăng nhập nhân sự:** `http://localhost:8085/login`  
+> **Đăng nhập khách hàng / Đăng ký hội viên:** `http://localhost:8085/customer/auth`
+
+---
+
+## 6. Hướng dẫn chạy nhanh (Dev Mode)
 
 ### Yêu cầu hệ thống
-- **Java Development Kit (JDK)**: Phiên bản 24 trở lên (khuyến nghị JDK 26).
-- **Maven**: Dự án tích hợp sẵn Maven Wrapper, không bắt buộc cài Maven toàn cục.
 
-### Chạy ở chế độ Phát triển (Development Mode - Sử dụng H2 In-Memory)
-Khởi chạy nhanh ứng dụng mà không cần cấu hình SQL Server:
+- **JDK 24+** (khuyến nghị JDK 26) — [Tải tại Adoptium](https://adoptium.net/)
+- Không cần cài Maven riêng (dùng `mvnw` tích hợp sẵn)
+- Không cần SQL Server (Dev mode dùng H2 In-Memory)
+
+### Bước 1 — Clone dự án
+
+```powershell
+git clone https://github.com/shinn1603/Badminton_Management_Website.git
+cd Badminton_Management_Website
+```
+
+### Bước 2 — Khởi chạy ứng dụng
+
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
-Sau khi khởi động thành công:
-- **Trang chủ ứng dụng**: `http://localhost:8085/`
-- **H2 Web Console**: `http://localhost:8085/h2-console`
-  - JDBC URL: `jdbc:h2:mem:badminton`
-  - User Name: `sa`
-  - Password: *(để trống)*
 
-### Chạy ở chế độ Triển khai (Production Mode - Sử dụng Microsoft SQL Server)
-1. Chạy script `database/init_badminton.sql` trên SQL Server để khởi tạo cơ sở dữ liệu `badminton`.
-2. Khởi chạy ứng dụng với profile production:
+> Ứng dụng sẽ khởi động trong ~15 giây. Màn hình sẽ hiển thị:  
+> `Started BadmintonManagementProjectApplication in X.XXX seconds`
+
+### Bước 3 — Truy cập
+
+| Đường dẫn | Mô tả |
+|---|---|
+| `http://localhost:8085/` | Trang chủ |
+| `http://localhost:8085/customer/auth` | Đăng nhập / Đăng ký hội viên |
+| `http://localhost:8085/login` | Đăng nhập nhân sự / quản lý |
+| `http://localhost:8085/h2-console` | H2 Web Console (JDBC: `jdbc:h2:mem:badminton`, user: `sa`) |
+
+---
+
+## 7. Hướng dẫn chạy với Docker
+
+### Yêu cầu
+
+- Docker Desktop (Windows/macOS) hoặc Docker Engine + Compose Plugin (Linux)
+
+### Bước 1 — Chuẩn bị file biến môi trường
+
 ```powershell
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=prod"
+copy .env.example .env
+# Mở .env và điền các giá trị thực (DB_PASSWORD, JWT_SECRET, ...)
 ```
 
-### Chạy kiểm thử tự động
+### Bước 2 — Build và khởi chạy
+
 ```powershell
-.\mvnw.cmd test
+docker compose up --build -d
+```
+
+> SQL Server cần ~60-90 giây để khởi động hoàn toàn.  
+> Ứng dụng sẽ tự động chờ SQL Server healthy trước khi start.
+
+### Bước 3 — Kiểm tra trạng thái
+
+```powershell
+docker compose ps
+docker compose logs app --tail=50
+```
+
+### Bước 4 — Truy cập
+
+- **Ứng dụng:** `http://localhost:8080/`
+- **SQL Server:** `localhost:1433` (dùng SSMS hoặc DBeaver)
+
+### Dừng dịch vụ
+
+```powershell
+docker compose down          # Dừng, giữ data
+docker compose down -v       # Dừng, xóa toàn bộ data
 ```
 
 ---
 
-## 6. Cấu hình biến môi trường
+## 8. Chạy kiểm thử tự động
 
-Các thông tin cấu hình nhạy cảm và tích hợp bên ngoài được nạp linh hoạt qua biến môi trường:
+```powershell
+.\mvnw.cmd clean test "-Dmaven.compiler.release=24"
+```
 
-| Biến môi trường | Ý nghĩa | Mặc định nội bộ |
+**Kết quả kỳ vọng:**
+
+```
+Tests run: 119, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+### Bộ test theo module (Ngày 1–9)
+
+| Module | Test class | Tests |
 |---|---|---|
-| `PORT` | Cổng HTTP lắng nghe của ứng dụng | `8085` |
-| `SPRING_DATASOURCE_URL` | Chuỗi kết nối JDBC SQL Server | `jdbc:sqlserver://localhost:1433;databaseName=badminton` |
-| `SPRING_DATASOURCE_USERNAME` | Tên đăng nhập database | `sa` |
-| `SPRING_DATASOURCE_PASSWORD` | Mật khẩu database | `123456` |
-| `JWT_SECRET` | Khóa bí mật ký mã JWT | Cấu hình nội bộ mặc định |
-| `VIETQR_WEBHOOK_TOKEN` | Token xác thực thanh toán VietQR | Cấu hình nội bộ mặc định |
-| `GEMINI_API_KEY` | Khóa API Google Gemini AI | Nạp khi kích hoạt trợ lý ảo |
+| Repository (Court, TimeSlot) | `CourtAndTimeSlotRepositoryTest` | 2 |
+| Security (JWT) | `JwtTokenProviderTest` | 4 |
+| Service (User) | `UserServiceTest` | 8 |
+| Service (Court) | `CourtServiceTest` | 7 |
+| Controller (Profile) | `CustomerProfileTest` | 5 |
+| Controller (Admin Users) | `AdminUserManagementTest` | 5 |
+| Controller (Settings & Logs) | `SystemSettingsAndAuditLogsTest` | 5 |
+| Config (WebSocket) | `WebSocketRealtimeIntegrationTest` | 5 |
+| Service (Booking) | `BookingServiceTest` | 12 |
+| Service (POS & Courts) | `CashierAndCourtOperationsTest` | 12 |
+| Service (Payment Webhook) | `PaymentWebhookServiceTest` | 5 |
+| Service (Shift) | `ShiftServiceTest` | 5 |
+| Service (Chatbot & Email) | `ChatbotAndCustomerSupportTest` | 7 |
+| Service (Warehouse) | `WarehouseServiceTest` | 3 |
+| Service (Regression E2E) | `BookingAndCashierLifecycleRegressionTest` | 1 |
+| Controller (API) | `ApiControllerTest` | 10 |
+| Controller (Dashboard) | `DashboardControllerTest` | 5 |
+| Controller (Home) | `HomeControllerTest` | 3 |
+| Controller (Slot Overlapping) | `SlotOverlappingTest` | 5 |
+| Integration (E2E System) | `SystemIntegrationE2ETest` | 10 |
+| **Tổng cộng** | | **119** |
 
 ---
 
-## 7. Thành viên thực hiện dự án
+## 9. Biến môi trường
+
+Sao chép `.env.example` thành `.env` và điền giá trị thực trước khi deploy:
+
+| Biến | Mô tả | Mặc định |
+|---|---|---|
+| `DB_PASSWORD` | Mật khẩu SQL Server `sa` | `UTE@Badminton2026!` |
+| `APP_PORT` | Cổng HTTP ứng dụng | `8080` |
+| `JWT_SECRET` | Khóa bí mật ký JWT | Chuỗi nội bộ mặc định |
+| `GEMINI_API_KEY` | API Key Google Gemini AI | *(để trống → dùng NLU cục bộ)* |
+| `CLOUDINARY_CLOUD_NAME` | Tên cloud Cloudinary | `utesport-arena` |
+| `CLOUDINARY_API_KEY` | API Key Cloudinary | *(để trống → tắt upload ảnh)* |
+| `CLOUDINARY_API_SECRET` | Secret Cloudinary | *(để trống)* |
+| `SPRING_MAIL_USERNAME` | Gmail SMTP username | `utesport.badminton@gmail.com` |
+| `SPRING_MAIL_PASSWORD` | Gmail App Password | *(để trống → tắt gửi email)* |
+| `VIETQR_WEBHOOK_TOKEN` | Secret token webhook ngân hàng | `UTE_VIETQR_SECRET_TOKEN_2026` |
+| `VIETQR_BANK_BIN` | BIN ngân hàng nhận tiền | `970422` (MBBank) |
+| `VIETQR_ACCOUNT_NO` | Số tài khoản nhận tiền | `0903123456` |
+| `VIETQR_ACCOUNT_NAME` | Tên tài khoản nhận | `UTE BADMINTON CLUB` |
+
+---
+
+## 10. Thành viên thực hiện
 
 | Họ và tên | MSSV | Vai trò | Phụ trách chính |
 |---|---|---|---|
-| **Nguyễn Phước Thọ** | **24110343** | Trưởng nhóm / Frontend & POS | Quản lý Sân & Khung giờ, Quy trình Đặt sân trực tuyến, Quầy thu ngân POS, Realtime WebSocket |
-| **Nguyễn Phước Minh Triết** | **24110357** | Backend & Core Architecture | Khởi tạo cấu trúc nền tảng, Cấu hình Spring Boot, Bảo mật Spring Security, Quản lý tài khoản User & Phân hệ Admin |
-| **Trần Tiến Đạt** | **24110198** | Backend & Operations Specialist | Quản trị Kho hàng & Dịch vụ, Thiết lập Bảng giá & Khuyến mãi, Quản lý Nhân sự & Báo cáo thống kê |
+| **Nguyễn Phước Thọ** | 24110343 | Trưởng nhóm / Frontend & POS | Court, BookingService, POS cashier, VietQR webhook, WebSocket realtime, Regression tests |
+| **Nguyễn Phước Minh Triết** | 24110357 | Core Architecture & Backend | Spring Boot baseline, JWT Security, UserService, Admin, System Settings, Chatbot AI, Docker & Release |
+| **Trần Tiến Đạt** | 24110198 | Operations & Backend | Product catalog, WarehouseService, PricingService, Staff scheduling, Branch & Tournament management |
