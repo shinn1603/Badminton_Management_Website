@@ -111,15 +111,7 @@
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
           </svg>
-          <span class="menu-text">Kho vật tư</span>
-        </a>
-
-        <a href="/manager/receipts" class="menu-item">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span class="menu-text">Nhập kho</span>
+          <span class="menu-text">Quản lý kho</span>
         </a>
 
         <a href="/manager/staff" class="menu-item">
@@ -230,13 +222,13 @@
           <div class="hero-banner">
             <div class="hero-banner-content">
               <h1 class="hero-title">Dashboard Quản Lý Sân Cầu Lông - UTE Sport</h1>
-              <p class="hero-subtitle">Vận hành thảm Yonex BWF & Enlio tiêu chuẩn quốc tế — Quản lý đặt sân tối ưu</p>
+              <p class="hero-subtitle">Vận hành hệ thống sân VIP & Sân Thường tiêu chuẩn BWF — Quản lý đặt sân tối ưu</p>
               <div class="hero-badges-wrap">
                 <span class="hero-badge-pill">
                   <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: #10b981;">
                     <circle cx="12" cy="12" r="10"></circle>
                   </svg>
-                  Thảm Yonex BWF tiêu chuẩn
+                  Thảm VIP & Tiêu Chuẩn BWF
                 </span>
                 <span class="hero-badge-pill">
                   <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: #10b981;">
@@ -470,7 +462,7 @@
                     </div>
                     <div class="court-thumb-body">
                       <div class="court-thumb-title">Sân Cầu Lông 3</div>
-                      <div class="court-thumb-meta">Thảm Enlio tiêu chuẩn • 06:00 - 22:00</div>
+                      <div class="court-thumb-meta">Thảm Tiêu chuẩn • 06:00 - 22:00</div>
                     </div>
                   </div>
 
@@ -482,7 +474,7 @@
                     </div>
                     <div class="court-thumb-body">
                       <div class="court-thumb-title">Sân Cầu Lông 4 (VIP)</div>
-                      <div class="court-thumb-meta">Thảm Yonex BWF • Hoàn thành 14:00</div>
+                      <div class="court-thumb-meta">Thảm VIP • Hoàn thành 14:00</div>
                     </div>
                   </div>
                 </div>
@@ -654,7 +646,7 @@
               <option value="Chờ xác nhận">Chờ xác nhận (Khách online)</option>
               <option value="Đã xác nhận" selected>Đã xác nhận (Khách hẹn trước)</option>
               <option value="Đang sử dụng">Khách đang vào chơi (POS trực tiếp)</option>
-              <option value="Đã cọc 30%">Đã cọc 30% qua QR</option>
+              <option value="Đã cọc">Đã cọc (Chuyển khoản QR)</option>
             </select>
           </div>
         </div>
@@ -792,7 +784,7 @@
         customerName: cust,
         customerPhone: phone,
         courtCode: court,
-        branchCode: 'CN01',
+        branchCode: localStorage.getItem('utesport_active_branch') || 'CN01',
         bookingDate: document.getElementById('mBookingDate').value || new Date().toISOString().split('T')[0],
         timeSlot: '08:00 - 10:00',
         totalPrice: parseInt(document.getElementById('mTotalDisplay').value.replace(/\D/g, '')) || 180000,
@@ -896,7 +888,7 @@
 
       const statusClass = b.status === 'Đang sử dụng' ? 'badge-in-use' :
                           b.status === 'Hoàn thành' ? 'badge-completed' :
-                          b.status === 'Đã cọc 30%' ? 'badge-pending' : 'badge-available';
+                          (b.status === 'Đã cọc' || b.status === 'Đã cọc 30%') ? 'badge-pending' : 'badge-available';
 
       const deposit = Number(b.depositAmount) || 0;
       const total = Number(b.totalPrice) || 0;
@@ -1070,10 +1062,10 @@
       donutChartInstance = new Chart(ctxDonut, {
         type: 'doughnut',
         data: {
-          labels: labels || ['Thảm VIP Yonex (48%)', 'Thảm Tiêu chuẩn Enlio (32%)', 'Thảm Quốc Tế (20%)'],
+          labels: labels || ['Sân VIP (55%)', 'Sân Thường (45%)'],
           datasets: [{
-            data: data || [48, 32, 20],
-            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+            data: data || [55, 45],
+            backgroundColor: ['#8b5cf6', '#10b981'],
             borderWidth: 0,
             hoverOffset: 6
           }]
@@ -1129,7 +1121,7 @@
       tbody.innerHTML = bookings.slice(0, 7).map(b => {
         const statusClass = b.status === 'Đang sử dụng' ? 'badge-in-use' :
                             b.status === 'Hoàn thành' ? 'badge-completed' :
-                            b.status === 'Đã cọc 30%' ? 'badge-pending' : 'badge-available';
+                            (b.status === 'Đã cọc' || b.status === 'Đã cọc 30%') ? 'badge-pending' : 'badge-available';
         return `
           <tr>
             <td><strong>#${escapeHtml(b.bookingCode)}</strong></td>
@@ -1162,7 +1154,8 @@
         const headers = { 'Accept': 'application/json' };
         if (token) headers['Authorization'] = 'Bearer ' + token;
 
-        const res = await fetch(`/api/manager/stats?branchCode=CN01&days=${days}`, { headers });
+        const activeBranch = localStorage.getItem('utesport_active_branch') || (window.AuthGuard && window.AuthGuard.getActiveBranch ? window.AuthGuard.getActiveBranch() : 'CN01');
+        const res = await fetch(`/api/manager/stats?branchCode=${encodeURIComponent(activeBranch)}&days=${days}`, { headers });
         if (res.ok) {
           const data = await res.json();
           if (data) {
@@ -1240,6 +1233,7 @@
     });
   </script>
   <script src="/js/global-hub.js"></script>
+  <script src="/js/staff-support-chat.js"></script>
 </body>
 </html>
 

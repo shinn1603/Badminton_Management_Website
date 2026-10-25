@@ -87,15 +87,7 @@
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
           </svg>
-          <span class="menu-text">Kho vật tư</span>
-        </a>
-
-        <a href="/manager/receipts" class="menu-item">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span class="menu-text">Nhập kho</span>
+          <span class="menu-text">Quản lý kho</span>
         </a>
 
         <a href="/manager/staff" class="menu-item">
@@ -337,10 +329,8 @@
           <div>
             <label class="form-label" style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px;">Loại sân</label>
             <select class="form-control" id="inpCourtType">
-              <option value="Sân Tiêu chuẩn BWF" selected>Sân Tiêu chuẩn BWF</option>
-              <option value="Sân VIP Lining">Sân VIP Lining</option>
-              <option value="Sân VIP Yonex">Sân VIP Yonex</option>
-              <option value="Sân VIP Victor">Sân VIP Victor</option>
+              <option value="Sân Thường" selected>Sân Thường</option>
+              <option value="Sân VIP">Sân VIP</option>
             </select>
           </div>
           <div>
@@ -386,48 +376,62 @@
     };
 
     function getActiveBranch() {
-      const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
-        || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser());
-      if (user && (user.role === 'MANAGER' || (user.branchCode && user.role !== 'DIRECTOR' && user.role !== 'ADMIN'))) {
-        return user.branchCode || 'CN01';
-      }
       const select = document.getElementById('branchFilterSelect');
       if (select && select.value) return select.value;
-      return (user && user.branchCode) ? user.branchCode : 'CN01';
+      const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
+        || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser());
+      return localStorage.getItem('utesport_active_branch') || (user && user.branchCode) || 'CN01';
     }
 
-    function initBranchSecurity() {
+    async function initBranchSecurity() {
       const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
         || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser());
       const select = document.getElementById('branchFilterSelect');
       if (!select) return;
-      if (user && (user.role === 'DIRECTOR' || user.role === 'ADMIN')) {
-        select.innerHTML = `
-          <option value="CN01" selected>CN01 - Thủ Đức (UTE Sport)</option>
-          <option value="CN02">CN02 - Bình Thạnh</option>
-          <option value="CN03">CN03 - Quận 9</option>
-          <option value="CN04">CN04 - Gò Vấp</option>
-          <option value="ALL">Toàn bộ chi nhánh</option>
-        `;
-        select.disabled = false;
-        select.style.cursor = 'pointer';
-      } else {
-        const br = (user && user.branchCode) ? user.branchCode : 'CN01';
-        select.innerHTML = `<option value="${br}" selected>${br} - Thủ Đức (Chi nhánh quản lý)</option>`;
-        select.value = br;
-        select.disabled = true;
-        select.style.cursor = 'not-allowed';
-        select.title = 'Phân quyền: Bạn chỉ có quyền quản lý chính sách giá cơ sở được phân công (' + br + ')';
 
-        const modalBranch = document.getElementById('inpProposalBranch');
-        if (modalBranch) {
-          modalBranch.value = br;
-          modalBranch.disabled = true;
+      let branches = [];
+      try {
+        const res = await fetch('/api/user/my-branches');
+        if (res.ok) {
+          const d = await res.json();
+          branches = d.branches || [];
         }
+      } catch (e) {}
+      if (!branches || branches.length === 0) {
+        branches = [
+          { branchCode: 'CN01', branchName: 'CN01 - Thủ Đức (UTE Sport)' },
+          { branchCode: 'CN02', branchName: 'CN02 - Bình Thạnh' }
+        ];
+      }
+
+      const activeBr = localStorage.getItem('utesport_active_branch') || (user && user.branchCode) || 'CN01';
+      let html = '';
+      branches.forEach(b => {
+        const sel = (b.branchCode === activeBr) ? 'selected' : '';
+        html += `<option value="${b.branchCode}" ${sel}>${b.branchCode} - ${b.branchName}</option>`;
+      });
+      if (user && (user.role === 'DIRECTOR' || user.role === 'ADMIN')) {
+        html += '<option value="ALL">Toàn bộ chi nhánh</option>';
+      }
+      select.innerHTML = html;
+      select.value = activeBr;
+      select.disabled = false;
+      select.style.cursor = 'pointer';
+
+      const modalBranch = document.getElementById('inpProposalBranch');
+      if (modalBranch) {
+        modalBranch.innerHTML = html;
+        modalBranch.value = activeBr;
+        modalBranch.disabled = false;
       }
     }
 
     function onBranchChange() {
+      const select = document.getElementById('branchFilterSelect');
+      if (select) {
+        localStorage.setItem('utesport_active_branch', select.value);
+        localStorage.setItem('manager_active_branch', select.value);
+      }
       applyFiltersAndRender();
     }
 

@@ -81,6 +81,16 @@ public class DashboardController {
         return "director/pricing";
     }
 
+    @GetMapping("/director/receipts")
+    public String directorReceipts() {
+        return "director/receipts";
+    }
+
+    @GetMapping("/director/inventory")
+    public String directorInventory() {
+        return "director/receipts";
+    }
+
     @GetMapping("/director/tournaments")
     public String directorTournaments() {
         return "director/tournaments";
@@ -148,7 +158,7 @@ public class DashboardController {
 
     @GetMapping("/manager/receipts")
     public String managerReceipts() {
-        return "manager/receipts";
+        return "redirect:/manager/inventory?tab=receipt";
     }
 
     @GetMapping("/manager/staff")
@@ -160,4 +170,5 @@ public class DashboardController {
     public String managerReports() {
         return "manager/reports";
     }
+
 }

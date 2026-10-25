@@ -2,7 +2,10 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Hồ Sơ Hội Viên & Tích Điểm - UTE Badminton</title>
   <link rel="stylesheet" href="/css/main.css">
   <style>
@@ -108,6 +111,9 @@
     }
 
     /* Profile Layout */
+    .profile-mobile-nav {
+      display: none;
+    }
     .profile-layout {
       max-width: 1140px;
       margin: 32px auto 60px;
@@ -118,25 +124,27 @@
       align-items: start;
     }
 
-    /* Elegant Executive Member Card */
+    /* Elegant Executive Luxury Metal Member Card */
     .digital-card {
-      background: radial-gradient(circle at 20% 30%, #064e3b 0%, #022c22 70%, #011c15 100%);
+      background: linear-gradient(135deg, #064e3b 0%, #022c22 55%, #011c15 100%);
       border-radius: 18px;
-      padding: 26px 24px;
+      padding: 24px;
       color: #ffffff;
       position: relative;
       overflow: hidden;
       box-shadow: 0 16px 36px rgba(6, 78, 59, 0.4);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      margin-bottom: 22px;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      width: 100%;
     }
     .digital-card::before {
       content: '';
       position: absolute;
       top: -50%;
-      right: -20%;
-      width: 250px;
-      height: 250px;
+      right: -25%;
+      width: 280px;
+      height: 280px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
       pointer-events: none;
@@ -145,11 +153,23 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 26px;
+      margin-bottom: 16px;
+    }
+    .card-logo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .card-tier-badge {
-      background: #fef3c7;
-      color: #92400e;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #78350f;
       font-size: 11px;
       font-weight: 800;
       padding: 4px 12px;
@@ -158,18 +178,42 @@
       text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 4px;
-      border: 1px solid #fde68a;
-      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+      gap: 5px;
+      border: 1px solid #f59e0b;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    .card-chip-wrap {
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-chip-metal {
+      width: 36px;
+      height: 26px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 60%, #f59e0b 100%);
+      border: 1px solid #b45309;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+    .chip-circuit {
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(180, 83, 9, 0.5);
+      border-radius: 3px;
     }
     .card-number {
-      font-family: monospace;
-      font-size: 19px;
+      font-family: 'Inter', -apple-system, monospace;
+      font-size: clamp(14px, 4.4vw, 18px);
       font-weight: 800;
-      letter-spacing: 2.5px;
+      letter-spacing: 2px;
       color: #a7f3d0;
-      margin-bottom: 22px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .card-footer-row {
       display: flex;
@@ -188,23 +232,33 @@
       background: var(--surface);
       border: 1px solid var(--border-subtle);
       border-radius: 16px;
-      padding: 22px;
+      padding: 20px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.04);
       margin-bottom: 20px;
+      box-sizing: border-box;
     }
     .progress-bar-bg {
-      height: 8px;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border-subtle);
+      height: 10px;
+      background: #e2e8f0;
+      border: 1px solid rgba(0, 0, 0, 0.06);
       border-radius: 9999px;
       overflow: hidden;
       margin: 12px 0 8px;
+      position: relative;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    [data-theme="dark"] .progress-bar-bg {
+      background: #334155;
+      border-color: rgba(255, 255, 255, 0.08);
     }
     .progress-bar-fill {
       height: 100%;
       background: linear-gradient(90deg, #10b981 0%, #059669 100%);
       border-radius: 9999px;
-      width: 60%;
+      width: 10%;
+      max-width: 100%;
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     /* Tier tiers list */
@@ -253,6 +307,172 @@
 
     @media (max-width: 900px) {
       .profile-layout { grid-template-columns: 1fr; }
+      .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+      .profile-card {
+        padding: 16px 14px !important;
+      }
+      .stats-card-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      html, body {
+        max-width: 100vw !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
+        position: relative !important;
+      }
+      .cust-navbar { width: 100% !important; max-width: 100vw !important; box-sizing: border-box !important; }
+      .cust-nav-inner { width: 100% !important; max-width: 100% !important; padding: 0 12px !important; height: 56px !important; box-sizing: border-box !important; }
+      .cust-hamburger-btn { display: none !important; }
+      .cust-nav-menu { display: none !important; }
+
+      .profile-mobile-nav {
+        display: flex !important;
+        gap: 6px !important;
+        padding: 6px 10px !important;
+        background: var(--surface) !important;
+        border-bottom: 1px solid var(--border-subtle) !important;
+        position: sticky !important;
+        top: 56px !important;
+        z-index: 100 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+      }
+      .prof-mob-tab {
+        flex: 1;
+        height: 34px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .prof-mob-tab.active {
+        background: rgba(16, 185, 129, 0.12) !important;
+        color: #059669 !important;
+        border-color: rgba(16, 185, 129, 0.3) !important;
+      }
+      .profile-layout {
+        width: 100% !important;
+        max-width: 100vw !important;
+        grid-template-columns: 1fr !important;
+        padding: 0 10px 100px !important;
+        margin: 8px auto !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+      }
+      .digital-card {
+        padding: 12px 14px !important;
+        border-radius: 14px !important;
+        margin-bottom: 8px !important;
+        max-width: 360px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+      }
+      .card-brand-row {
+        margin-bottom: 6px !important;
+      }
+      .card-logo-pill {
+        padding: 2px 7px !important;
+        font-size: 10.5px !important;
+      }
+      .card-tier-badge {
+        padding: 2px 6px !important;
+        font-size: 10px !important;
+      }
+      .card-chip-wrap {
+        margin-bottom: 4px !important;
+      }
+      .card-chip-metal {
+        width: 28px !important;
+        height: 20px !important;
+      }
+      .card-number {
+        font-size: clamp(12.5px, 4vw, 15px) !important;
+        letter-spacing: 1.5px !important;
+        margin-bottom: 8px !important;
+      }
+      .card-footer-row {
+        font-size: 10px !important;
+      }
+      .card-holder-name {
+        font-size: 12px !important;
+      }
+      .tier-progress-card {
+        padding: 12px 12px !important;
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+      }
+      .section-card {
+        padding: 12px 12px !important;
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+        box-sizing: border-box !important;
+      }
+      .card-body {
+        padding: 10px 0 0 !important;
+      }
+      .card-header {
+        padding: 0 0 8px !important;
+      }
+      .form-row {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+      .form-label {
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+      }
+      .form-group input {
+        font-size: 13.5px !important;
+        height: 38px !important;
+        padding: 4px 8px !important;
+        border-radius: 8px !important;
+      }
+      .stats-card-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px !important;
+        margin-bottom: 8px !important;
+      }
+      .stat-mini-box {
+        padding: 6px 4px !important;
+        border-radius: 8px !important;
+        text-align: center !important;
+      }
+      .stat-mini-box .stat-num {
+        font-size: 13.5px !important;
+        margin: 2px 0 !important;
+      }
+      .stat-mini-box div:first-child {
+        font-size: 9.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+      .stat-mini-box div:last-child {
+        display: none !important;
+      }
+      #ute-chatbot-toggle {
+        bottom: calc(75px + env(safe-area-inset-bottom, 8px)) !important;
+        right: 12px !important;
+        width: 44px !important;
+        height: 44px !important;
+      }
+      .cust-footer-dark {
+        display: none !important;
+      }
     }
   
     /* LUXURY TOP NAVBAR & FOOTER STYLES */
@@ -416,6 +636,72 @@
       gap: 12px;
     }
 
+    /* Modal OTP Xem Mật Khẩu (Đảm bảo hiển thị 100%, không bị nuốt bởi modal-overlay) */
+    #viewPasswordOtpModal {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 999999 !important;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 32, 25, 0.75) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      padding: 16px !important;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #viewPasswordOtpModal.active,
+    #viewPasswordOtpModal.open {
+      display: flex !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    #viewPasswordOtpModal .modal-card {
+      background: var(--surface, #ffffff);
+      border: 1px solid var(--border-subtle, #e2e8f0);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      transform: scale(0.96) translateY(8px);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #viewPasswordOtpModal.active .modal-card,
+    #viewPasswordOtpModal.open .modal-card {
+      transform: scale(1) translateY(0);
+    }
+    [data-theme="dark"] #viewPasswordOtpModal .modal-card {
+      background: #0f172a !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] #viewPasswordOtpModal .otp-modal-header {
+      background: #1e293b !important;
+      border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    [data-theme="dark"] #viewPasswordOtpModal h3 {
+      color: #f1f5f9 !important;
+    }
+    [data-theme="dark"] #viewPasswordOtpModal p {
+      color: #94a3b8 !important;
+    }
+    [data-theme="dark"] #viewPasswordOtpModal label {
+      color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] #viewPasswordOtpInput {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="dark"] #viewPasswordOtpModal .btn-cancel-modal {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+      color: #cbd5e1 !important;
+    }
+
   </style>
 </head>
 <body>
@@ -485,6 +771,21 @@
       </div>
     </div>
   </header>
+  <!-- MOBILE SEGMENTED CONTROL TABS (Visible only on mobile <= 768px) -->
+  <div class="profile-mobile-nav" id="profileMobileNav">
+    <button type="button" class="prof-mob-tab active" data-tab="tabInfo" onclick="switchProfMobTab('tabInfo', this)">
+      <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span>Hồ Sơ</span>
+    </button>
+    <button type="button" class="prof-mob-tab" data-tab="tabTiers" onclick="switchProfMobTab('tabTiers', this)">
+      <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+      <span>Hạng Thẻ</span>
+    </button>
+    <button type="button" class="prof-mob-tab" data-tab="tabHistory" onclick="switchProfMobTab('tabHistory', this)">
+      <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <span>Lịch Sử</span>
+    </button>
+  </div>
 
   <div class="profile-layout">
     <!-- Left Column: Member Card & Tiers -->
@@ -493,10 +794,21 @@
       <div class="digital-card">
         <div class="card-brand-row">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.5px;">UTE SPORT</span>
+            <div class="card-logo-pill">
+              <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+              <span>UTE SPORT</span>
+            </div>
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; fill: none; stroke: rgba(167, 243, 208, 0.7); stroke-width: 2;"><path d="M8.5 16.5a5 5 0 0 1 0-7"></path><path d="M12 19a8.5 8.5 0 0 0 0-14"></path><path d="M5 14a2 2 0 0 1 0-3"></path></svg>
           </div>
           <div class="card-tier-badge" id="profCardTierBadge">
+            <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: currentColor; stroke: none;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             <span id="profCardTier">Hội viên</span>
+          </div>
+        </div>
+
+        <div class="card-chip-wrap">
+          <div class="card-chip-metal">
+            <div class="chip-circuit"></div>
           </div>
         </div>
 
@@ -504,32 +816,32 @@
 
         <div class="card-footer-row">
           <div>
-            <div style="font-size: 10px; color: #ccfbf1; text-transform: uppercase;">Chủ thẻ</div>
+            <div style="font-size: 10px; color: #a7f3d0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Chủ thẻ hội viên</div>
             <div class="card-holder-name" id="profCardHolder">---</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 10px; color: #ccfbf1; text-transform: uppercase;">Ngày tham gia</div>
-            <div style="font-size: 12px; font-weight: 600;" id="profJoinDate">---</div>
+            <div style="font-size: 10px; color: #a7f3d0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Hạn thẻ</div>
+            <div style="font-size: 12px; font-weight: 700; color: #ffffff;" id="profJoinDate">VĨNH VIỄN</div>
           </div>
         </div>
       </div>
 
       <!-- Tier Progress -->
-      <div class="tier-progress-card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <strong style="font-size: 13px; color: var(--cust-text-main);" id="profTierProgressTitle">Tiến Trình Nâng Hạng</strong>
-          <span style="font-size: 12px; font-weight: 700; color: var(--cust-primary-hover);" id="profTierProgressLabel">0 / 20 Giờ</span>
+      <div class="tier-progress-card" id="profSecTierProgress">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 13.5px; color: var(--cust-text-main);" id="profTierProgressTitle">Tiến Trình Nâng Hạng</strong>
+          <span style="font-size: 12px; font-weight: 800; color: var(--cust-primary); background: var(--cust-primary-light); padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--cust-primary-border);" id="profTierProgressLabel">0 / 20 Giờ</span>
         </div>
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" id="profTierProgressFill" style="width: 10%;"></div>
         </div>
-        <div style="font-size: 11.5px; color: var(--cust-text-muted); line-height: 1.4;" id="profTierProgressDesc">
-          Tích lũy giờ chơi để nâng hạng thẻ và nhận thêm ưu đãi.
+        <div style="font-size: 12px; color: var(--cust-text-muted); line-height: 1.5; margin-top: 6px;" id="profTierProgressDesc">
+          Tích lũy giờ chơi để nâng hạng thẻ và nhận thêm ưu đãi độc quyền.
         </div>
       </div>
 
       <!-- Tiers Ladder & Benefits -->
-      <div class="section-card">
+      <div class="section-card" id="profSecTierBenefits">
         <div class="card-header">
           <div class="card-title">Quyền Lợi Hạng Thẻ</div>
         </div>
@@ -573,7 +885,7 @@
 
     <!-- Right Column: Stats & Edit Profile -->
     <div>
-      <div class="stats-card-grid">
+      <div class="stats-card-grid" id="profSecStats">
         <div class="stat-mini-box">
           <div style="font-size: 11px; color: var(--cust-text-muted); text-transform: uppercase; font-weight: 600;">Điểm Tích Lũy</div>
           <div class="stat-num" style="color: var(--cust-primary-hover);" id="profPoints">0 <span style="font-size: 13px; font-weight: normal;">pts</span></div>
@@ -600,7 +912,7 @@
       </div>
 
       <!-- Edit Profile Form -->
-      <div class="section-card">
+      <div class="section-card" id="profSecForm">
         <div class="card-header">
           <div class="card-title">Thông Tin Cá Nhân</div>
         </div>
@@ -629,16 +941,24 @@
             </div>
 
             <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--cust-border);">
-              <div style="font-size: 12.5px; font-weight: 700; margin-bottom: 8px;">Đổi Mật Khẩu (Tùy chọn)</div>
-              <div class="form-row">
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label class="form-label">Mật khẩu mới</label>
-                  <input type="password" class="form-control" id="profNewPassword" placeholder="Tối thiểu 6 ký tự">
+              <div class="form-group" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label class="form-label" style="margin: 0; font-weight: 700;">Mật Khẩu</label>
+                  <span style="font-size: 11.5px; color: var(--cust-teal, #059669); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                    <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Bảo mật 2 lớp OTP
+                  </span>
                 </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label class="form-label">Xác nhận mật khẩu</label>
-                  <input type="password" class="form-control" id="profConfirmPassword" placeholder="Khớp mật khẩu mới">
+                <div style="position: relative; display: flex; align-items: center;">
+                  <input type="password" class="form-control" id="profDisplayPassword" value="••••••••••••" readonly style="letter-spacing: 2px; font-weight: 700; background: var(--surface-subtle); padding-right: 130px; cursor: pointer; user-select: none;" onclick="triggerViewPasswordFlow()" title="Bấm vào để xác thực OTP và xem mật khẩu">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnTogglePasswordView" onclick="triggerViewPasswordFlow()" style="position: absolute; right: 6px; height: 32px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; padding: 0 12px; border-radius: 6px; border-color: var(--border-subtle); background: var(--surface);">
+                    <svg id="iconEyePass" viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span id="btnViewPassText">Xem mật khẩu</span>
+                  </button>
                 </div>
+                <small style="color: var(--cust-text-muted); font-size: 11.5px; display: block; margin-top: 5px;">
+                  Mật khẩu được bảo mật. Khi bấm xem, hệ thống sẽ gửi mã OTP xác nhận về Email của bạn trước khi hiển thị.
+                </small>
               </div>
             </div>
 
@@ -652,7 +972,7 @@
       </div>
 
       <!-- Point History Table -->
-      <div class="section-card">
+      <div class="section-card" id="profSecHistory">
         <div class="card-header">
           <div class="card-title">Lịch Sử Hoạt Động & Đặt Sân</div>
           <span style="font-size: 11.5px; color: var(--cust-text-muted);">Dữ liệu hệ thống</span>
@@ -686,7 +1006,58 @@
       window.location.href = '/customer/auth?redirect=' + encodeURIComponent(window.location.pathname);
     }
 
+
+    function switchProfMobTab(tabName, btn) {
+      document.querySelectorAll('.prof-mob-tab').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      else {
+        const matchingBtn = document.querySelector(`.prof-mob-tab[data-tab="${tabName}"]`);
+        if (matchingBtn) matchingBtn.classList.add('active');
+      }
+
+      const secTierProgress = document.getElementById('profSecTierProgress');
+      const secTierBenefits = document.getElementById('profSecTierBenefits');
+      const secStats = document.getElementById('profSecStats');
+      const secForm = document.getElementById('profSecForm');
+      const secHistory = document.getElementById('profSecHistory');
+
+      if (window.innerWidth <= 768) {
+        if (tabName === 'tabInfo') {
+          if (secStats) secStats.style.display = 'grid';
+          if (secForm) secForm.style.display = 'block';
+          if (secTierProgress) secTierProgress.style.display = 'none';
+          if (secTierBenefits) secTierBenefits.style.display = 'none';
+          if (secHistory) secHistory.style.display = 'none';
+        } else if (tabName === 'tabTiers') {
+          if (secStats) secStats.style.display = 'none';
+          if (secForm) secForm.style.display = 'none';
+          if (secTierProgress) secTierProgress.style.display = 'block';
+          if (secTierBenefits) secTierBenefits.style.display = 'block';
+          if (secHistory) secHistory.style.display = 'none';
+        } else if (tabName === 'tabHistory') {
+          if (secStats) secStats.style.display = 'none';
+          if (secForm) secForm.style.display = 'none';
+          if (secTierProgress) secTierProgress.style.display = 'none';
+          if (secTierBenefits) secTierBenefits.style.display = 'none';
+          if (secHistory) secHistory.style.display = 'block';
+        }
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) {
+        ['profSecTierProgress', 'profSecTierBenefits', 'profSecStats', 'profSecForm', 'profSecHistory'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = '';
+        });
+      } else {
+        const activeTab = document.querySelector('.prof-mob-tab.active')?.getAttribute('data-tab') || 'tabInfo';
+        switchProfMobTab(activeTab);
+      }
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
+      if (window.innerWidth <= 768) switchProfMobTab('tabInfo');
       loadProfileData();
     });
 
@@ -845,26 +1216,10 @@
       const name = document.getElementById('profName').value.trim();
       const phone = document.getElementById('profPhone').value.trim();
       const email = document.getElementById('profEmail').value.trim();
-      const newPass = document.getElementById('profNewPassword')?.value || '';
-      const confPass = document.getElementById('profConfirmPassword')?.value || '';
       const curToken = localStorage.getItem('jwt_token');
-
-      if (newPass) {
-        if (newPass.length < 6) {
-          if (window.showToast) showToast('Mật khẩu mới phải có tối thiểu 6 ký tự!', 'warning');
-          else alert('Mật khẩu mới phải có tối thiểu 6 ký tự!');
-          return;
-        }
-        if (newPass !== confPass) {
-          if (window.showToast) showToast('Xác nhận mật khẩu không khớp với mật khẩu mới!', 'warning');
-          else alert('Xác nhận mật khẩu không khớp với mật khẩu mới!');
-          return;
-        }
-      }
 
       try {
         const payload = { fullName: name, phone: phone, email: email };
-        if (newPass) payload.newPassword = newPass;
 
         const res = await fetch('/api/customer/profile', {
           method: 'PUT',
@@ -886,10 +1241,6 @@
               localStorage.setItem('utesport_user', JSON.stringify(u));
             } catch (err) {}
           }
-          if (newPass) {
-            document.getElementById('profNewPassword').value = '';
-            document.getElementById('profConfirmPassword').value = '';
-          }
           if (window.showToast) showToast('Đã lưu thông tin hồ sơ cho ' + name + ' thành công vào CSDL!', 'success');
           else alert('Đã lưu thông tin hồ sơ thành công!');
           loadProfileData();
@@ -900,6 +1251,216 @@
       } catch (err) {
         console.error('Lỗi cập nhật hồ sơ:', err);
         showToast('Lỗi khi gửi yêu cầu cập nhật hồ sơ!', 'error');
+      }
+    }
+
+    // ==========================================
+    // OTP XÁC THỰC BẢO MẬT ĐỂ XEM MẬT KHẨU
+    // ==========================================
+    let isPasswordRevealed = false;
+    let revealedPasswordValue = '';
+
+    async function triggerViewPasswordFlow() {
+      if (isPasswordRevealed) {
+        hideRevealedPassword();
+        return;
+      }
+
+      const btn = document.getElementById('btnTogglePasswordView');
+      const text = document.getElementById('btnViewPassText');
+      if (btn) btn.disabled = true;
+      if (text) text.textContent = 'Đang gửi OTP...';
+
+      try {
+        const curToken = localStorage.getItem('jwt_token');
+        const res = await fetch('/api/customer/profile/request-view-password-otp', {
+          method: 'POST',
+          headers: curToken ? { 'Authorization': 'Bearer ' + curToken } : {}
+        });
+
+        const data = await res.json();
+        if (btn) btn.disabled = false;
+        if (text) text.textContent = 'Xem mật khẩu';
+
+        if (res.ok && data.success) {
+          openViewPasswordOtpModal(data.maskedEmail, data.message);
+        } else {
+          if (window.showToast) showToast(data.message || 'Không thể gửi mã OTP!', 'error');
+          else alert(data.message || 'Không thể gửi mã OTP!');
+        }
+      } catch (err) {
+        console.error('Lỗi yêu cầu OTP xem mật khẩu:', err);
+        if (btn) btn.disabled = false;
+        if (text) text.textContent = 'Xem mật khẩu';
+        if (window.showToast) showToast('Lỗi kết nối máy chủ khi gửi mã OTP!', 'error');
+      }
+    }
+
+    function openViewPasswordOtpModal(maskedEmail, message) {
+      const modal = document.getElementById('viewPasswordOtpModal');
+      if (!modal) return;
+
+      const emailEl = document.getElementById('otpMaskedEmail');
+      if (emailEl) emailEl.textContent = maskedEmail || 'hộp thư của bạn';
+
+      const otpInp = document.getElementById('viewPasswordOtpInput');
+      if (otpInp) otpInp.value = '';
+
+      const errBox = document.getElementById('otpErrorMsg');
+      if (errBox) errBox.style.display = 'none';
+
+      // Explicitly set flex, opacity, and pointer-events
+      modal.style.display = 'flex';
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      modal.classList.add('active', 'open');
+
+      setTimeout(() => {
+        if (otpInp) {
+          otpInp.focus();
+          otpInp.select();
+        }
+      }, 150);
+
+      if (message && window.showToast) showToast(message, 'info');
+    }
+
+    function closeViewPasswordOtpModal() {
+      const modal = document.getElementById('viewPasswordOtpModal');
+      if (!modal) return;
+      modal.classList.remove('active', 'open');
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
+      setTimeout(() => {
+        modal.style.display = 'none';
+        const otpInp = document.getElementById('viewPasswordOtpInput');
+        if (otpInp) otpInp.value = '';
+        const errBox = document.getElementById('otpErrorMsg');
+        if (errBox) errBox.style.display = 'none';
+      }, 200);
+    }
+
+    async function resendViewPasswordOtp() {
+      const resendBtn = document.getElementById('btnResendViewOtp');
+      if (resendBtn) resendBtn.textContent = 'Đang gửi...';
+      try {
+        const curToken = localStorage.getItem('jwt_token');
+        const res = await fetch('/api/customer/profile/request-view-password-otp', {
+          method: 'POST',
+          headers: curToken ? { 'Authorization': 'Bearer ' + curToken } : {}
+        });
+        const data = await res.json();
+        if (resendBtn) resendBtn.textContent = 'Gửi lại OTP';
+        if (data.success) {
+          if (window.showToast) showToast('Đã gửi lại mã OTP mới vào email của bạn!', 'success');
+        } else {
+          if (window.showToast) showToast(data.message, 'error');
+        }
+      } catch (e) {
+        if (resendBtn) resendBtn.textContent = 'Gửi lại OTP';
+      }
+    }
+
+    async function confirmViewPasswordOtp() {
+      const otpInput = document.getElementById('viewPasswordOtpInput');
+      const otp = otpInput ? otpInput.value.trim() : '';
+      const errBox = document.getElementById('otpErrorMsg');
+      const btn = document.getElementById('btnConfirmViewPasswordOtp');
+
+      if (!otp || otp.length < 6) {
+        if (errBox) {
+          errBox.textContent = 'Vui lòng nhập đủ 6 chữ số mã OTP!';
+          errBox.style.display = 'block';
+        }
+        if (otpInput) otpInput.focus();
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang kiểm tra...';
+      }
+
+      try {
+        const curToken = localStorage.getItem('jwt_token');
+        const res = await fetch('/api/customer/profile/verify-view-password-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(curToken ? { 'Authorization': 'Bearer ' + curToken } : {})
+          },
+          body: JSON.stringify({ otp: otp })
+        });
+
+        const data = await res.json();
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Xác Thực & Xem';
+        }
+
+        if (res.ok && data.success) {
+          closeViewPasswordOtpModal();
+          revealedPasswordValue = data.password || '123456';
+          revealPasswordSuccess(revealedPasswordValue);
+          if (window.showToast) showToast(data.message, 'success');
+        } else {
+          if (errBox) {
+            errBox.textContent = data.message || 'Mã OTP không chính xác!';
+            errBox.style.display = 'block';
+          }
+          if (otpInput) {
+            otpInput.select();
+            otpInput.focus();
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi xác thực OTP:', err);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Xác Thực & Xem';
+        }
+        if (errBox) {
+          errBox.textContent = 'Lỗi kết nối khi xác thực OTP!';
+          errBox.style.display = 'block';
+        }
+      }
+    }
+
+    function revealPasswordSuccess(pass) {
+      isPasswordRevealed = true;
+      const input = document.getElementById('profDisplayPassword');
+      const text = document.getElementById('btnViewPassText');
+      const icon = document.getElementById('iconEyePass');
+
+      if (input) {
+        input.type = 'text';
+        input.value = pass;
+        input.style.letterSpacing = 'normal';
+        input.style.color = '#059669';
+        input.style.fontWeight = '800';
+      }
+      if (text) text.textContent = 'Ẩn mật khẩu';
+      if (icon) {
+        icon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+      }
+    }
+
+    function hideRevealedPassword() {
+      isPasswordRevealed = false;
+      const input = document.getElementById('profDisplayPassword');
+      const text = document.getElementById('btnViewPassText');
+      const icon = document.getElementById('iconEyePass');
+
+      if (input) {
+        input.type = 'password';
+        input.value = '••••••••••••';
+        input.style.letterSpacing = '2px';
+        input.style.color = '';
+        input.style.fontWeight = '700';
+      }
+      if (text) text.textContent = 'Xem mật khẩu';
+      if (icon) {
+        icon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle>';
       }
     }
 
@@ -916,7 +1477,92 @@
     }
     document.addEventListener('DOMContentLoaded', loadProfileBranchesFromDb);
   </script>
-  
+
+  <!-- Modal Xác Thực OTP Xem Mật Khẩu -->
+  <div class="modal-overlay" id="viewPasswordOtpModal" onclick="if(event.target === this) closeViewPasswordOtpModal()">
+    <div class="modal-card">
+      
+      <!-- Modal Header -->
+      <div class="otp-modal-header" style="padding: 18px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; background: #fafafa;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(5, 150, 105, 0.12); color: #059669; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Xác Thực Bảo Mật OTP</h3>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">Xác minh danh tính để xem mật khẩu</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeViewPasswordOtpModal()" style="background: transparent; border: none; cursor: pointer; color: #94a3b8; padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: color 0.15s;" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#94a3b8'">
+          <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 24px;">
+        <p style="margin: 0 0 16px; font-size: 13.5px; line-height: 1.55; color: #475569; text-align: center;">
+          Hệ thống vừa gửi mã xác thực 6 số đến hộp thư:
+          <br>
+          <strong id="otpMaskedEmail" style="color: #059669; font-size: 14px; font-weight: 700; word-break: break-all;">email@example.com</strong>
+        </p>
+
+        <div style="margin-bottom: 16px;">
+          <label for="viewPasswordOtpInput" style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #334155; margin-bottom: 8px; text-align: center;">
+            Nhập Mã Xác Thực 6 Số
+          </label>
+          <input 
+            type="text" 
+            id="viewPasswordOtpInput" 
+            maxlength="6" 
+            placeholder="••••••" 
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            style="width: 100%; height: 50px; font-size: 24px; font-weight: 800; text-align: center; letter-spacing: 8px; border: 2px solid #e2e8f0; border-radius: 10px; color: #0f172a; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; background: #f8fafc;"
+            onfocus="this.style.borderColor='#059669'; this.style.boxShadow='0 0 0 3px rgba(5,150,105,0.15)'; this.style.background='#ffffff';"
+            onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'; this.style.background='#f8fafc';"
+            onkeydown="if(event.key === 'Enter') confirmViewPasswordOtp();"
+          >
+          <div id="otpErrorMsg" style="display: none; color: #dc2626; font-size: 12.5px; font-weight: 600; text-align: center; margin-top: 8px; background: #fef2f2; padding: 6px 12px; border-radius: 6px; border: 1px solid #fee2e2;">
+            Mã OTP không chính xác!
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #64748b; margin-bottom: 20px; padding: 0 4px;">
+          <span>Không nhận được mã?</span>
+          <button type="button" id="btnResendViewOtp" onclick="resendViewPasswordOtp()" style="background: none; border: none; color: #059669; font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline; font-size: 12px;">
+            Gửi lại OTP
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-cancel-modal" onclick="closeViewPasswordOtpModal()" style="flex: 1; height: 42px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 600; border-radius: 8px; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+            Hủy bỏ
+          </button>
+          <button type="button" id="btnConfirmViewPasswordOtp" onclick="confirmViewPasswordOtp()" style="flex: 2; height: 42px; border: none; background: #059669; color: #ffffff; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(5,150,105,0.25); transition: background 0.15s;" onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">
+            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Xác Thực & Xem
+          </button>
+        </div>
+
+        <div style="margin-top: 16px; text-align: center;">
+          <small style="color: #94a3b8; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Mã OTP có hiệu lực trong 5 phút
+          </small>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <footer class="cust-footer-dark">
     <div class="cust-footer-inner">
       <div>
@@ -927,7 +1573,7 @@
           <span style="font-size: 18px; font-weight: 900; color: #ffffff;">UTE SPORT ARENA</span>
         </div>
         <p style="line-height: 1.6; margin-bottom: 18px;">
-          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF. Tiên phong ứng dụng công nghệ khóa giữ chỗ thời gian thực, đối soát thanh toán tự động VietQR và dịch vụ chăm sóc người chơi hàng đầu.
+          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF với cơ sở vật chất hiện đại, dịch vụ đặt sân chuyên nghiệp và tiện nghi cao cấp.
         </p>
         <div>
           <span style="color: #6ee7b7; font-weight: 700;">Hotline Đặt Sân:</span>
@@ -948,8 +1594,8 @@
           <li><a href="/customer/booking">Đặt Sân Trực Tuyến</a></li>
           <li><a href="/customer/tournaments">Đăng Ký Giải Đấu UTE</a></li>
           <li><a href="/customer/profile">Tích Điểm Thẻ Hội Viên</a></li>
-          <li><a href="/customer/history">Tra Cứu Lịch Sử & Check-in</a></li>
-          <li><a href="/customer/policy">Chính Sách Hoàn Cọc 100%</a></li>
+          <li><a href="/customer/history">Lịch Sử Đặt Sân</a></li>
+          <li><a href="/customer/policy">Chính Sách & Quy Định</a></li>
         </ul>
       </div>
 
@@ -971,7 +1617,7 @@
       </div>
       <div style="display: flex; gap: 20px;">
         <span>Tiêu chuẩn thảm thi đấu BWF</span>
-        <span>Thanh toán VietQR tự động</span>
+        <span>Thanh toán VietQR tiện lợi</span>
         <span>Hỗ trợ kỹ thuật 24/7</span>
       </div>
     </div>

@@ -221,8 +221,23 @@
     }
 
     @media (max-width: 860px) {
-      .tour-card { grid-template-columns: 1fr; }
-      .tour-card-banner { border-right: none; border-bottom: 1px solid var(--cust-border); }
+      .tour-card { grid-template-columns: 1fr !important; }
+      .tour-card-banner {
+        border-right: none !important;
+        border-bottom: 1px solid var(--cust-border) !important;
+        height: auto !important;
+        min-height: unset !important;
+        padding: 20px 22px !important;
+      }
+      .modal-card {
+        width: 94vw !important;
+        max-width: 94vw !important;
+        margin: 10px auto;
+      }
+      .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
     }
   
     /* LUXURY TOP NAVBAR & FOOTER STYLES */
@@ -324,6 +339,29 @@
     }
     @media (max-width: 768px) {
       .cust-nav-menu { display: none; }
+      .tour-hero {
+        display: none !important;
+      }
+      .tour-container {
+        margin: 14px auto 80px !important;
+        padding: 0 12px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+      }
+      .tour-card {
+        margin-bottom: 14px !important;
+        border-radius: 14px !important;
+      }
+      .tour-card-banner {
+        padding: 14px 16px !important;
+      }
+      .tour-card-content {
+        padding: 14px 16px !important;
+      }
+      .cust-footer-dark {
+        display: none !important;
+      }
     }
 
     /* LUXURY FOOTER */
@@ -730,10 +768,11 @@
         const pct = max > 0 ? Math.min(100, Math.round((current / max) * 100)) : 0;
         const remaining = Math.max(0, max - current);
 
+        const isPast = t.endDate && (!isNaN(new Date(t.endDate).getTime())) && (new Date(t.endDate) < new Date());
         const isFull = current >= max || status === 'Hết chỗ';
         const isClosed = status === 'Đã đóng đăng ký';
         const isUpcoming = status === 'Sắp mở đăng ký';
-        const isCompleted = status === 'Đã hoàn thành';
+        const isCompleted = status === 'Đã hoàn thành' || status === 'Đã kết thúc' || (isPast && status !== 'Đang mở đăng ký' && status !== 'Sắp mở đăng ký');
 
         let badgeClass = 'badge-success';
         let badgeText = 'ĐANG MỞ ĐĂNG KÝ';
@@ -745,7 +784,7 @@
 
         if (isCompleted) {
           badgeClass = 'badge';
-          badgeText = 'ĐÃ HOÀN THÀNH';
+          badgeText = 'ĐÃ KẾT THÚC';
           barColor = '#94a3b8';
           slotText = `Đã kết thúc (${current}/${max} Cặp)`;
           btnText = 'Giải Đấu Đã Kết Thúc';
@@ -850,6 +889,25 @@
           const list = await res.json();
           allTournaments = Array.isArray(list) ? list : [];
           renderTournaments(allTournaments);
+
+          // Focus / highlight selected tournament if ?code= is present in URL
+          try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetCode = urlParams.get('code');
+            if (targetCode) {
+              setTimeout(() => {
+                const el = document.getElementById(`card-${targetCode}`);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  el.style.border = '2px solid var(--cust-primary)';
+                  el.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.45)';
+                  el.style.transition = 'all 0.4s ease';
+                }
+              }, 250);
+            }
+          } catch (e) {
+            console.warn('Lỗi đọc tham số URL giải đấu:', e);
+          }
         } else {
           document.getElementById('tournamentsContainer').innerHTML = `
             <div style="background: var(--cust-surface); border: 1px solid var(--cust-border); border-radius: 12px; padding: 36px 20px; text-align: center; color: var(--cust-text-muted);">
@@ -962,7 +1020,7 @@
           <span style="font-size: 18px; font-weight: 900; color: #ffffff;">UTE SPORT ARENA</span>
         </div>
         <p style="line-height: 1.6; margin-bottom: 18px;">
-          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF. Tiên phong ứng dụng công nghệ khóa giữ chỗ thời gian thực, đối soát thanh toán tự động VietQR và dịch vụ chăm sóc người chơi hàng đầu.
+          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF với cơ sở vật chất hiện đại, dịch vụ đặt sân chuyên nghiệp và tiện nghi cao cấp.
         </p>
         <div>
           <span style="color: #6ee7b7; font-weight: 700;">Hotline Đặt Sân:</span>
@@ -987,8 +1045,8 @@
           <li><a href="/customer/booking">Đặt Sân Trực Tuyến</a></li>
           <li><a href="/customer/tournaments">Đăng Ký Giải Đấu UTE</a></li>
           <li><a href="/customer/profile">Tích Điểm Thẻ Hội Viên</a></li>
-          <li><a href="/customer/history">Tra Cứu Lịch Sử & Check-in</a></li>
-          <li><a href="/customer/policy">Chính Sách Hoàn Cọc 100%</a></li>
+          <li><a href="/customer/history">Lịch Sử Đặt Sân</a></li>
+          <li><a href="/customer/policy">Chính Sách & Quy Định</a></li>
         </ul>
       </div>
 
@@ -1010,7 +1068,7 @@
       </div>
       <div style="display: flex; gap: 20px;">
         <span>Tiêu chuẩn thảm thi đấu BWF</span>
-        <span>Thanh toán VietQR tự động</span>
+        <span>Thanh toán VietQR tiện lợi</span>
         <span>Hỗ trợ kỹ thuật 24/7</span>
       </div>
     </div>

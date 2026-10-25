@@ -292,8 +292,178 @@
     }
     .star-btn.active { color: #f59e0b; }
 
+    /* Pending Deposit & Countdown Styles */
+    .pending-countdown-wrap {
+      margin-top: 8px;
+    }
+    .pending-timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+      transition: all 0.2s ease;
+    }
+    .pending-timer-pill.expired {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+    .btn-pay-now {
+      animation: pulse-emerald 2s infinite;
+    }
+    @keyframes pulse-emerald {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+    .btn-copy-tag {
+      background: var(--surface-subtle, #f1f5f9);
+      border: 1px solid var(--border-subtle, #cbd5e1);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--primary, #059669);
+      transition: all 0.15s ease;
+    }
+    .btn-copy-tag:hover {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+    }
+
     @media (max-width: 768px) {
-      .b-card-body { grid-template-columns: 1fr; }
+      html, body {
+        max-width: 100vw !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
+      }
+      .history-hero-box {
+        display: none !important;
+      }
+      .history-container {
+        margin: 14px auto 80px !important;
+        padding: 0 12px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+      }
+      .page-title-box {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px !important;
+        margin-bottom: 12px !important;
+      }
+      .page-title-box h1 {
+        font-size: 18px !important;
+        margin: 0 !important;
+      }
+      .page-title-box p {
+        font-size: 11.5px !important;
+        margin-top: 2px !important;
+      }
+      .pill-group {
+        display: flex !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        padding-bottom: 4px !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px !important;
+        scrollbar-width: none;
+      }
+      .pill-group::-webkit-scrollbar {
+        display: none;
+      }
+      .pill-btn {
+        padding: 5px 12px !important;
+        font-size: 11.5px !important;
+        flex-shrink: 0 !important;
+      }
+      .policy-alert-box {
+        padding: 8px 12px !important;
+        margin-bottom: 12px !important;
+        font-size: 11px !important;
+        border-radius: 8px !important;
+      }
+      .booking-card {
+        margin-bottom: 12px !important;
+        border-radius: 12px !important;
+      }
+      .b-card-header {
+        padding: 10px 12px !important;
+      }
+      .b-card-body {
+        grid-template-columns: 1fr;
+        gap: 10px !important;
+        padding: 12px !important;
+      }
+      .b-meta-grid {
+        gap: 6px !important;
+      }
+      .b-meta-item {
+        font-size: 12px !important;
+      }
+      .b-actions {
+        flex-direction: row;
+        width: 100%;
+        gap: 8px;
+        margin-top: 4px !important;
+      }
+      .b-actions .btn {
+        flex: 1;
+        height: 38px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12.5px !important;
+        font-weight: 700;
+        touch-action: manipulation;
+      }
+      .ticket-modal-card {
+        width: 92vw;
+        max-width: 360px;
+        margin: auto;
+      }
+      #paymentModal .modal-card {
+        width: 95vw !important;
+        margin: 10px auto !important;
+        max-height: 94vh !important;
+      }
+      #paymentModal .modal-card > div:first-child {
+        padding: 14px 16px !important;
+      }
+      #paymentModal .modal-card > div:last-child {
+        padding: 16px 14px !important;
+      }
+      #paymentModal #payModalQrImg {
+        width: 175px !important;
+        height: 175px !important;
+      }
+      .btn-save-qr {
+        max-width: 100% !important;
+        padding: 11px 16px !important;
+      }
+      .cust-footer-dark {
+        display: none !important;
+      }
+    }
+
+    .btn-save-qr {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-save-qr:hover {
+      background: #d1fae5 !important;
+      border-color: #059669 !important;
+      transform: translateY(-1px);
+    }
+    .btn-save-qr:active {
+      transform: scale(0.97);
     }
   
     /* LUXURY TOP NAVBAR & FOOTER STYLES */
@@ -544,11 +714,29 @@
         <h2 style="font-size: 18px; font-weight: 800; color: var(--text-dark); margin: 0;">Đơn Đặt Sân Của Bạn</h2>
       </div>
 
-      <div class="pill-group">
-        <button class="pill-btn active" id="pillAll" onclick="filterHistory('all', this)">Tất Cả (<span id="cntAll">0</span>)</button>
-        <button class="pill-btn" id="pillUpcoming" onclick="filterHistory('upcoming', this)">Sắp Tới (<span id="cntUpcoming">0</span>)</button>
-        <button class="pill-btn" id="pillCompleted" onclick="filterHistory('completed', this)">Đã Chơi (<span id="cntCompleted">0</span>)</button>
-        <button class="pill-btn" id="pillCancelled" onclick="filterHistory('cancelled', this)">Đã Hủy (<span id="cntCancelled">0</span>)</button>
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <!-- Nhóm tab lọc theo trạng thái đơn -->
+        <div class="pill-group">
+          <button class="pill-btn active" id="pillAll" onclick="filterHistory('all', this)">Tất Cả (<span id="cntAll">0</span>)</button>
+          <button class="pill-btn" id="pillUpcoming" onclick="filterHistory('upcoming', this)">Sắp Tới (<span id="cntUpcoming">0</span>)</button>
+          <button class="pill-btn" id="pillCompleted" onclick="filterHistory('completed', this)">Đã Chơi (<span id="cntCompleted">0</span>)</button>
+          <button class="pill-btn" id="pillCancelled" onclick="filterHistory('cancelled', this)">Đã Hủy (<span id="cntCancelled">0</span>)</button>
+        </div>
+
+        <!-- Bộ lọc sắp xếp Mới nhất / Cũ nhất -->
+        <div class="sort-select-box" style="display: inline-flex; align-items: center; gap: 6px; background: var(--surface); padding: 5px 12px; border-radius: 9999px; border: 1px solid var(--border-subtle); box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+          <svg style="width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 16 4 4 4-4"></path>
+            <path d="M7 20V4"></path>
+            <path d="m21 8-4-4-4 4"></path>
+            <path d="M17 4v16"></path>
+          </svg>
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap;">Sắp xếp:</span>
+          <select id="sortOrderSelect" onchange="changeSortOrder(this.value)" style="border: none; background: transparent; font-size: 12.5px; font-weight: 700; color: var(--text-dark); cursor: pointer; outline: none; padding: 2px 4px; font-family: inherit;">
+            <option value="newest" selected>Mới nhất</option>
+            <option value="oldest">Cũ nhất</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -556,7 +744,7 @@
     <div class="policy-alert-box" style="display: flex; align-items: center; gap: 10px;">
       <svg class="svg-icon" style="width: 18px; height: 18px; flex-shrink: 0; color: var(--cust-primary);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       <div style="font-size: 12.5px;">
-        <strong>Chính sách hoàn cọc:</strong> Hoàn 100% tiền cọc tự động khi hủy trước giờ chơi tối thiểu 4 tiếng.
+        <strong>Quy định hủy sân:</strong> Miễn phí hủy và hoàn tiền khi thông báo trước 4 tiếng.
       </div>
     </div>
 
@@ -595,7 +783,7 @@
             <rect x="14" y="54" width="4" height="4"/><rect x="84" y="54" width="4" height="4"/>
             <rect x="38" y="70" width="4" height="4"/><rect x="54" y="70" width="4" height="4"/>
           </svg>
-          <div style="font-size: 10.5px; font-weight: 700; color: var(--cust-primary); margin-top: 4px;">QUÉT MÃ TẠI QUẦY ĐỂ NHẬN SÂN</div>
+          <div style="font-size: 10.5px; font-weight: 700; color: var(--cust-primary); margin-top: 4px;">MÃ CHECK-IN TẠI QUẦY</div>
         </div>
 
         <div style="text-align: left; font-size: 12.5px; margin-bottom: 18px;">
@@ -608,16 +796,22 @@
             <strong id="tktTime">17:00 - 19:00</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--cust-text-muted);">Số tiền còn lại thanh toán:</span>
+            <span style="color: var(--cust-text-muted);">Còn lại:</span>
             <strong id="tktRemaining" style="color: var(--cust-accent);">220.500 đ</strong>
           </div>
         </div>
 
-        <button type="button" class="btn btn-primary" onclick="resendTicketEmail()" id="btnResendEmail" style="width: 100%; height: 38px; font-size: 13px; font-weight: 700; margin-bottom: 8px; border-radius: 8px;">
-          📩 Gửi Phiếu & Vé Về Email
+        <div style="margin-bottom: 12px; text-align: left;">
+          <label style="font-size: 11.5px; color: var(--cust-text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Email nhận vé & hóa đơn điện tử:</label>
+          <input type="email" id="tktEmailInput" class="form-control" placeholder="Nhập địa chỉ email của bạn..." style="width: 100%; padding: 8px 10px; font-size: 12.5px; border-radius: 8px; border: 1px solid var(--cust-border, #cbd5e1); box-sizing: border-box;">
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="resendTicketEmail()" id="btnResendEmail" style="width: 100%; height: 38px; font-size: 13px; font-weight: 700; margin-bottom: 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+          <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <span>Gửi Vé & Hóa Đơn Về Email</span>
         </button>
         <button type="button" class="btn btn-outline" onclick="closeModals()" style="width: 100%; height: 36px; font-size: 12.5px; border-radius: 8px;">
-          Đóng Vé Điện Tử
+          Đóng
         </button>
       </div>
     </div>
@@ -654,10 +848,126 @@
     </div>
   </div>
 
+  <!-- VietQR Payment Modal for Locked / Pending Bookings -->
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal-card" style="max-width: 480px; width: 95vw; border-radius: 18px; overflow: hidden; background: var(--surface, #ffffff); box-shadow: 0 20px 45px rgba(0,0,0,0.2);">
+      <div style="background: linear-gradient(135deg, #065f46 0%, #047857 100%); color: #ffffff; padding: 20px 24px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; color: #a7f3d0; margin-bottom: 2px;">THANH TOÁN TIỀN CỌC GIỮ SÂN 30%</div>
+            <h3 style="font-size: 19px; font-weight: 800; margin: 0; color: #ffffff;" id="payModalCourt">Sân Thi Đấu</h3>
+            <div style="font-family: monospace; font-size: 14px; color: #6ee7b7; font-weight: 700; margin-top: 2px;" id="payModalCode">DS000000</div>
+          </div>
+          <button type="button" onclick="closePaymentModal()" style="background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; color: #ffffff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">✕</button>
+        </div>
+
+        <div style="margin-top: 14px; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.15);">
+          <span style="font-size: 12px; color: #e2e8f0; display: inline-flex; align-items: center; gap: 6px;">
+            <svg style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Thời gian giữ chỗ còn lại:
+          </span>
+          <strong id="payModalTimer" style="font-size: 14.5px; color: #fef08a; font-family: monospace; font-weight: 800;">10:00</strong>
+        </div>
+      </div>
+
+      <div style="padding: 22px 24px; max-height: calc(85vh - 120px); overflow-y: auto;">
+        <!-- QR Frame -->
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="display: inline-block; padding: 12px; background: #ffffff; border: 2px solid var(--primary, #10b981); border-radius: 14px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);">
+            <img id="payModalQrImg" src="/images/vietqr-bank.png" onerror="this.src='https://img.vietqr.io/image/970422-0903123456-compact2.png?amount=30000&addInfo=CK%20DAT%20SAN&accountName=UTE%20BADMINTON%20CLUB'" alt="Mã VietQR Chuyển Khoản" style="width: 190px; height: 190px; object-fit: contain; display: block; margin: 0 auto;">
+          </div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--primary, #10b981); margin: 6px 0 10px; letter-spacing: 0.5px;">QUÉT BẰNG APP NGÂN HÀNG HOẶC VÍ ĐIỆN TỬ</div>
+          <button type="button" class="btn-save-qr" onclick="savePayModalQrImage()" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 260px; padding: 10px 16px; border-radius: 12px; background: #ecfdf5; border: 1.5px solid #10b981; color: #047857; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.12); transition: all 0.2s;">
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Lưu Ảnh QR Về Máy</span>
+          </button>
+          <div style="font-size: 11.5px; color: var(--cust-text-muted, #64748b); margin-top: 5px;">Mở App Ngân Hàng chọn <em>"Quét QR từ thư viện ảnh"</em> để chuyển tiền nhanh</div>
+        </div>
+
+        <!-- Bank Info Table -->
+        <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 12.5px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--text-muted, #64748b);">Ngân hàng:</span>
+            <strong id="payModalBankName" style="color: var(--text-dark, #0f172a); text-align: right;">MBBank (Ngân hàng Quân Đội)</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="color: var(--text-muted, #64748b);">Số tài khoản:</span>
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <strong id="payModalAccountNo" style="color: var(--text-dark, #0f172a); font-family: monospace; font-size: 13.5px;">0903123456</strong>
+              <button type="button" class="btn-copy-tag" onclick="copyText(document.getElementById('payModalAccountNo').textContent)">Sao chép</button>
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--text-muted, #64748b);">Tên chủ TK:</span>
+            <strong id="payModalAccountName" style="color: var(--text-dark, #0f172a);">UTE BADMINTON CLUB</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding-top: 6px; border-top: 1px dashed var(--border-subtle, #cbd5e1);">
+            <span style="color: var(--text-muted, #64748b);">Số tiền cọc (30%):</span>
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <strong id="payModalDeposit" style="color: #059669; font-size: 15px; font-weight: 800;">0 đ</strong>
+              <button type="button" class="btn-copy-tag" onclick="copyText(document.getElementById('payModalDeposit').textContent.replace(/\D/g, ''))">Sao chép</button>
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted, #64748b);">Nội dung chuyển khoản:</span>
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <strong id="payModalContent" style="color: #ef4444; font-family: monospace; font-size: 13.5px; font-weight: 800;">CK DS000000</strong>
+              <button type="button" class="btn-copy-tag" onclick="copyText(document.getElementById('payModalContent').textContent)">Sao chép</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- Schedule details -->
+        <div style="font-size: 12px; color: var(--text-muted, #64748b); line-height: 1.6; margin-bottom: 16px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 10px 14px;">
+          <div>Cơ sở: <strong id="payModalBranch" style="color: var(--text-dark, #0f172a);">---</strong></div>
+          <div>Ngày chơi: <strong id="payModalDate" style="color: var(--text-dark, #0f172a);">---</strong> | Khung giờ: <strong id="payModalTime" style="color: var(--text-dark, #0f172a);">---</strong></div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnConfirmPayInModal" onclick="confirmDepositInModal()" style="width: 100%; height: 42px; font-size: 14px; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          <svg style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Xác Nhận Đã Chuyển Khoản Cọc</span>
+        </button>
+
+        <a id="payModalFullLink" href="#" style="display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--cust-text-muted, #64748b); text-decoration: underline;">
+          Mở trang thanh toán chuyên biệt đầy đủ
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script>
     let allBookingsData = [];
     let activeFilter = 'all';
+    let currentSortOrder = 'newest';
     let branchMap = {};
+
+    function sortBookings(list, order) {
+      if (!Array.isArray(list)) return [];
+      return [...list].sort((a, b) => {
+        // So sánh theo ngày chơi/ngày đặt
+        const dateA = a.bookingDate || '';
+        const dateB = b.bookingDate || '';
+        if (dateA !== dateB) {
+          return order === 'newest' ? dateB.localeCompare(dateA) : dateA.localeCompare(dateB);
+        }
+        // Nếu cùng ngày, so sánh theo ID đơn
+        const idA = Number(a.id || 0);
+        const idB = Number(b.id || 0);
+        if (idA !== idB) {
+          return order === 'newest' ? idB - idA : idA - idB;
+        }
+        // Nếu ID bằng nhau, so sánh theo giờ chơi
+        const slotA = a.timeSlot || '';
+        const slotB = b.timeSlot || '';
+        return order === 'newest' ? slotB.localeCompare(slotA) : slotA.localeCompare(slotB);
+      });
+    }
+
+    function changeSortOrder(order) {
+      currentSortOrder = order;
+      const sorted = sortBookings(allBookingsData, currentSortOrder);
+      renderBookingsList(sorted);
+    }
 
     async function loadBranchesMap() {
       try {
@@ -674,50 +984,201 @@
     function filterHistory(status, btn) {
       activeFilter = status;
       document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
+      const activeBtn = btn || document.getElementById(`pill${status.charAt(0).toUpperCase() + status.slice(1)}`);
+      if (activeBtn) activeBtn.classList.add('active');
 
       const cards = document.querySelectorAll('.booking-card');
+      let visibleCount = 0;
       cards.forEach(c => {
         if (status === 'all' || c.getAttribute('data-status') === status) {
           c.style.display = 'block';
+          visibleCount++;
         } else {
           c.style.display = 'none';
         }
       });
+
+      let emptyNotice = document.getElementById('tabEmptyNotice');
+      if (cards.length > 0 && visibleCount === 0) {
+        if (!emptyNotice) {
+          emptyNotice = document.createElement('div');
+          emptyNotice.id = 'tabEmptyNotice';
+          emptyNotice.style.cssText = 'text-align: center; padding: 36px 20px; background: var(--surface); border: 1px dashed var(--border-subtle); border-radius: 14px; margin-top: 10px; color: var(--text-muted); font-size: 13.5px;';
+          document.getElementById('bookingListContainer').appendChild(emptyNotice);
+        }
+        const tabName = status === 'upcoming' ? 'sắp tới' : (status === 'completed' ? 'đã hoàn thành' : 'đã hủy');
+        emptyNotice.innerHTML = `Bạn không có đơn đặt sân nào ở trạng thái <strong>${tabName}</strong>.`;
+        emptyNotice.style.display = 'block';
+      } else if (emptyNotice) {
+        emptyNotice.style.display = 'none';
+      }
     }
 
-    // Auth Guard: Require login to view history
-    const hToken = localStorage.getItem('jwt_token');
+    // Auth Guard: Require login to view history (or allows guest if pending bookings exist)
+    const hToken = localStorage.getItem('jwt_token') || localStorage.getItem('utesport_token');
     const hUser = localStorage.getItem('utesport_user');
-    if (!hToken && !hUser) {
+    let guestPendingCodes = [];
+    try { guestPendingCodes = JSON.parse(localStorage.getItem('ute_pending_bookings') || '[]'); } catch (e) {}
+    if (!hToken && !hUser && (!guestPendingCodes || guestPendingCodes.length === 0)) {
       window.location.href = '/customer/auth?redirect=' + encodeURIComponent(window.location.pathname);
+    }
+
+    function copyText(text) {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Đã sao chép: ' + text, 'info');
+      }).catch(() => {
+        showToast('Đã sao chép: ' + text, 'info');
+      });
+    }
+
+    function parseBookingCreatedMs(createdAt) {
+      if (!createdAt) return Date.now();
+      if (Array.isArray(createdAt)) {
+        return new Date(createdAt[0], createdAt[1] - 1, createdAt[2], createdAt[3] || 0, createdAt[4] || 0, createdAt[5] || 0).getTime();
+      }
+      let str = String(createdAt).trim();
+      if (!str.includes('Z') && !str.match(/[+-]\d{2}:?\d{2}$/)) {
+        str += '+07:00';
+      }
+      let ms = new Date(str).getTime();
+      if (isNaN(ms)) {
+        ms = new Date(createdAt).getTime();
+      }
+      if (isNaN(ms)) return Date.now();
+
+      // If server ran in UTC and emitted timestamp ~7 hours behind local Vietnam time
+      const now = Date.now();
+      if (now - ms > 6 * 3600 * 1000 && now - ms < 8 * 3600 * 1000) {
+        ms += 7 * 3600 * 1000;
+      }
+      return ms;
+    }
+
+    function formatCountdown(sec) {
+      if (sec <= 0) return '00:00 (Hết hạn)';
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function openChatbotForRefund(bookingCode) {
+      const toggle = document.getElementById('ute-chatbot-toggle');
+      const win = document.getElementById('ute-chatbot-window');
+      const input = document.getElementById('chatbot-input-field');
+      const sendBtn = document.getElementById('chatbot-send-btn');
+      if (win && !win.classList.contains('open') && toggle) {
+        toggle.click();
+      }
+      setTimeout(() => {
+        if (input && sendBtn) {
+          input.value = `Tôi muốn nhận hoàn cọc cho đơn ${bookingCode}`;
+          sendBtn.click();
+        }
+      }, 350);
+    }
+
+    let pendingInterval = null;
+    function startHistoryTimers() {
+      if (pendingInterval) clearInterval(pendingInterval);
+      pendingInterval = setInterval(() => {
+        // 1. Update cards
+        document.querySelectorAll('.pending-countdown-wrap').forEach(wrap => {
+          const code = wrap.getAttribute('data-code');
+          const createdStr = wrap.getAttribute('data-created');
+          if (!createdStr) return;
+          const createdMs = parseBookingCreatedMs(createdStr);
+          const expiresAt = createdMs + 10 * 60 * 1000;
+          const rem = Math.floor((expiresAt - Date.now()) / 1000);
+          const textEl = document.getElementById(`timer-text-${code}`);
+          const pill = wrap.querySelector('.pending-timer-pill');
+          if (textEl) {
+            if (rem <= 0) {
+              textEl.textContent = 'Đã hết hạn giữ chỗ (10 phút)';
+              if (pill) pill.classList.add('expired');
+            } else {
+              textEl.textContent = `Giữ chỗ còn lại: ${formatCountdown(rem)}`;
+              if (pill) pill.classList.remove('expired');
+            }
+          }
+        });
+
+        // 2. Update payment modal if open
+        if (activePaymentModalBooking) {
+          const cTime = activePaymentModalBooking.createdAt || activePaymentModalBooking.bookingDate;
+          const createdMs = parseBookingCreatedMs(cTime);
+          const expiresAt = createdMs + 10 * 60 * 1000;
+          const rem = Math.floor((expiresAt - Date.now()) / 1000);
+          const timerEl = document.getElementById('payModalTimer');
+          if (timerEl) {
+            if (rem <= 0) {
+              timerEl.textContent = '00:00 (Hết hạn)';
+              timerEl.style.color = '#ef4444';
+            } else {
+              timerEl.textContent = formatCountdown(rem);
+              timerEl.style.color = '#fef08a';
+            }
+          }
+        }
+      }, 1000);
     }
 
     async function loadBookingsFromDb() {
       const container = document.getElementById('bookingListContainer');
-      const curToken = localStorage.getItem('jwt_token');
-      try {
-        const res = await fetch('/api/customer/my-bookings', {
-          headers: curToken ? { 'Authorization': 'Bearer ' + curToken } : {}
-        });
+      const curToken = localStorage.getItem('jwt_token') || localStorage.getItem('utesport_token');
+      let fetchedList = [];
 
-        if (res.status === 401) {
-          window.location.href = '/customer/auth?redirect=/customer/history';
-          return;
-        }
+      if (curToken) {
+        try {
+          const res = await fetch('/api/customer/my-bookings', {
+            headers: { 'Authorization': 'Bearer ' + curToken }
+          });
 
-        if (res.ok) {
-          const list = await res.json();
-          allBookingsData = Array.isArray(list) ? list : [];
-          renderBookingsList(allBookingsData);
-          return;
+          if (res.status === 401 && (!guestPendingCodes || guestPendingCodes.length === 0)) {
+            window.location.href = '/customer/auth?redirect=/customer/history';
+            return;
+          }
+
+          if (res.ok) {
+            const list = await res.json();
+            fetchedList = Array.isArray(list) ? list : [];
+          }
+        } catch (err) {
+          console.warn('Lỗi kết nối cơ sở dữ liệu bookings:', err);
         }
-      } catch (err) {
-        console.warn('Lỗi kết nối cơ sở dữ liệu bookings:', err);
       }
 
-      allBookingsData = [];
-      renderBookingsList([]);
+      // Merge pending / recent bookings stored locally (e.g. from chatbot or direct booking)
+      try {
+        let pendingCodes = JSON.parse(localStorage.getItem('ute_pending_bookings') || '[]');
+        if (Array.isArray(pendingCodes)) {
+          for (const code of pendingCodes) {
+            if (!fetchedList.some(b => b.bookingCode === code)) {
+              try {
+                const bRes = await fetch(`/api/bookings/${encodeURIComponent(code)}`);
+                if (bRes.ok) {
+                  const bData = await bRes.json();
+                  const b = bData.booking || bData;
+                  if (b && b.bookingCode) {
+                    if (bData.bankName) b.bankName = bData.bankName;
+                    if (bData.accountNo) b.accountNo = bData.accountNo;
+                    if (bData.accountName) b.accountName = bData.accountName;
+                    if (bData.bankBin) b.bankBin = bData.bankBin;
+                    if (bData.branchName) b.branchName = bData.branchName;
+                    if (bData.courtName) b.courtName = bData.courtName;
+                    fetchedList.unshift(b);
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (e) {}
+
+      allBookingsData = fetchedList;
+      const sorted = sortBookings(allBookingsData, currentSortOrder);
+      renderBookingsList(sorted);
+      startHistoryTimers();
     }
 
     function renderBookingsList(list) {
@@ -740,21 +1201,40 @@
 
       let html = '';
       list.forEach(item => {
-        const rawStatus = item.status || 'Chờ cọc 30%';
+        const rawStatus = item.status || 'Đã đặt';
         let category = 'upcoming';
         let badgeClass = 'badge-success';
         let badgeText = rawStatus;
 
-        if (rawStatus.includes('hủy') || rawStatus.includes('Hủy')) {
+        const isPendingDeposit = rawStatus.includes('Chờ cọc') || rawStatus.includes('Chờ thanh toán') || rawStatus.includes('Tạm khóa') || rawStatus.includes('giữ chỗ');
+        const isPendingRefund = rawStatus.includes('Chờ hoàn cọc') || rawStatus.includes('chờ hoàn cọc');
+        const isRefunded = rawStatus.includes('Đã hoàn cọc') || rawStatus.includes('đã hoàn cọc');
+
+        if (isPendingRefund) {
+          category = 'cancelled';
+          badgeClass = 'badge-warning';
+          badgeText = 'Chờ Hoàn Cọc (Hỗ Trợ 24/7)';
+          cancelledCount++;
+        } else if (isRefunded) {
+          category = 'cancelled';
+          badgeClass = 'badge-blue';
+          badgeText = 'Đã Hoàn Cọc 100%';
+          cancelledCount++;
+        } else if (rawStatus.includes('hủy') || rawStatus.includes('Hủy')) {
           category = 'cancelled';
           badgeClass = 'badge-danger';
-          badgeText = 'Đã Hủy Đơn';
+          badgeText = 'Đã Hủy';
           cancelledCount++;
-        } else if (rawStatus.includes('hoàn thành') || rawStatus.includes('Hoàn thành') || rawStatus.includes('thanh toán') || rawStatus.includes('Thanh toán')) {
+        } else if (rawStatus.includes('hoàn thành') || rawStatus.includes('Hoàn thành') || rawStatus.includes('Đã chơi') || rawStatus.includes('thanh toán đủ')) {
           category = 'completed';
           badgeClass = 'badge-blue';
-          badgeText = 'Đã Hoàn Thành Trận';
+          badgeText = 'Hoàn Thành';
           completedCount++;
+        } else if (isPendingDeposit) {
+          category = 'upcoming';
+          badgeClass = 'badge-warning';
+          badgeText = 'Chờ Cọc 30% (Khóa Tạm)';
+          upcomingCount++;
         } else {
           category = 'upcoming';
           badgeClass = rawStatus.includes('cọc') ? 'badge-success' : 'badge-warning';
@@ -765,52 +1245,98 @@
         const total = Number(item.totalPrice || 0);
         const deposit = Number(item.depositAmount || Math.round(total * 0.3));
         const remaining = Math.max(0, total - deposit);
-        const courtLabel = item.courtCode ? `Sân ${item.courtCode}` : 'Sân thi đấu tiêu chuẩn';
-        const branchLabel = branchMap[item.branchCode] || (item.branchCode ? `Chi nhánh ${item.branchCode}` : 'Hệ thống UTE Sport');
+        const courtLabel = item.courtName || (item.courtCode ? `Sân ${item.courtCode}` : 'Sân thi đấu tiêu chuẩn');
+        const branchLabel = branchMap[item.branchCode] || item.branchName || (item.branchCode ? `Chi nhánh ${item.branchCode}` : 'Hệ thống UTE Sport');
         const dateLabel = item.bookingDate || '2026-09-22';
         const slotLabel = item.timeSlot || '18:00 - 20:00';
+
+        // Calculate countdown for pending deposit
+        let isExpired = false;
+        let remainingSec = 600;
+        if (item.createdAt) {
+          const createdMs = parseBookingCreatedMs(item.createdAt);
+          remainingSec = Math.floor((createdMs + 10 * 60 * 1000 - Date.now()) / 1000);
+          if (remainingSec <= 0) isExpired = true;
+        }
 
         html += `
           <div class="booking-card" data-status="${category}" id="card-${item.bookingCode}">
             <div class="b-card-head">
-              <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span class="b-code">Mã đơn: ${item.bookingCode}</span>
                 <span class="badge ${badgeClass}" id="badge-${item.bookingCode}">${badgeText}</span>
+                ${isPendingDeposit ? `
+                  <div class="pending-countdown-wrap" data-code="${item.bookingCode}" data-created="${item.createdAt || ''}" style="margin-top: 0;">
+                    <div class="pending-timer-pill ${isExpired ? 'expired' : ''}">
+                      <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                      <span id="timer-text-${item.bookingCode}">
+                        ${isExpired ? 'Đã hết hạn giữ chỗ (10 phút)' : `Giữ chỗ còn lại: ${formatCountdown(remainingSec)}`}
+                      </span>
+                    </div>
+                  </div>
+                ` : ''}
               </div>
               <div style="font-size: 11.5px; color: var(--cust-text-muted);">Ngày đặt: ${dateLabel}</div>
             </div>
             <div class="b-card-body">
               <div>
-                <div class="b-info-title">${courtLabel} (Thảm BWF)</div>
+                <div class="b-info-title">${courtLabel}</div>
                 <div class="b-info-sub">
                   <span>${branchLabel}</span>
                   <span>Ngày chơi: <strong>${dateLabel}</strong> | Khung giờ: <strong>${slotLabel}</strong></span>
                   <span>Người đặt: <strong>${item.customerName || 'Khách trực tuyến'}</strong> (${item.customerPhone || '0903123456'})</span>
+                  ${item.notes ? `<span style="font-size: 11px; color: var(--cust-text-muted); font-style: italic;">Ghi chú: ${item.notes}</span>` : ''}
                 </div>
               </div>
 
               <div>
-                <div class="b-price-item">Tổng tiền dịch vụ: <strong>${total.toLocaleString('vi-VN')} đ</strong></div>
-                <div class="b-price-item" style="color: var(--cust-primary-hover); margin: 3px 0;">Đã cọc: <strong>${deposit.toLocaleString('vi-VN')} đ (VietQR)</strong></div>
-                <div class="b-price-item">Thanh toán tại quầy: <strong style="color: var(--cust-accent);">${remaining.toLocaleString('vi-VN')} đ</strong></div>
+                <div class="b-price-item">Tổng tiền: <strong>${total.toLocaleString('vi-VN')} đ</strong></div>
+                <div class="b-price-item" style="color: var(--cust-primary-hover); margin: 3px 0;">
+                  ${isPendingDeposit ? 'Tiền cọc cần thanh toán (30%):' : 'Đã cọc:'} <strong>${deposit.toLocaleString('vi-VN')} đ</strong>
+                </div>
+                <div class="b-price-item">Còn lại: <strong style="color: var(--cust-accent);">${remaining.toLocaleString('vi-VN')} đ</strong></div>
               </div>
 
               <div class="b-actions" id="actions-${item.bookingCode}">
-                ${category === 'upcoming' ? `
-                  <button type="button" class="btn btn-primary" onclick="openQrModal('${item.bookingCode}', '${courtLabel}', '${slotLabel}', '${dateLabel}', '${remaining.toLocaleString('vi-VN')} đ')">
+                ${isPendingDeposit ? `
+                  <button type="button" class="btn btn-primary btn-pay-now" onclick="openPaymentModal('${item.bookingCode}')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    <span>Tiếp Tục Thanh Toán</span>
+                  </button>
+                  <button type="button" class="btn btn-outline" style="color: #dc2626; border-color: #fca5a5;" onclick="handleCancelRequest('${item.bookingCode}', 5, ${deposit})">
+                    Hủy Giữ Chỗ
+                  </button>
+                ` : category === 'upcoming' ? `
+                  <button type="button" class="btn btn-primary" onclick="openQrModal('${item.bookingCode}', '${courtLabel}', '${slotLabel}', '${dateLabel}', '${remaining.toLocaleString('vi-VN')} đ', '${item.customerEmail || ''}')">
                     <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    Mã Vé Check-in QR
+                    Mã Check-in QR
                   </button>
                   <button type="button" class="btn btn-outline" style="color: #dc2626; border-color: #fca5a5;" onclick="handleCancelRequest('${item.bookingCode}', 5, ${deposit})">
                     Hủy Đặt Sân
                   </button>
                 ` : category === 'completed' ? `
+                  <button type="button" class="btn btn-primary" onclick="openQrModal('${item.bookingCode}', '${courtLabel}', '${slotLabel}', '${dateLabel}', '${remaining.toLocaleString('vi-VN')} đ', '${item.customerEmail || ''}')" style="background: var(--cust-teal, #0d9488); border-color: var(--cust-teal, #0d9488);">
+                    Xem Vé / Gửi Mail
+                  </button>
                   <button type="button" class="btn btn-outline" onclick="openReviewModal('${item.bookingCode}', '${courtLabel}')">
-                    Đánh Giá Sân (5 sao)
+                    Đánh Giá
                   </button>
                   <a href="/customer/booking" class="btn btn-outline">
-                    Đặt Lại Sân Này
+                    Đặt Lại
                   </a>
+                ` : isPendingRefund ? `
+                  <button type="button" class="btn btn-warning" onclick="openChatbotForRefund('${item.bookingCode}')" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer;">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>Nhắn Nhân Viên Hoàn Cọc</span>
+                  </button>
+                  <button type="button" class="btn btn-outline" onclick="copyText('${item.bookingCode}')" style="font-size: 12.5px;">
+                    Sao Chép Mã Đơn
+                  </button>
+                ` : isRefunded ? `
+                  <button type="button" class="btn btn-outline" disabled style="opacity: 0.9; border-color: #38bdf8; color: #0284c7; cursor: default; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Đã Hoàn Cọc 100%</span>
+                  </button>
                 ` : `
                   <button type="button" class="btn btn-outline" disabled style="opacity: 0.6; cursor: not-allowed;">
                     Đã Hủy Hoàn Tất
@@ -838,22 +1364,224 @@
       if (eCanc) eCanc.textContent = cancelled;
     }
 
-    function openQrModal(code, court, time, date, remaining) {
+    function openQrModal(code, court, time, date, remaining, email) {
       document.getElementById('tktCode').textContent = code;
       document.getElementById('tktCourt').textContent = court;
       document.getElementById('tktTime').textContent = time;
       document.getElementById('tktDate').textContent = date;
       document.getElementById('tktRemaining').textContent = remaining;
+
+      const emailInput = document.getElementById('tktEmailInput');
+      if (emailInput) {
+        let defaultEmail = email || '';
+        if (!defaultEmail) {
+          try {
+            const user = JSON.parse(localStorage.getItem('utesport_user') || '{}');
+            defaultEmail = user.email || '';
+          } catch (e) {}
+        }
+        if (!defaultEmail) {
+          defaultEmail = localStorage.getItem('cust_email') || '';
+        }
+        emailInput.value = defaultEmail;
+      }
       document.getElementById('qrModal').classList.add('open');
     }
 
     function closeModals() {
       document.getElementById('qrModal').classList.remove('open');
       document.getElementById('reviewModal').classList.remove('open');
+      closePaymentModal();
+    }
+
+    let activePaymentModalBooking = null;
+
+    async function openPaymentModal(code) {
+      let b = allBookingsData.find(item => item.bookingCode === code);
+      if (!b || !b.createdAt) {
+        try {
+          const res = await fetch(`/api/bookings/${encodeURIComponent(code)}`);
+          if (res.ok) {
+            const data = await res.json();
+            const fresh = data.booking || data;
+            if (fresh && fresh.bookingCode) {
+              if (data.bankName) fresh.bankName = data.bankName;
+              if (data.accountNo) fresh.accountNo = data.accountNo;
+              if (data.accountName) fresh.accountName = data.accountName;
+              if (data.bankBin) fresh.bankBin = data.bankBin;
+              if (data.branchName) fresh.branchName = data.branchName;
+              if (data.courtName) fresh.courtName = data.courtName;
+              b = fresh;
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (!b) {
+        showToast('Không tìm thấy thông tin đơn đặt sân!', 'error');
+        return;
+      }
+
+      activePaymentModalBooking = b;
+      const courtText = b.courtName || (b.courtCode ? `Sân ${b.courtCode}` : 'Sân thi đấu tiêu chuẩn');
+      const branchText = b.branchName || branchMap[b.branchCode] || (b.branchCode ? `Chi nhánh ${b.branchCode}` : 'Hệ thống UTE Sport');
+      const total = Number(b.totalPrice || 0);
+      const deposit = Number(b.depositAmount || Math.round(total * 0.3));
+
+      document.getElementById('payModalCode').textContent = b.bookingCode;
+      document.getElementById('payModalCourt').textContent = courtText;
+      document.getElementById('payModalBranch').textContent = branchText;
+      document.getElementById('payModalDate').textContent = b.bookingDate || '---';
+      document.getElementById('payModalTime').textContent = b.timeSlot || '---';
+      document.getElementById('payModalDeposit').textContent = deposit.toLocaleString('vi-VN') + ' đ';
+      document.getElementById('payModalContent').textContent = `CK ${b.bookingCode}`;
+
+      const bName = b.bankName || 'MBBank (Ngân hàng Quân Đội)';
+      const accNo = b.accountNo || '0903123456';
+      const accName = b.accountName || 'UTE BADMINTON CLUB';
+      const bin = b.bankBin || '970422';
+
+      document.getElementById('payModalBankName').textContent = bName;
+      document.getElementById('payModalAccountNo').textContent = accNo;
+      document.getElementById('payModalAccountName').textContent = accName;
+
+      const qrImg = document.getElementById('payModalQrImg');
+      if (qrImg) {
+        qrImg.src = `https://img.vietqr.io/image/${bin}-${accNo}-compact2.png?amount=${deposit}&addInfo=CK%20${b.bookingCode}&accountName=${encodeURIComponent(accName)}`;
+      }
+
+      const fullLink = document.getElementById('payModalFullLink');
+      if (fullLink) {
+        fullLink.href = `/customer/payment?bookingCode=${encodeURIComponent(b.bookingCode)}`;
+      }
+
+      if (b.createdAt) {
+        const createdMs = parseBookingCreatedMs(b.createdAt);
+        const rem = Math.floor((createdMs + 10 * 60 * 1000 - Date.now()) / 1000);
+        document.getElementById('payModalTimer').textContent = formatCountdown(rem);
+      }
+
+      document.getElementById('paymentModal').classList.add('open');
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      if (modal) modal.classList.remove('open');
+      activePaymentModalBooking = null;
+    }
+
+    async function savePayModalQrImage() {
+      const img = document.getElementById('payModalQrImg');
+      const code = activePaymentModalBooking ? activePaymentModalBooking.bookingCode : (document.getElementById('payModalCode').textContent || 'DATSAN');
+      const url = img ? img.src : null;
+      if (!url) {
+        showToast('Không tìm thấy hình ảnh mã QR!', 'error');
+        return;
+      }
+      const btn = document.querySelector('#paymentModal .btn-save-qr');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<span style="font-size: 12px;">Đang tải ảnh...</span>';
+
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `VietQR-${code}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+        showToast('Đã lưu mã QR vào máy! Mở app ngân hàng chọn "Quét QR từ ảnh" để thanh toán.', 'success');
+      } catch (err) {
+        window.open(url, '_blank');
+        showToast('Đã mở ảnh mã QR. Nhấn giữ ảnh rồi chọn "Lưu hình ảnh" nhé!', 'info');
+      } finally {
+        if (btn) btn.innerHTML = origText;
+      }
+    }
+
+    async function confirmDepositInModal() {
+      if (!activePaymentModalBooking) return;
+      const b = activePaymentModalBooking;
+      const btn = document.getElementById('btnConfirmPayInModal');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Đang xác nhận tiền cọc...</span>';
+      }
+
+      try {
+        const total = Number(b.totalPrice || 0);
+        const deposit = Number(b.depositAmount || Math.round(total * 0.3));
+        const res = await fetch(`/api/bookings/${encodeURIComponent(b.bookingCode)}/deposit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: deposit, paymentMethod: 'VietQR Pro' })
+        });
+
+        const data = await res.json();
+        if (res.ok && (data.success || data.booking)) {
+          showToast(`Đã ghi nhận thanh toán tiền cọc thành công cho đơn ${b.bookingCode}!`, 'success');
+
+          // Remove from pending bookings list in localStorage
+          try {
+            let pending = JSON.parse(localStorage.getItem('ute_pending_bookings') || '[]');
+            pending = pending.filter(c => c !== b.bookingCode);
+            localStorage.setItem('ute_pending_bookings', JSON.stringify(pending));
+          } catch (e) {}
+
+          closePaymentModal();
+
+          // Update booking status in local data
+          b.status = 'Đã cọc 30%';
+          renderBookingsList(allBookingsData);
+
+          // Automatically open Check-in QR Modal
+          const courtLabel = b.courtName || (b.courtCode ? `Sân ${b.courtCode}` : 'Sân thi đấu');
+          const remaining = Math.max(0, total - deposit);
+          openQrModal(b.bookingCode, courtLabel, b.timeSlot, b.bookingDate, `${remaining.toLocaleString('vi-VN')} đ`, b.customerEmail || '');
+
+          // Background fresh reload
+          setTimeout(() => loadBookingsFromDb(), 1200);
+        } else {
+          showToast(data.message || 'Xác nhận cọc chưa thành công, vui lòng thử lại!', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi máy chủ khi cập nhật thanh toán!', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<svg style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Xác Nhận Đã Chuyển Khoản Cọc</span>';
+        }
+      }
     }
 
     async function resendTicketEmail() {
       const code = document.getElementById('tktCode').innerText.trim();
+      const emailInput = document.getElementById('tktEmailInput');
+      let email = emailInput ? emailInput.value.trim() : '';
+
+      if (!email) {
+        email = prompt('Vui lòng nhập địa chỉ email để nhận vé điện tử (E-Ticket):');
+        if (!email || !email.trim()) {
+          showToast('Chưa nhập email nhận vé!', 'warning');
+          return;
+        }
+        email = email.trim();
+        if (emailInput) emailInput.value = email;
+      }
+
+      if (!email.includes('@')) {
+        showToast('Địa chỉ email không đúng định dạng!', 'warning');
+        if (emailInput) emailInput.focus();
+        return;
+      }
+
+      try {
+        localStorage.setItem('cust_email', email);
+      } catch (e) {}
+
       const btn = document.getElementById('btnResendEmail');
       if (btn) {
         btn.disabled = true;
@@ -862,11 +1590,12 @@
       try {
         const res = await fetch(`/api/bookings/${code}/send-ticket-email`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
         });
         const data = await res.json();
         if (data.success) {
-          showToast(data.message, 'success');
+          showToast(data.message || 'Đã gửi vé điện tử về email thành công!', 'success');
         } else {
           showToast(data.message || 'Không thể gửi vé về email!', 'error');
         }
@@ -875,7 +1604,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.innerText = '📩 Gửi Phiếu & Vé Về Email';
+          btn.innerText = 'Gửi Vé & Hóa Đơn Về Email';
         }
       }
     }
@@ -883,8 +1612,8 @@
     async function handleCancelRequest(code, hoursBeforeMatch, depositAmount) {
       const isFullRefund = hoursBeforeMatch >= 4;
       const confirmText = isFullRefund
-        ? `Thời gian đến giờ chơi còn hơn ${hoursBeforeMatch} tiếng.\nBạn được HOÀN LẠI 100% TIỀN CỌC (${Number(depositAmount).toLocaleString('vi-VN')} đ).\n\nXác nhận hủy đơn ${code}?`
-        : `Cảnh báo: Thời gian đến giờ chơi dưới 4 tiếng.\nTheo quy chế, hệ thống không áp dụng hoàn cọc.\n\nBạn có chắc chắn muốn hủy đơn ${code}?`;
+        ? `Thời gian đến giờ chơi còn hơn ${hoursBeforeMatch} tiếng.\nBạn được hoàn 100% tiền cọc (${Number(depositAmount).toLocaleString('vi-VN')} đ).\n\nXác nhận hủy đơn ${code}?`
+        : `Thời gian đến giờ chơi dưới 4 tiếng (không áp dụng hoàn tiền).\n\nBạn có chắc chắn muốn hủy đơn ${code}?`;
 
       if (!confirm(confirmText)) return;
 
@@ -896,9 +1625,9 @@
         });
 
         if (res.ok) {
-          showToast(`Đã hủy đặt sân ${code} thành công! Cơ sở dữ liệu đã cập nhật trạng thái 'Đã hủy'.`, 'success');
+          showToast(`Đã hủy đặt sân ${code} thành công!`, 'success');
         } else {
-          showToast(`Đã hủy đặt sân ${code} trên hệ thống!`, 'info');
+          showToast(`Đã gửi yêu cầu hủy đơn ${code}!`, 'info');
         }
 
         // Dynamically update card in UI
@@ -908,13 +1637,13 @@
           const badge = document.getElementById(`badge-${code}`);
           if (badge) {
             badge.className = 'badge badge-danger';
-            badge.textContent = 'Đã Hủy Đơn';
+            badge.textContent = 'Đã Hủy';
           }
           const actions = document.getElementById(`actions-${code}`);
           if (actions) {
             actions.innerHTML = `
               <button type="button" class="btn btn-outline" disabled style="opacity: 0.6; cursor: not-allowed;">
-                Đã Hủy Hoàn Tất
+                Đã Hủy
               </button>
             `;
           }
@@ -962,7 +1691,7 @@
           <span style="font-size: 18px; font-weight: 900; color: #ffffff;">UTE SPORT ARENA</span>
         </div>
         <p style="line-height: 1.6; margin-bottom: 18px;">
-          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF. Tiên phong ứng dụng công nghệ khóa giữ chỗ thời gian thực, đối soát thanh toán tự động VietQR và dịch vụ chăm sóc người chơi hàng đầu.
+          Hệ thống chuỗi sân cầu lông tiêu chuẩn quốc tế BWF với cơ sở vật chất hiện đại, dịch vụ đặt sân chuyên nghiệp và tiện nghi cao cấp.
         </p>
         <div>
           <span style="color: #6ee7b7; font-weight: 700;">Hotline Đặt Sân:</span>
@@ -987,8 +1716,8 @@
           <li><a href="/customer/booking">Đặt Sân Trực Tuyến</a></li>
           <li><a href="/customer/tournaments">Đăng Ký Giải Đấu UTE</a></li>
           <li><a href="/customer/profile">Tích Điểm Thẻ Hội Viên</a></li>
-          <li><a href="/customer/history">Tra Cứu Lịch Sử & Check-in</a></li>
-          <li><a href="/customer/policy">Chính Sách Hoàn Cọc 100%</a></li>
+          <li><a href="/customer/history">Lịch Sử Đặt Sân</a></li>
+          <li><a href="/customer/policy">Chính Sách & Quy Định</a></li>
         </ul>
       </div>
 
@@ -1010,7 +1739,7 @@
       </div>
       <div style="display: flex; gap: 20px;">
         <span>Tiêu chuẩn thảm thi đấu BWF</span>
-        <span>Thanh toán VietQR tự động</span>
+        <span>Thanh toán VietQR tiện lợi</span>
         <span>Hỗ trợ kỹ thuật 24/7</span>
       </div>
     </div>

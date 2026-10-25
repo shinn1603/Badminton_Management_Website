@@ -137,15 +137,7 @@
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
           </svg>
-          <span class="menu-text">Kho vật tư</span>
-        </a>
-
-        <a href="/manager/receipts" class="menu-item">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span class="menu-text">Nhập kho</span>
+          <span class="menu-text">Quản lý kho</span>
         </a>
 
         <a href="/manager/staff" class="menu-item">
@@ -497,7 +489,7 @@
       const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
         || (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser())
         || {};
-      let b = user.branchCode || 'CN01';
+      let b = localStorage.getItem('utesport_active_branch') || user.branchCode || 'CN01';
       if (b === 'ALL') b = 'CN01';
       return b;
     }
@@ -518,12 +510,12 @@
     }
 
     const fallbackCourts = [
-      { courtCode: 'CL01', branchCode: 'CN01', courtName: 'Sân cầu lông 1 (VIP Yonex)', courtType: 'Cầu lông VIP', hourlyRate: 120000, status: 'Trống', imageUrl: '/images/badminton-court.jpg' },
+      { courtCode: 'CL01', branchCode: 'CN01', courtName: 'Sân cầu lông 1 (VIP)', courtType: 'Cầu lông VIP', hourlyRate: 120000, status: 'Trống', imageUrl: '/images/badminton-court.jpg' },
       { courtCode: 'CL02', branchCode: 'CN01', courtName: 'Sân cầu lông 2', courtType: 'Cầu lông tiêu chuẩn', hourlyRate: 90000, status: 'Đang sử dụng', imageUrl: '/images/badminton-court.jpg' },
       { courtCode: 'CL03', branchCode: 'CN01', courtName: 'Sân cầu lông 3', courtType: 'Cầu lông tiêu chuẩn', hourlyRate: 90000, status: 'Trống', imageUrl: '/images/badminton-court.jpg' },
       { courtCode: 'CL04', branchCode: 'CN01', courtName: 'Sân cầu lông 4', courtType: 'Cầu lông tiêu chuẩn', hourlyRate: 90000, status: 'Trống', imageUrl: '/images/badminton-court.jpg' },
       { courtCode: 'CL05', branchCode: 'CN01', courtName: 'Sân cầu lông 5', courtType: 'Cầu lông tiêu chuẩn', hourlyRate: 90000, status: 'Đang sử dụng', imageUrl: '/images/badminton-court.jpg' },
-      { courtCode: 'CL06', branchCode: 'CN01', courtName: 'Sân cầu lông 6 (VIP Yonex)', courtType: 'Cầu lông VIP', hourlyRate: 120000, status: 'Bảo trì', imageUrl: '/images/badminton-court.jpg' },
+      { courtCode: 'CL06', branchCode: 'CN01', courtName: 'Sân cầu lông 6 (VIP)', courtType: 'Cầu lông VIP', hourlyRate: 120000, status: 'Bảo trì', imageUrl: '/images/badminton-court.jpg' },
       { courtCode: 'CL07', branchCode: 'CN01', courtName: 'Sân cầu lông 7', courtType: 'Cầu lông tiêu chuẩn', hourlyRate: 90000, status: 'Trống', imageUrl: '/images/badminton-court.jpg' },
       { courtCode: 'CL08', branchCode: 'CN01', courtName: 'Sân cầu lông 8', courtType: 'Cầu lông tiêu chuẩn', hourlyRate: 90000, status: 'Trống', imageUrl: '/images/badminton-court.jpg' }
     ];
@@ -582,7 +574,7 @@
         else if (c.status === 'Đang giữ chỗ') badgeClass = 'badge-purple';
 
         const isVip = (c.courtType || '').toLowerCase().includes('vip');
-        const matType = isVip ? 'PVC Yonex Quốc Tế' : 'PVC Enlio 4.5mm';
+        const matType = isVip ? 'Thảm VIP BWF' : 'Thảm Tiêu Chuẩn BWF';
         const rateFormatted = Number(c.hourlyRate || 90000).toLocaleString('vi-VN') + ' đ/h';
         const imgSrc = c.imageUrl || '/images/badminton-court.jpg';
         const safeName = (c.courtName || ('Sân ' + c.courtCode)).replace(/'/g, "\\'");
@@ -598,6 +590,17 @@
             <div style="margin-top: 12px; padding: 7px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px dashed rgba(245, 158, 11, 0.4); color: #d97706; font-size: 12px; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
               <span style="display: inline-block; width: 7px; height: 7px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 6px #f59e0b;"></span>
               Đang có khách thi đấu
+            </div>
+            <div style="margin-top: 8px; display: flex; gap: 8px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
+              <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 8px; font-size: 11.5px; background: #059669; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, chuyển ngay về trạng thái Trống">Trả sân (Về trống)</button>
+            </div>
+          `;
+        } else if (c.status === 'Đã đặt trước') {
+          actionButtonsHtml = `
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt (Về trống)</button>
             </div>
           `;
         } else if (c.status === 'Bảo trì') {
@@ -682,6 +685,8 @@
             <td style="text-align: right;">
               <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Sửa</button>
+                ${c.status === 'Đang sử dụng' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #059669; color: #059669;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, trả về sân trống">Trả sân</button>` : ''}
+                ${c.status === 'Đã đặt trước' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt</button>` : ''}
                 ${c.status === 'Bảo trì' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hoàn tất</button>` : ''}
                 ${c.status === 'Trống' ? `<a href="/manager/bookings?court=${c.courtCode}" class="btn btn-primary" style="padding: 4px 8px; font-size: 11.5px; text-decoration: none;">Đặt sân</a>` : ''}
               </div>
@@ -837,9 +842,18 @@
       const savedTheme = localStorage.getItem('utesport_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       loadCourtsFromApi();
+
+      // Realtime auto-refresh polling every 3.5 seconds
+      setInterval(() => {
+        loadCourtsFromApi();
+      }, 3500);
     });
 
     window.addEventListener('badminton:court-event', () => {
+      loadCourtsFromApi();
+    });
+
+    window.addEventListener('badminton:booking-event', () => {
       loadCourtsFromApi();
     });
   </script>

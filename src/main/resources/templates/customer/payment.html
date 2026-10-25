@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thanh Toán Tiền Cọc 30% (VietQR / VNPay) - UTE Badminton</title>
+  <title>Thanh Toán Đặt Sân - UTE Badminton</title>
   <link rel="stylesheet" href="/css/main.css">
   <style>
     :root {
@@ -225,7 +225,14 @@
     }
 
     @media (max-width: 860px) {
-      .payment-wrapper { grid-template-columns: 1fr; }
+      .payment-wrapper {
+        grid-template-columns: 1fr;
+        padding: 12px !important;
+      }
+      .qr-frame img {
+        max-width: 240px;
+        height: auto;
+      }
     }
   
     /* LUXURY TOP NAVBAR & FOOTER STYLES */
@@ -389,6 +396,31 @@
       gap: 12px;
     }
 
+    .btn-save-qr {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-save-qr:hover {
+      background: #d1fae5 !important;
+      border-color: #059669 !important;
+      transform: translateY(-1px);
+    }
+    .btn-save-qr:active {
+      transform: scale(0.97);
+    }
+    @media (max-width: 640px) {
+      .qr-showcase-box {
+        padding: 18px 12px !important;
+      }
+      .qr-frame img {
+        width: 175px !important;
+        height: 175px !important;
+      }
+      .btn-save-qr {
+        max-width: 100% !important;
+        padding: 11px 16px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -483,28 +515,36 @@
         <div style="font-size: 11.5px; color: var(--cust-text-muted); margin-top: 4px;">Hỗ trợ ứng dụng ngân hàng và ví điện tử qua VietQR Napas 247</div>
 
         <div class="qr-frame">
-          <img id="qrCodeImg" class="qr-code-img" src="/images/vietqr-bank.png" onerror="this.src='https://img.vietqr.io/image/970422-0903123456-compact2.png?amount=30000&addInfo=CK%20DAT%20SAN&accountName=UTE%20BADMINTON%20CLUB'" alt="Mã VietQR Chuyển Khoản" style="width: 200px; height: 200px; object-fit: contain; display: block; margin: 0 auto;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--cust-primary); margin-top: 6px;">VIETQR 24/7 - ĐỐI SOÁT TỰ ĐỘNG</div>
+          <img id="qrCodeImg" class="qr-code-img" src="/images/vietqr-bank.png" onerror="this.src='https://img.vietqr.io/image/970418-8800410051-compact2.png?amount=30000&addInfo=CK%20DAT%20SAN&accountName=NGUYEN%20PHUOC%20THO'" alt="Mã VietQR Chuyển Khoản" style="width: 200px; height: 200px; object-fit: contain; display: block; margin: 0 auto;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--cust-primary); margin-top: 6px;">QUÉT MÃ VIETQR ĐỂ THANH TOÁN</div>
+        </div>
+
+        <div style="margin: 4px auto 14px; text-align: center;">
+          <button type="button" class="btn-save-qr" onclick="savePaymentQrImage()" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 260px; padding: 10px 16px; border-radius: 12px; background: #ecfdf5; border: 1.5px solid #10b981; color: #047857; font-weight: 700; font-size: 13.5px; cursor: pointer; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.12); transition: all 0.2s;">
+            <svg viewBox="0 0 24 24" style="width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Lưu Ảnh QR Về Máy</span>
+          </button>
+          <div style="font-size: 11.5px; color: var(--cust-text-muted); margin-top: 5px;">Mở App Ngân Hàng chọn <em>"Quét QR từ thư viện ảnh"</em> để chuyển tiền nhanh</div>
         </div>
 
         <table class="bank-info-table">
           <tr>
             <td>Ngân hàng:</td>
-            <td id="qrBankName">MBBank (Ngân Hàng Quân Đội)</td>
+            <td id="qrBankName">BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)</td>
           </tr>
           <tr>
             <td>Số tài khoản:</td>
             <td>
-              <span id="qrAccountNo">0903123456</span>
+              <span id="qrAccountNo">8800410051</span>
               <button type="button" class="btn-copy-tag" onclick="copyText(document.getElementById('qrAccountNo').textContent)">Sao chép</button>
             </td>
           </tr>
           <tr>
             <td>Tên thụ hưởng:</td>
-            <td id="qrAccountName">UTE BADMINTON CLUB</td>
+            <td id="qrAccountName">NGUYEN PHUOC THO</td>
           </tr>
           <tr>
-            <td>Số tiền cọc (30%):</td>
+            <td>Số tiền cọc:</td>
             <td>
               <span id="qrDepositAmount" style="color: var(--cust-primary-hover); font-size: 14px; font-weight: 700;">Đang nạp...</span>
               <button type="button" class="btn-copy-tag" onclick="copyText(document.getElementById('qrDepositAmount').textContent.replace(/\D/g, ''))">Sao chép</button>
@@ -522,7 +562,7 @@
         <div style="margin-top: 18px;">
           <button type="button" class="btn btn-primary" id="btnConfirmPay" onclick="confirmPaymentSuccess()" style="width: 100%; height: 42px; font-size: 13.5px; font-weight: 700; border-radius: 8px;">
             <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            Tôi Đã Chuyển Khoản Thành Công
+            Xác Nhận Đã Chuyển Khoản
           </button>
           <a href="/customer/booking" style="display: block; margin-top: 12px; font-size: 12px; color: var(--cust-text-muted); text-decoration: none;">
             ← Quay lại trang chọn sân & giờ
@@ -536,9 +576,9 @@
       <div class="invoice-card">
         <div class="invoice-header">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <div style="font-size: 11px; text-transform: uppercase; color: var(--cust-primary); font-weight: 600;">Phiếu Giữ Chỗ Trực Tuyến</div>
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--cust-primary); font-weight: 600;">Phiếu Đặt Sân</div>
             <div style="font-size: 11.5px; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 2px 8px; border-radius: 6px;">
-              Giữ chỗ: <span id="payTimer">10:00</span>
+              Thời gian: <span id="payTimer">10:00</span>
             </div>
           </div>
           <div style="font-size: 16px; font-weight: 800; color: var(--cust-text-main);">Chi Tiết Đơn Đặt Sân</div>
@@ -577,17 +617,17 @@
               <span class="val" id="invTotal" style="font-size: 14px;">0 đ</span>
             </div>
             <div class="invoice-row" style="margin-bottom: 6px;">
-              <span class="lbl" style="color: var(--cust-primary-hover); font-weight: 700;">Tiền cọc giữ sân (30%):</span>
+              <span class="lbl" style="color: var(--cust-primary-hover); font-weight: 700;">Tiền cọc:</span>
               <span class="val" id="invDeposit" style="color: var(--cust-primary-hover); font-size: 16px; font-weight: 800;">0 đ</span>
             </div>
             <div class="invoice-row" style="margin-bottom: 0;">
-              <span class="lbl" style="font-size: 11.5px;">Còn lại thanh toán tại quầy:</span>
-              <span class="val" id="invRemaining" style="font-size: 11.5px; color: var(--cust-text-muted);">0 đ (70%)</span>
+              <span class="lbl" style="font-size: 11.5px;">Còn lại:</span>
+              <span class="val" id="invRemaining" style="font-size: 11.5px; color: var(--cust-text-muted);">0 đ</span>
             </div>
           </div>
 
           <div id="bookingStatusAlert" style="background: var(--cust-primary-light); border: 1px solid var(--cust-primary-border); border-radius: 6px; padding: 10px 12px; font-size: 11.5px; color: var(--cust-primary-hover); line-height: 1.5;">
-            <strong>Chính sách hoàn cọc:</strong> Hoàn 100% tự động khi hủy trước giờ chơi tối thiểu 4 tiếng.
+            <strong>Quy định hủy sân:</strong> Miễn phí hủy và hoàn tiền khi thông báo trước 4 tiếng.
           </div>
         </div>
       </div>
@@ -600,12 +640,12 @@
       <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--cust-primary-light); color: var(--cust-primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; border: 1px solid var(--cust-primary-border);">
         <svg class="svg-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
       </div>
-      <h3 style="font-size: 18px; font-weight: 800; color: var(--cust-text-main); margin-bottom: 6px;">Đặt Cọc Thành Công!</h3>
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--cust-text-main); margin-bottom: 6px;">Thanh Toán Thành Công!</h3>
       <p style="font-size: 12.5px; color: var(--cust-text-muted); line-height: 1.5; margin-bottom: 18px;">
-        Hệ thống đã ghi nhận tiền cọc <strong id="modalDepositTxt" style="color: var(--cust-primary);">0 đ</strong> vào cơ sở dữ liệu. Mã vé QR điện tử đã sẵn sàng để quét nhận sân tại quầy POS!
+        Hệ thống đã ghi nhận thanh toán cọc <strong id="modalDepositTxt" style="color: var(--cust-primary);">0 đ</strong> thành công. Bạn có thể kiểm tra thông tin và mã vé trong lịch sử đặt sân!
       </p>
       <button type="button" class="btn btn-primary" onclick="window.location.href='/customer/history'" style="width: 100%; height: 40px; font-size: 13px; font-weight: 600; border-radius: 6px;">
-        Xem Vé Điện Tử & Lịch Sử Đặt Chỗ
+        Xem Lịch Sử Đặt Sân
       </button>
     </div>
   </div>
@@ -643,6 +683,38 @@
       });
     }
 
+    async function savePaymentQrImage() {
+      const img = document.getElementById('qrCodeImg');
+      const code = currentBookingCode || 'DATSAN';
+      const url = img ? img.src : null;
+      if (!url) {
+        showToast('Không tìm thấy hình ảnh mã QR!', 'error');
+        return;
+      }
+      const btn = document.querySelector('.btn-save-qr');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<span style="font-size: 12px;">Đang tải ảnh...</span>';
+
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `VietQR-${code}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+        showToast('Đã lưu mã QR vào máy! Mở app ngân hàng chọn "Quét QR từ ảnh" để thanh toán.', 'success');
+      } catch (err) {
+        window.open(url, '_blank');
+        showToast('Đã mở ảnh mã QR. Nhấn giữ ảnh rồi chọn "Lưu hình ảnh" nhé!', 'info');
+      } finally {
+        if (btn) btn.innerHTML = origText;
+      }
+    }
+
     let secondsLeft = 600;
     const pTimer = setInterval(() => {
       if (secondsLeft <= 0) {
@@ -660,6 +732,29 @@
         timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
       }
     }, 1000);
+
+    function parseBookingCreatedMs(createdAt) {
+      if (!createdAt) return Date.now();
+      if (Array.isArray(createdAt)) {
+        return new Date(createdAt[0], createdAt[1] - 1, createdAt[2], createdAt[3] || 0, createdAt[4] || 0, createdAt[5] || 0).getTime();
+      }
+      let str = String(createdAt).trim();
+      if (!str.includes('Z') && !str.match(/[+-]\d{2}:?\d{2}$/)) {
+        str += '+07:00';
+      }
+      let ms = new Date(str).getTime();
+      if (isNaN(ms)) {
+        ms = new Date(createdAt).getTime();
+      }
+      if (isNaN(ms)) return Date.now();
+
+      // If server ran in UTC and emitted timestamp ~7 hours behind local Vietnam time
+      const now = Date.now();
+      if (now - ms > 6 * 3600 * 1000 && now - ms < 8 * 3600 * 1000) {
+        ms += 7 * 3600 * 1000;
+      }
+      return ms;
+    }
 
     async function loadBookingPaymentDetails() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -738,6 +833,24 @@
         currentDepositAmount = deposit;
         const remaining = Math.max(0, total - deposit);
 
+        // Calculate countdown based on actual createdAt
+        if (b.createdAt) {
+          const createdMs = parseBookingCreatedMs(b.createdAt);
+          const expiresAt = createdMs + 10 * 60 * 1000;
+          secondsLeft = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+        }
+
+        // Keep in pending bookings history if pending deposit
+        if (b.status && (b.status.includes('Chờ cọc') || b.status.includes('Chờ thanh toán'))) {
+          try {
+            let pending = JSON.parse(localStorage.getItem('ute_pending_bookings') || '[]');
+            if (!pending.includes(b.bookingCode)) {
+              pending.unshift(b.bookingCode);
+              localStorage.setItem('ute_pending_bookings', JSON.stringify(pending.slice(0, 10)));
+            }
+          } catch(e) {}
+        }
+
         document.getElementById('invCode').textContent = b.bookingCode;
         document.getElementById('invCustomer').textContent = b.customerName || 'Khách hàng';
         document.getElementById('invPhone').textContent = b.customerPhone || '---';
@@ -759,10 +872,19 @@
         document.getElementById('qrTransferContent').textContent = `CK ${b.bookingCode}`;
         document.getElementById('modalDepositTxt').textContent = deposit.toLocaleString('vi-VN') + ' đ';
 
-        // Dynamic VietQR generator link
+        // Dynamic VietQR generator link & Bank info
+        const bName = data.bankName || 'BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)';
+        const accNo = data.accountNo || '8800410051';
+        const accName = data.accountName || 'NGUYEN PHUOC THO';
+        const bin = data.bankBin || '970418';
+
+        if (document.getElementById('qrBankName')) document.getElementById('qrBankName').textContent = bName;
+        if (document.getElementById('qrAccountNo')) document.getElementById('qrAccountNo').textContent = accNo;
+        if (document.getElementById('qrAccountName')) document.getElementById('qrAccountName').textContent = accName;
+
         const qrImg = document.getElementById('qrCodeImg');
         if (qrImg) {
-          qrImg.src = `https://img.vietqr.io/image/970422-0903123456-compact2.png?amount=${deposit}&addInfo=CK%20${b.bookingCode}&accountName=UTE%20BADMINTON%20CLUB`;
+          qrImg.src = `https://img.vietqr.io/image/${bin}-${accNo}-compact2.png?amount=${deposit}&addInfo=CK%20${b.bookingCode}&accountName=${encodeURIComponent(accName)}`;
         }
 
         // Check booking status
@@ -833,6 +955,11 @@
         const data = await res.json();
         if (res.ok && (data.success || data.booking)) {
           showToast(`Đã ghi nhận tiền cọc thành công cho đơn ${currentBookingCode} trong Database!`, 'success');
+          try {
+            let pending = JSON.parse(localStorage.getItem('ute_pending_bookings') || '[]');
+            pending = pending.filter(c => c !== currentBookingCode);
+            localStorage.setItem('ute_pending_bookings', JSON.stringify(pending));
+          } catch (e) {}
           document.getElementById('successModal').classList.add('open');
         } else {
           showToast(data.message || 'Xác nhận tiền cọc thất bại, vui lòng thử lại!', 'error');

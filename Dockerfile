@@ -1,49 +1,35 @@
-﻿# ============================================================
-# Stage 1: Build - Maven + JDK 24 (compile release=24)
-# ============================================================
-FROM eclipse-temurin:24-jdk AS builder
-
-WORKDIR /build
-
-# Cache Maven dependencies
-COPY .mvn/ .mvn/
-COPY mvnw mvnw.cmd pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
-
-# Copy source va build (skip tests; tests da xac nhan trong CI pipeline)
-COPY src/ src/
-RUN ./mvnw package -DskipTests -Dmaven.compiler.release=24 -q
-
-# ============================================================
-# Stage 2: Runtime - JRE 21 slim (nho hon, bao mat hon)
-# ============================================================
-FROM eclipse-temurin:21-jre-jammy AS runtime
-
-LABEL maintainer="UTE Sport - Nhom Triet-Tho-Dat"
-LABEL project="Badminton_Management_Project"
-LABEL version="1.0-RC1"
-
+# ==============================================================
+# GIAI ĐOẠN 1: BUILD ỨNG DỤNG TỪ SOURCE CODE (MULTI-STAGE BUILD)
+# Tương thích 100% với CI/CD, Render.com, Railway.app & GitHub
+# ==============================================================
+FROM maven:3.9.6-eclipse-temurin-21-jammy AS build
 WORKDIR /app
 
-# Tao user khong phai root de chay ung dung
-RUN groupadd -r badminton && useradd -r -g badminton -s /bin/false appuser
+# Cache dependency layer để tăng tốc độ build các lần sau
+COPY pom.xml .
+RUN mvn dependency:go-offline -B || true
 
-# Sao chep JAR tu stage build
-COPY --from=builder /build/target/Badminton_Management_Project-1.0.jar app.jar
+# Copy toàn bộ mã nguồn vào và đóng gói file JAR
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Tao thu muc uploads va logs
-RUN mkdir -p /app/uploads /app/logs && chown -R appuser:badminton /app
+# ==============================================================
+# GIAI ĐOẠN 2: RUNTIME CONTAINER SIÊU NHẸ (ECLIPSE TEMURIN JRE 21)
+# ==============================================================
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
 
-USER appuser
+# Copy file jar đã build từ giai đoạn 1
+COPY --from=build /app/target/Badminton_Management_Project-*.jar app.jar
 
+# Khai báo port (mặc định 8080, sẽ nhận PORT động từ Render/Railway)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health 2>/dev/null || curl -f http://localhost:8080/ 2>/dev/null || exit 1
+# Cấu hình biến môi trường mặc định
+ENV SPRING_PROFILES_ACTIVE=prod
+ENV PORT=8080
 
-ENTRYPOINT ["java", \
-  "-Xms256m", "-Xmx512m", \
-  "-Djava.security.egd=file:/dev/./urandom", \
-  "-Dspring.profiles.active=prod", \
-  "-jar", "app.jar"]
+# Tối ưu RAM cho Cloud Hosting (Render 512MB / Railway):
+# -XX:+UseContainerSupport nhận diện giới hạn RAM của container
+# -XX:MaxRAMPercentage=75.0 giới hạn Heap tránh lỗi OOM Killed
+ENTRYPOINT ["sh", "-c", "java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-8080} -jar app.jar"]

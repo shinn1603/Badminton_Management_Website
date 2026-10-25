@@ -31,6 +31,8 @@ import java.util.regex.Pattern;
 @Transactional
 public class BookingService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookingService.class);
+
     @Autowired
     private BookingRepository bookingRepository;
 
@@ -51,6 +53,12 @@ public class BookingService {
 
     @Autowired(required = false)
     private vn.yain.repository.CustomerRepository customerRepository;
+
+    @Autowired(required = false)
+    private vn.yain.repository.SystemSettingRepository systemSettingRepository;
+
+    @Autowired(required = false)
+    private vn.yain.repository.AuditLogRepository auditLogRepository;
 
     @Autowired(required = false)
     private EmailService emailService;
@@ -76,6 +84,22 @@ public class BookingService {
 
     public Optional<Booking> getBookingByCode(String bookingCode) {
         return bookingRepository.findByBookingCode(bookingCode);
+    }
+
+    public String getBankBin() {
+        return (bankBin != null && !bankBin.isBlank()) ? bankBin : "970422";
+    }
+
+    public String getBankName() {
+        return (bankName != null && !bankName.isBlank()) ? bankName : "MBBank (Ngân hàng Quân Đội)";
+    }
+
+    public String getAccountNo() {
+        return (accountNo != null && !accountNo.isBlank()) ? accountNo : "0903123456";
+    }
+
+    public String getAccountName() {
+        return (accountName != null && !accountName.isBlank()) ? accountName : "UTE BADMINTON CLUB";
     }
 
     public String generateUniqueBookingCode() {
@@ -166,8 +190,10 @@ public class BookingService {
 
         // Update court status and broadcast
         courtRepository.findByCourtCode(booking.getCourtCode()).ifPresent(court -> {
-            court.setStatus("Đã đặt trước");
-            courtRepository.save(court);
+            if (!"Bảo trì".equalsIgnoreCase(court.getStatus())) {
+                court.setStatus("Đã đặt trước");
+                courtRepository.save(court);
+            }
         });
 
         broadcastBookingEvent(BookingNotificationDto.builder()
@@ -253,7 +279,7 @@ public class BookingService {
     public synchronized Map<String, Object> lockSlotBooking(Map<String, Object> payload) {
         String courtCode = (String) payload.get("courtCode");
         String branchCode = (String) payload.get("branchCode");
-        String dateStr = (String) payload.get("date");
+        String dateStr = (String) (payload.get("date") != null ? payload.get("date") : payload.get("bookingDate"));
         String timeSlot = (String) payload.get("timeSlot");
         String customerName = (String) payload.getOrDefault("customerName", "Khách đặt trực tuyến");
         String customerPhone = (String) payload.getOrDefault("customerPhone", "0903123456");
@@ -287,21 +313,40 @@ public class BookingService {
         }
 
         // Duration and pricing
-        int duration = 1;
+        int duration = 0;
         if (timeSlot.contains(",")) {
-            duration = timeSlot.split(",").length;
+            String[] parts = timeSlot.split(",");
+            for (String part : parts) {
+                int[] h = parseSlotHours(part.trim());
+                duration += (h[1] > h[0]) ? (h[1] - h[0]) : 1;
+            }
         } else {
             int[] hours = parseSlotHours(timeSlot);
-            if (hours[1] > hours[0]) {
-                duration = hours[1] - hours[0];
+            duration = (hours[1] > hours[0]) ? (hours[1] - hours[0]) : 1;
+        }
+        if (duration <= 0) duration = 1;
+
+        BigDecimal courtTotal = BigDecimal.ZERO;
+        if (payload.get("totalPrice") != null) {
+            try {
+                courtTotal = new BigDecimal(payload.get("totalPrice").toString());
+            } catch (Exception ignored) {}
+        }
+        if (courtTotal.compareTo(BigDecimal.ZERO) <= 0) {
+            if (timeSlot.contains(",")) {
+                String[] parts = timeSlot.split(",");
+                for (String part : parts) {
+                    int[] h = parseSlotHours(part.trim());
+                    int partDuration = (h[1] > h[0]) ? (h[1] - h[0]) : 1;
+                    BigDecimal rate = pricingService != null ? pricingService.calculateHourlyRate(court, h[0]) : (court != null && court.getHourlyRate() != null ? court.getHourlyRate() : new BigDecimal("90000"));
+                    courtTotal = courtTotal.add(rate.multiply(BigDecimal.valueOf(partDuration)));
+                }
+            } else {
+                int[] hours = parseSlotHours(timeSlot);
+                BigDecimal hourlyRate = pricingService != null ? pricingService.calculateHourlyRate(court, hours[0]) : (court != null && court.getHourlyRate() != null ? court.getHourlyRate() : new BigDecimal("90000"));
+                courtTotal = pricingService != null ? pricingService.calculateTotalPrice(hourlyRate, duration) : hourlyRate.multiply(BigDecimal.valueOf(duration));
             }
         }
-
-        int[] hours = parseSlotHours(timeSlot);
-        int startHour = hours[0];
-
-        BigDecimal hourlyRate = pricingService != null ? pricingService.calculateHourlyRate(court, startHour) : (court != null && court.getHourlyRate() != null ? court.getHourlyRate() : new BigDecimal("90000"));
-        BigDecimal courtTotal = pricingService != null ? pricingService.calculateTotalPrice(hourlyRate, duration) : hourlyRate.multiply(BigDecimal.valueOf(duration));
 
         BigDecimal addonAmount = BigDecimal.ZERO;
         if (payload.get("addonAmount") != null) {
@@ -325,7 +370,17 @@ public class BookingService {
             }
         }
 
-        BigDecimal deposit = pricingService != null ? pricingService.calculateDepositAmount(totalPrice) : totalPrice.multiply(new BigDecimal("0.3")).setScale(0, java.math.RoundingMode.HALF_UP);
+        BigDecimal deposit = BigDecimal.ZERO;
+        if (payload.get("depositAmount") != null) {
+            try {
+                deposit = new BigDecimal(payload.get("depositAmount").toString());
+            } catch (Exception ignored) {}
+        }
+        if (deposit.compareTo(BigDecimal.ZERO) <= 0) {
+            deposit = pricingService != null ? pricingService.calculateDepositAmount(totalPrice) : totalPrice.multiply(new BigDecimal("0.3")).setScale(0, java.math.RoundingMode.HALF_UP);
+        }
+
+        BigDecimal avgHourlyRate = duration > 0 ? courtTotal.divide(BigDecimal.valueOf(duration), 0, java.math.RoundingMode.HALF_UP) : courtTotal;
 
         String bookingCode = generateUniqueBookingCode();
         Booking booking = new Booking();
@@ -336,7 +391,7 @@ public class BookingService {
         booking.setCustomerPhone(customerPhone != null ? customerPhone.trim() : "0903123456");
         booking.setBookingDate(bookingDate);
         booking.setTimeSlot(timeSlot.trim());
-        booking.setHourlyPrice(hourlyRate);
+        booking.setHourlyPrice(avgHourlyRate);
         booking.setTotalPrice(totalPrice);
         booking.setDepositAmount(deposit);
         booking.setPaymentMethod("Chuyển khoản VietQR");
@@ -415,6 +470,8 @@ public class BookingService {
         resp.put("bankName", bName);
         resp.put("accountNo", accNo);
         resp.put("accountName", accName);
+        resp.put("notes", booking.getNotes());
+        resp.put("createdAt", booking.getCreatedAt() != null ? booking.getCreatedAt().toString() : LocalDateTime.now().toString());
 
         return resp;
     }
@@ -438,15 +495,50 @@ public class BookingService {
         booking.setPaymentMethod(paymentMethod != null ? paymentMethod : "VietQR Pro");
         Booking updated = bookingRepository.save(booking);
 
-        // Tích điểm thưởng cho khách hàng nếu có mã khách hàng
-        if (customerRepository != null && updated.getCustomerCode() != null) {
-            customerRepository.findByCustomerCode(updated.getCustomerCode()).ifPresent(c -> {
-                int addPts = depositAmount != null
-                        ? depositAmount.divide(BigDecimal.valueOf(1000), java.math.RoundingMode.HALF_UP).intValue()
-                        : 30;
-                c.setRewardPoints((c.getRewardPoints() != null ? c.getRewardPoints() : 0) + addPts);
-                customerRepository.save(c);
+        // Khóa cố định sân trên hệ thống và hủy bỏ bộ đếm tạm giữ chỗ 10 phút
+        if (updated.getCourtCode() != null) {
+            courtRepository.findByCourtCode(updated.getCourtCode()).ifPresent(c -> {
+                if (!"Bảo trì".equalsIgnoreCase(c.getStatus())) {
+                    courtService.updateCourtStatus(updated.getCourtCode(), "Đang sử dụng");
+                }
             });
+        }
+
+        // Tự động liên kết mã khách hàng & tích lũy điểm thưởng thành viên
+        if (customerRepository != null) {
+            if (updated.getCustomerCode() == null && updated.getCustomerPhone() != null && !updated.getCustomerPhone().isBlank()) {
+                customerRepository.findByPhone(updated.getCustomerPhone().trim()).ifPresent(c -> {
+                    updated.setCustomerCode(c.getCustomerCode());
+                    bookingRepository.save(updated);
+                });
+            }
+            if (updated.getCustomerCode() != null) {
+                customerRepository.findByCustomerCode(updated.getCustomerCode()).ifPresent(c -> {
+                    int ptsMultiplier = 1;
+                    int silverPts = 500;
+                    int goldPts = 2000;
+                    int diamondPts = 4000;
+                    if (systemSettingRepository != null) {
+                        ptsMultiplier = systemSettingRepository.findBySettingCode("CFG_POINTS_PER_1000")
+                                .map(s -> { try { return Math.max(1, Integer.parseInt(s.getSettingValue().trim())); } catch (Exception e) { return 1; } }).orElse(1);
+                        silverPts = systemSettingRepository.findBySettingCode("CFG_TIER_SILVER_POINTS")
+                                .map(s -> { try { return Integer.parseInt(s.getSettingValue().trim()); } catch (Exception e) { return 500; } }).orElse(500);
+                        goldPts = systemSettingRepository.findBySettingCode("CFG_TIER_GOLD_POINTS")
+                                .map(s -> { try { return Integer.parseInt(s.getSettingValue().trim()); } catch (Exception e) { return 2000; } }).orElse(2000);
+                        diamondPts = systemSettingRepository.findBySettingCode("CFG_TIER_DIAMOND_POINTS")
+                                .map(s -> { try { return Integer.parseInt(s.getSettingValue().trim()); } catch (Exception e) { return 4000; } }).orElse(4000);
+                    }
+                    int addPts = depositAmount != null
+                            ? depositAmount.divide(BigDecimal.valueOf(1000), java.math.RoundingMode.HALF_UP).intValue() * ptsMultiplier
+                            : 30 * ptsMultiplier;
+                    int newTotalPts = (c.getRewardPoints() != null ? c.getRewardPoints() : 0) + addPts;
+                    c.setRewardPoints(newTotalPts);
+                    if (newTotalPts >= diamondPts) c.setMembershipTier("Kim Cương");
+                    else if (newTotalPts >= goldPts && !"Kim Cương".equalsIgnoreCase(c.getMembershipTier())) c.setMembershipTier("Vàng");
+                    else if (newTotalPts >= silverPts && !"Kim Cương".equalsIgnoreCase(c.getMembershipTier()) && !"Vàng".equalsIgnoreCase(c.getMembershipTier())) c.setMembershipTier("Bạc");
+                    customerRepository.save(c);
+                });
+            }
         }
 
         // Record payment transaction
@@ -508,9 +600,11 @@ public class BookingService {
         Booking updated = bookingRepository.save(booking);
 
         courtRepository.findByCourtCode(booking.getCourtCode()).ifPresent(court -> {
-            court.setStatus("Đang sử dụng");
-            courtRepository.save(court);
-            courtService.updateCourtStatus(court.getCourtCode(), "Đang sử dụng");
+            if (!"Bảo trì".equalsIgnoreCase(court.getStatus())) {
+                court.setStatus("Đang sử dụng");
+                courtRepository.save(court);
+                courtService.updateCourtStatus(court.getCourtCode(), "Đang sử dụng");
+            }
         });
 
         broadcastBookingEvent(BookingNotificationDto.builder()
@@ -570,9 +664,13 @@ public class BookingService {
 
         Invoice savedInvoice = invoiceRepository.save(invoice);
 
-        // Reset court status to "Trống"
+        // Reset court status to "Trống" nếu không đang bảo trì
         courtRepository.findByCourtCode(booking.getCourtCode()).ifPresent(court -> {
-            courtService.updateCourtStatus(court.getCourtCode(), "Trống");
+            if (!"Bảo trì".equalsIgnoreCase(court.getStatus())) {
+                court.setStatus("Trống");
+                courtRepository.save(court);
+                courtService.updateCourtStatus(court.getCourtCode(), "Trống");
+            }
         });
 
         broadcastBookingEvent(BookingNotificationDto.builder()
@@ -592,6 +690,11 @@ public class BookingService {
     /**
      * Cancel booking
      */
+    /**
+     * Hủy đặt sân & xử lý hoàn cọc:
+     * - Nếu đơn đã cọc tiền và hủy trước giờ đánh >= 4 tiếng -> Chuyển sang "Chờ hoàn cọc"
+     * - Nếu đơn chưa cọc tiền (Chờ cọc 30%) hoặc hủy sát giờ (< 4 tiếng) -> Chuyển sang "Đã hủy"
+     */
     public Booking cancelBooking(String bookingCode, String reason) {
         Booking booking = bookingRepository.findByBookingCode(bookingCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn: " + bookingCode));
@@ -599,17 +702,63 @@ public class BookingService {
         if ("Hoàn thành".equalsIgnoreCase(booking.getStatus())) {
             throw new IllegalStateException("Đơn đặt sân [" + bookingCode + "] đã hoàn thành, không thể hủy!");
         }
-        if ("Đã hủy".equalsIgnoreCase(booking.getStatus())) {
+        if ("Đã hủy".equalsIgnoreCase(booking.getStatus()) || "Đã hoàn cọc".equalsIgnoreCase(booking.getStatus())) {
             return booking;
         }
 
-        booking.setStatus("Đã hủy");
-        booking.setNotes((booking.getNotes() != null ? booking.getNotes() + " | " : "") + "Hủy: " + reason);
+        String curStatus = booking.getStatus() != null ? booking.getStatus() : "";
+        boolean isUnpaid = curStatus.contains("Chờ cọc");
+        boolean hasDeposit = booking.getDepositAmount() != null && booking.getDepositAmount().compareTo(BigDecimal.ZERO) > 0 && !isUnpaid;
+
+        // Tính thời gian trước giờ chơi (mặc định ngưỡng 4 tiếng theo chính sách)
+        boolean isEligibleForRefund = false;
+        try {
+            int startHour = 18;
+            if (booking.getTimeSlot() != null) {
+                Matcher m = Pattern.compile("(\\d{1,2}):00").matcher(booking.getTimeSlot());
+                if (m.find()) {
+                    startHour = Integer.parseInt(m.group(1));
+                }
+            }
+            LocalDate bDate = booking.getBookingDate() != null ? booking.getBookingDate() : LocalDate.now();
+            LocalDateTime matchStart = bDate.atTime(startHour, 0);
+            long hoursDiff = java.time.Duration.between(LocalDateTime.now(), matchStart).toHours();
+            isEligibleForRefund = hoursDiff >= 4;
+        } catch (Exception e) {
+            isEligibleForRefund = true;
+        }
+
+        String newStatus = "Đã hủy";
+        if (hasDeposit && isEligibleForRefund) {
+            booking.setNotes((booking.getNotes() != null ? booking.getNotes() + " | " : "") + "Hủy trước 4h, chờ hoàn cọc " + (booking.getDepositAmount() != null ? booking.getDepositAmount().longValue() : 0) + "đ: " + reason);
+        } else {
+            booking.setNotes((booking.getNotes() != null ? booking.getNotes() + " | " : "") + (hasDeposit ? "Hủy sát giờ (<4h, không hoàn cọc): " : "Hủy: ") + reason);
+        }
+
+        booking.setStatus(newStatus);
         Booking saved = bookingRepository.save(booking);
 
         courtRepository.findByCourtCode(booking.getCourtCode()).ifPresent(court -> {
-            courtService.updateCourtStatus(court.getCourtCode(), "Trống");
+            if (!"Bảo trì".equalsIgnoreCase(court.getStatus())) {
+                court.setStatus("Trống");
+                courtRepository.save(court);
+                courtService.updateCourtStatus(court.getCourtCode(), "Trống");
+            }
         });
+
+        // Ghi AuditLog hủy đặt sân
+        if (auditLogRepository != null) {
+            try {
+                vn.yain.entity.AuditLog auditLogEntry = new vn.yain.entity.AuditLog();
+                auditLogEntry.setUsername(booking.getCustomerPhone() != null && !booking.getCustomerPhone().isBlank() ? booking.getCustomerPhone() : "Khách hàng");
+                auditLogEntry.setActionType("Chờ hoàn cọc".equalsIgnoreCase(newStatus) ? "HỦY ĐƠN & CHỜ HOÀN CỌC" : "HỦY ĐẶT SÂN & THU HỒI CỌC");
+                auditLogEntry.setModule("Đặt sân & Thu ngân");
+                auditLogEntry.setStatus("Thành công");
+                auditLogEntry.setActionTime(LocalDateTime.now());
+                auditLogEntry.setDetails("Hủy đơn " + bookingCode + " (Trạng thái mới: " + newStatus + ", Sân " + booking.getCourtCode() + ", " + booking.getBookingDate() + " khung " + booking.getTimeSlot() + "). Tiền cọc: " + (booking.getDepositAmount() != null ? booking.getDepositAmount() : "0") + "đ. Lý do: " + reason);
+                auditLogRepository.save(auditLogEntry);
+            } catch (Exception ignored) {}
+        }
 
         broadcastBookingEvent(BookingNotificationDto.builder()
                 .eventType("BOOKING_CANCELLED")
@@ -618,9 +767,63 @@ public class BookingService {
                 .branchCode(saved.getBranchCode())
                 .customerName(saved.getCustomerName())
                 .status(saved.getStatus())
-                .message("Đã hủy đơn đặt sân [" + bookingCode + "]")
+                .message("Đã hủy đơn đặt sân [" + bookingCode + "] - Trạng thái: " + newStatus)
                 .timestamp(LocalDateTime.now())
                 .build());
+
+        if (emailService != null) {
+            try {
+                emailService.sendCancellationNotice(saved, reason);
+            } catch (Exception e) {
+                log.warn("[BOOKING] Không thể gửi email thông báo hủy/hoàn cọc cho đơn {}: {}", bookingCode, e.getMessage());
+            }
+        }
+
+        return saved;
+    }
+
+    /**
+     * Xác nhận đã hoàn cọc cho khách hàng (Dành cho Thu ngân / Quản lý)
+     */
+    public Booking confirmRefund(String bookingCode, String staffNotes) {
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn: " + bookingCode));
+
+        booking.setStatus("Đã hoàn cọc");
+        booking.setNotes((booking.getNotes() != null ? booking.getNotes() + " | " : "") + "Đã hoàn cọc: " + (staffNotes != null ? staffNotes : "Chuyển khoản hoàn cọc thành công"));
+        Booking saved = bookingRepository.save(booking);
+
+        if (auditLogRepository != null) {
+            try {
+                vn.yain.entity.AuditLog auditLogEntry = new vn.yain.entity.AuditLog();
+                auditLogEntry.setUsername("Thu ngân");
+                auditLogEntry.setActionType("XÁC NHẬN HOÀN CỌC");
+                auditLogEntry.setModule("Đặt sân & Thu ngân");
+                auditLogEntry.setStatus("Thành công");
+                auditLogEntry.setActionTime(LocalDateTime.now());
+                auditLogEntry.setDetails("Xác nhận đã hoàn trả tiền cọc " + (booking.getDepositAmount() != null ? booking.getDepositAmount() : "0") + "đ cho đơn " + bookingCode + ". Ghi chú: " + staffNotes);
+                auditLogRepository.save(auditLogEntry);
+            } catch (Exception ignored) {}
+        }
+
+        broadcastBookingEvent(BookingNotificationDto.builder()
+                .eventType("BOOKING_REFUNDED")
+                .bookingCode(bookingCode)
+                .courtCode(saved.getCourtCode())
+                .branchCode(saved.getBranchCode())
+                .customerName(saved.getCustomerName())
+                .status(saved.getStatus())
+                .message("Đã hoàn trả tiền cọc đơn [" + bookingCode + "]")
+                .timestamp(LocalDateTime.now())
+                .build());
+
+        if (emailService != null) {
+            try {
+                emailService.sendRefundCompletedNotice(saved, staffNotes);
+            } catch (Exception e) {
+                log.warn("[BOOKING] Không thể gửi email thông báo hoàn cọc thành công cho đơn {}: {}", bookingCode, e.getMessage());
+            }
+        }
 
         return saved;
     }
@@ -676,9 +879,11 @@ public class BookingService {
 
         // Update court statuses and broadcast
         courtRepository.findByCourtCode(oldCourtCode).ifPresent(c -> {
-            c.setStatus("Trống");
-            courtRepository.save(c);
-            courtService.updateCourtStatus(oldCourtCode, "Trống");
+            if (!"Bảo trì".equalsIgnoreCase(c.getStatus())) {
+                c.setStatus("Trống");
+                courtRepository.save(c);
+                courtService.updateCourtStatus(oldCourtCode, "Trống");
+            }
         });
 
         String newCourtStatus = "Đang sử dụng".equalsIgnoreCase(booking.getStatus()) ? "Đang sử dụng" : "Đã đặt trước";

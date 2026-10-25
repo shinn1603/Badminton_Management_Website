@@ -45,6 +45,9 @@ class SystemSettingsAndAuditLogsTest {
     @Autowired
     private BranchRepository branchRepository;
 
+    @Autowired
+    private ApiController apiController;
+
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -125,7 +128,7 @@ class SystemSettingsAndAuditLogsTest {
                         .content(objectMapper.writeValueAsString(backupPayload)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
-                .andExpect(jsonPath("$.log.actionType", containsString("Sao lưu")));
+                .andExpect(jsonPath("$.backup.actionType", containsString("Sao lưu")));
 
         // Get logs
         mockMvc.perform(get("/api/admin/logs"))
@@ -167,10 +170,18 @@ class SystemSettingsAndAuditLogsTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.email", containsString("***")));
 
-        // 2. Reset password directly (or with new password)
+        // 2. Retrieve valid OTP from controller memory
+        java.lang.reflect.Field otpField = ApiController.class.getDeclaredField("forgotPasswordOtpMap");
+        otpField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, Map<String, Object>> otpMap = (Map<String, Map<String, Object>>) otpField.get(apiController);
+        String validOtp = (String) otpMap.get(username.toLowerCase()).get("otp");
+
+        // 3. Reset password directly with valid OTP
         Map<String, String> resetPayload = Map.of(
                 "identifier", username,
-                "newPassword", "NewPassword@2026"
+                "newPassword", "NewPassword@2026",
+                "otp", validOtp
         );
         mockMvc.perform(post("/api/auth/reset-password")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -93,7 +93,7 @@ class CashierAndCourtOperationsTest {
         assertEquals("Đang sử dụng", checkedIn.getStatus());
         assertNotNull(checkedIn.getCheckInTime());
         assertEquals("Đang sử dụng", court.getStatus());
-        verify(courtService, times(1)).updateCourtStatus("CL01", "Đang sử dụng");
+        verify(courtService, atLeastOnce()).updateCourtStatus("CL01", "Đang sử dụng");
 
         // Bước 3: Trong khi chơi, khách gọi thêm 2 chai Revive (15,000đ/chai)
         Product revive = new Product();

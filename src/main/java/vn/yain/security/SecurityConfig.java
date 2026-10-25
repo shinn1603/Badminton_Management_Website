@@ -38,7 +38,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "https://*.onrender.com",
+            "https://*.railway.app",
+            "https://*.up.railway.app",
+            "*"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -53,7 +60,6 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json;charset=UTF-8");
@@ -67,25 +73,40 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                // Allow static resources & dev tools
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/h2-console/**").permitAll()
+                // Allow static resources
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 // Allow public web routes
-                .requestMatchers("/", "/login", "/logout", "/policy", "/error").permitAll()
+                .requestMatchers("/", "/login", "/logout", "/error").permitAll()
                 .requestMatchers("/customer/**", "/pos/**", "/manager/**", "/director/**", "/admin/**").permitAll()
-                // Allow public auth, upload, policy and chatbot endpoints
-                .requestMatchers("/api/auth/**", "/api/upload/**", "/api/policy/**", "/api/chatbot/**").permitAll()
-                // Public court, branch, products and pricing lookup
-                .requestMatchers(HttpMethod.GET, "/api/branches", "/api/branches/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/courts", "/api/courts/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/courts/hold", "/api/courts/status").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/equipment", "/api/equipment/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/pricing/**").permitAll()
+                // Allow public auth, webhooks, and websocket endpoints
+                .requestMatchers("/api/auth/**", "/api/health", "/api/user/**", "/ws/**", "/ws-court/**", "/webhook/**", "/api/webhook/**").permitAll()
+                .requestMatchers("/api/chatbot/**", "/api/upload/**").permitAll()
+                // Public customer booking, courts and catalog lookups
+                .requestMatchers("/api/courts", "/api/courts/**").permitAll()
+                .requestMatchers("/api/products", "/api/products/**").permitAll()
+                .requestMatchers("/api/equipment", "/api/equipment/**").permitAll()
+                .requestMatchers("/api/inventory", "/api/inventory/**", "/api/suppliers", "/api/suppliers/**").permitAll()
+                .requestMatchers("/api/staff", "/api/staff/**").permitAll()
+                .requestMatchers("/api/shifts", "/api/shifts/**").permitAll()
+                .requestMatchers("/api/pricing/**", "/api/promotions/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/branches/**", "/api/director/stats", "/api/director/branches/**", "/api/manager/stats", "/api/manager/reports/**", "/api/manager/reports", "/api/policy/**").permitAll()
+                .requestMatchers("/api/director/pricing/**", "/api/director/tournaments/**", "/api/manager/pricing/**").permitAll()
+                .requestMatchers("/api/tournaments/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/bookings", "/api/bookings/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/bookings", "/api/bookings/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/bookings", "/api/bookings/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/bookings", "/api/bookings/**").permitAll()
+                .requestMatchers("/api/bookings/*/deposit").permitAll()
                 // Administrative & Manager APIs
                 .requestMatchers("/api/admin/**").permitAll()
                 .requestMatchers("/api/director/**").hasAnyRole("DIRECTOR", "ADMIN")
                 .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
-                .requestMatchers("/api/**").permitAll()
+                .requestMatchers("/api/customers", "/api/customers/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR", "POS", "STAFF")
+                .requestMatchers("/api/staff", "/api/staff/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
+                .requestMatchers("/api/inventory", "/api/inventory/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
+                .requestMatchers("/api/shifts", "/api/shifts/**").hasAnyRole("POS", "STAFF", "MANAGER", "ADMIN", "DIRECTOR")
+                // Require authentication for all remaining APIs
+                .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

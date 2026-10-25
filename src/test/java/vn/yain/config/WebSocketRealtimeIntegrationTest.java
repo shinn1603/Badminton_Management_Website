@@ -42,7 +42,7 @@ class WebSocketRealtimeIntegrationTest {
         StompWebSocketEndpointRegistration registration = mock(StompWebSocketEndpointRegistration.class);
 
         when(registry.addEndpoint("/ws-court")).thenReturn(registration);
-        when(registration.setAllowedOriginPatterns(anyString(), anyString(), anyString())).thenReturn(registration);
+        when(registration.setAllowedOriginPatterns(any(String[].class))).thenReturn(registration);
 
         config.registerStompEndpoints(registry);
 

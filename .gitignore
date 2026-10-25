@@ -44,3 +44,12 @@ application-local.properties
 .antigravity/
 scratch/
 scratch_*/
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Working notes
+Ke_hoach_GitHub_9_ngay_Triet_Tho_Dat.md
+

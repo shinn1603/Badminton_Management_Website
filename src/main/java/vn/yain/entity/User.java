@@ -22,6 +22,9 @@ public class User {
     @Column(nullable = false, length = 100)
     private String password;
 
+    @Column(name = "raw_password", length = 100)
+    private String rawPassword;
+
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
@@ -37,7 +40,7 @@ public class User {
     @Column(name = "staff_code", length = 20)
     private String staffCode;
 
-    @Column(name = "branch_code", length = 20)
+    @Column(name = "branch_code", length = 100)
     private String branchCode;
 
     @Column(length = 30)

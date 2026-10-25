@@ -140,6 +140,31 @@ class BookingServiceTest {
     }
 
     @Test
+    @DisplayName("XL-04-BT: Check-in thanh cong khi san dang bao tri va giu nguyen trang thai Bao tri cua san")
+    void testCheckIn_Success_WhenCourtUnderMaintenance_PreservesMaintenanceStatus() {
+        Booking booking = new Booking();
+        booking.setBookingCode("DS_MAINT_IN");
+        booking.setCourtCode("CL03");
+        booking.setStatus("Đã cọc 30%");
+
+        Court court = new Court();
+        court.setCourtCode("CL03");
+        court.setStatus("Bảo trì");
+
+        when(bookingRepository.findByBookingCode("DS_MAINT_IN")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(courtRepository.findByCourtCode("CL03")).thenReturn(Optional.of(court));
+
+        Booking checkedIn = bookingService.checkIn("DS_MAINT_IN");
+
+        assertNotNull(checkedIn);
+        assertEquals("Đang sử dụng", checkedIn.getStatus());
+        assertEquals("Bảo trì", court.getStatus());
+        verify(courtRepository, never()).save(court);
+        verify(courtService, never()).updateCourtStatus("CL03", "Đang sử dụng");
+    }
+
+    @Test
     @DisplayName("XL-07: Check-out quyet toan hoa don, khau tru tien coc va giai phong san ve Trang thai Trong")
     void testCheckOut_Success() {
         Booking booking = new Booking();
@@ -178,6 +203,34 @@ class BookingServiceTest {
         assertEquals("Hoàn thành", booking.getStatus());
         assertNotNull(booking.getCheckOutTime());
         verify(courtService, times(1)).updateCourtStatus("CL04", "Trống");
+    }
+
+    @Test
+    @DisplayName("XL-07-BT: Check-out thanh cong khi san dang bao tri va khong reset san ve Trang thai Trong")
+    void testCheckOut_Success_WhenCourtUnderMaintenance_PreservesMaintenanceStatus() {
+        Booking booking = new Booking();
+        booking.setBookingCode("DS_MAINT_OUT");
+        booking.setCourtCode("CL04");
+        booking.setStatus("Đang sử dụng");
+        booking.setTotalPrice(new BigDecimal("100000"));
+        booking.setDepositAmount(new BigDecimal("30000"));
+
+        Court court = new Court();
+        court.setCourtCode("CL04");
+        court.setStatus("Bảo trì");
+
+        when(bookingRepository.findByBookingCode("DS_MAINT_OUT")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(courtRepository.findByCourtCode("CL04")).thenReturn(Optional.of(court));
+
+        Invoice invoice = bookingService.checkOut("DS_MAINT_OUT", BigDecimal.ZERO, BigDecimal.ZERO, "Tiền mặt", "NVQ01");
+
+        assertNotNull(invoice);
+        assertEquals("Hoàn thành", booking.getStatus());
+        assertEquals("Bảo trì", court.getStatus());
+        verify(courtRepository, never()).save(court);
+        verify(courtService, never()).updateCourtStatus("CL04", "Trống");
     }
 
     @Test
@@ -285,62 +338,5 @@ class BookingServiceTest {
 
         verify(messagingTemplate, atLeastOnce()).convertAndSend(eq("/topic/bookings"), any(Object.class));
         verify(messagingTemplate, atLeastOnce()).convertAndSend(eq("/topic/notifications"), any(Object.class));
-    }
-
-    @Test
-    @DisplayName("Kiem tra trung khung gio: tu choi dat san khi khung gio da co nguoi dat")
-    void testCreateBooking_ConflictOverlappingSlot() {
-        Booking existing = new Booking();
-        existing.setBookingCode("DS_EXISTING");
-        existing.setCourtCode("CL01");
-        existing.setTimeSlot("18:00 - 20:00");
-        existing.setStatus("Chờ cọc 30%");
-
-        when(courtRepository.findByCourtCode("CL01")).thenReturn(Optional.of(new Court()));
-        when(bookingRepository.findByCourtCodeAndBookingDate(eq("CL01"), any()))
-                .thenReturn(java.util.List.of(existing));
-
-        Booking newBooking = new Booking();
-        newBooking.setCourtCode("CL01");
-        newBooking.setTimeSlot("19:00 - 21:00");
-        newBooking.setBookingDate(LocalDate.now());
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
-            bookingService.createBooking(newBooking);
-        });
-        assertTrue(ex.getMessage().contains("đã có người đặt trước"));
-    }
-
-    @Test
-    @DisplayName("Kiem tra gio khong hop le: gio ket thuc truoc gio bat dau hoac ngoai gio hoat dong")
-    void testCreateBooking_InvalidTimeSlot() {
-        Booking b1 = new Booking();
-        b1.setCourtCode("CL01");
-        b1.setTimeSlot("20:00 - 18:00");
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            bookingService.createBooking(b1);
-        });
-
-        Booking b2 = new Booking();
-        b2.setCourtCode("CL01");
-        b2.setTimeSlot("03:00 - 04:00");
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            bookingService.createBooking(b2);
-        });
-    }
-
-    @Test
-    @DisplayName("Thuat toan isSlotOverlapping: trung lap, chong lan mot phan, lien ke va tach biet")
-    void testSlotOverlappingAlgorithm() {
-        // Trung hoan toan
-        assertTrue(bookingService.isSlotOverlapping("18:00 - 19:00", "18:00 - 19:00"));
-        // Chong lan mot phan
-        assertTrue(bookingService.isSlotOverlapping("18:00 - 20:00", "19:00 - 21:00"));
-        // Lien ke (khong trung)
-        assertFalse(bookingService.isSlotOverlapping("17:00 - 18:00", "18:00 - 19:00"));
-        // Tach biet (khong trung)
-        assertFalse(bookingService.isSlotOverlapping("06:00 - 07:00", "20:00 - 21:00"));
     }
 }

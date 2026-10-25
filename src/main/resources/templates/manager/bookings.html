@@ -232,15 +232,7 @@
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
           </svg>
-          <span class="menu-text">Kho vật tư</span>
-        </a>
-
-        <a href="/manager/receipts" class="menu-item">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-          </svg>
-          <span class="menu-text">Nhập kho</span>
+          <span class="menu-text">Quản lý kho</span>
         </a>
 
         <a href="/manager/staff" class="menu-item">
@@ -457,7 +449,7 @@
                     <option value="Đang sử dụng">Đang sử dụng</option>
                     <option value="Hoàn thành">Hoàn thành</option>
                     <option value="Đã hủy">Đã hủy</option>
-                    <option value="Đã cọc 30%">Đã cọc 30%</option>
+                    <option value="Đã cọc">Đã cọc</option>
                   </select>
                 </div>
                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;" id="recordsCountText">7 / 7 bản ghi</span>
@@ -558,14 +550,14 @@
               <div class="form-group">
                 <label class="form-label">Sân</label>
                 <select id="fCourtName" class="form-control" onchange="calculateFormPrice()">
-                  <option value="CL01" data-rate="90000">CL01 - Sân 1 (Thảm tiêu chuẩn • 90.000đ/h)</option>
-                  <option value="CL02" data-rate="90000" selected>CL02 - Sân 2 (Thảm tiêu chuẩn • 90.000đ/h)</option>
-                  <option value="CL03" data-rate="90000">CL03 - Sân 3 (Thảm cao su • 90.000đ/h)</option>
-                  <option value="CL04" data-rate="90000">CL04 - Sân 4 (Thảm Silicon • 90.000đ/h)</option>
-                  <option value="CL05" data-rate="120000">CL05 - Sân 5 (VIP Yonex Quốc Tế • 120.000đ/h)</option>
-                  <option value="CL06" data-rate="90000">CL06 - Sân 6 (Thảm tiêu chuẩn • 90.000đ/h)</option>
-                  <option value="CL07" data-rate="90000">CL07 - Sân 7 (Thảm tiêu chuẩn • 90.000đ/h)</option>
-                  <option value="CL08" data-rate="120000">CL08 - Sân 8 (VIP Yonex Quốc Tế • 120.000đ/h)</option>
+                  <option value="CL01" data-rate="90000">CL01 - Sân 1 (Sân Thường • 90.000đ/h)</option>
+                  <option value="CL02" data-rate="90000" selected>CL02 - Sân 2 (Sân Thường • 90.000đ/h)</option>
+                  <option value="CL03" data-rate="90000">CL03 - Sân 3 (Sân Thường • 90.000đ/h)</option>
+                  <option value="CL04" data-rate="90000">CL04 - Sân 4 (Sân Thường • 90.000đ/h)</option>
+                  <option value="CL05" data-rate="120000">CL05 - Sân 5 (Sân VIP • 120.000đ/h)</option>
+                  <option value="CL06" data-rate="90000">CL06 - Sân 6 (Sân Thường • 90.000đ/h)</option>
+                  <option value="CL07" data-rate="90000">CL07 - Sân 7 (Sân Thường • 90.000đ/h)</option>
+                  <option value="CL08" data-rate="120000">CL08 - Sân 8 (Sân VIP • 120.000đ/h)</option>
                 </select>
               </div>
 
@@ -600,7 +592,7 @@
                   <option value="Đã xác nhận" selected>Đã xác nhận</option>
                   <option value="Đang sử dụng">Đang sử dụng</option>
                   <option value="Hoàn thành">Hoàn thành</option>
-                  <option value="Đã cọc 30%">Đã cọc 30%</option>
+                  <option value="Đã cọc">Đã cọc</option>
                   <option value="Quá giờ check-in">Quá giờ check-in (Cảnh báo)</option>
                   <option value="Đã hủy">Đã hủy</option>
                 </select>
@@ -671,6 +663,7 @@
         case 'Đang sử dụng': return 'badge-in-use';
         case 'Đã xác nhận': return 'badge-available';
         case 'Chờ xác nhận': return 'badge-pending';
+        case 'Đã cọc':
         case 'Đã cọc 30%': return 'badge-pending';
         case 'Hoàn thành': return 'badge-completed';
         case 'Đã hủy': return 'badge-danger';
@@ -687,7 +680,7 @@
     function updateStats() {
       const total = bookings.length;
       const pending = bookings.filter(b => b.status === 'Chờ xác nhận').length;
-      const confirmed = bookings.filter(b => b.status === 'Đã xác nhận' || b.status === 'Đã cọc 30%').length;
+      const confirmed = bookings.filter(b => b.status === 'Đã xác nhận' || b.status === 'Đã cọc' || b.status === 'Đã cọc 30%').length;
       const rev = bookings.filter(b => b.status !== 'Đã hủy').reduce((acc, cur) => acc + (cur.price || 0), 0);
 
       const elTotal = document.getElementById('statTotalCount');
@@ -1059,7 +1052,7 @@
       if (token) headers['Authorization'] = 'Bearer ' + token;
 
       try {
-        const res = await fetch(`/api/bookings/?branchCode=CN01${encodeURIComponent(code)}/cancel`, {
+        const res = await fetch(`/api/bookings/${encodeURIComponent(code)}/cancel`, {
           method: 'POST',
           headers: headers,
           body: JSON.stringify({ reason: 'Quản lý chi nhánh hủy đơn' })
