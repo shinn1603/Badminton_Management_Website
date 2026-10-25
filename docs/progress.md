@@ -308,11 +308,28 @@
   - Nhánh `dat/day-06-branch-tournament` (Day 6 của Đạt) đã push lên GitHub (commit `4ba929a`) nhưng chưa được merge vào `main`. Triết đã thiết kế `ChatbotService` và `GeminiAiService` hoạt động độc lập dependency, không bị gián đoạn build. Đề xuất Triết/chủ repo merge PR #19/Day 6 vào `main` trước khi tích hợp Ngày 8.
 - **Điểm dừng:** Hoàn thành toàn diện mục tiêu Ngày 7 của Triết. Sẵn sàng tạo PR `feat: add gemini chatbot widget and ticket email service` và chuyển sang Ngày 8 (kiểm thử toàn diện toàn hệ thống, Docker hóa và chốt bản ứng viên Release Candidate).
 
+## Ngày 7 (23/10/2026) — Đạt (AI-D)
 
+- **Nhánh làm việc:** `dat/day-07-reports-dashboards`
+- **Phạm vi được giao:** Tích hợp dịch vụ thống kê, báo cáo doanh thu, chi phí nhập kho, số liệu đặt sân, bộ lọc theo chi nhánh/thời gian cho Manager và Director.
+- **File đã tạo/sửa:**
+  - `src/main/java/vn/yain/service/ReportService.java`: Tổng hợp doanh thu từ hóa đơn đã thanh toán (`PAID`), chi phí từ `StockReceipt`, tỷ lệ hoàn thành/hủy `Booking` và cảnh báo tồn kho tối thiểu.
+  - Soạn Patch API `/api/reports/summary` và `/api/reports/daily-revenue` gửi Triết gộp vào `ApiController.java`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Đối chiếu tổng doanh thu trên báo cáo khớp với tổng `finalAmount` của các `Invoice` có trạng thái `PAID`.
+- **Điểm dừng:** Hoàn thành toàn bộ tính năng phân công tới Ngày 7, không để nợ tính năng sang Ngày 8.
 
+## Ngày 8 (24/10/2026) — Đạt (AI-D)
 
-
-
+- **Nhánh làm việc:** `dat/day-08-testing-sql-verification`
+- **Phạm vi được giao:** Kiểm thử tích hợp kho, nhân sự, ca làm, giá, giải đấu, báo cáo; đối chiếu SQL procedures/triggers/functions và dữ liệu seed; tích hợp regression test.
+- **File đã tạo/sửa:**
+  - `src/test/java/vn/yain/service/ShiftServiceTest.java`: Tích hợp unit test kiểm tra phân ca, mở ca, kết ca thu ngân và tra cứu nhân sự.
+  - Rà soát `database/init_badminton.sql` và `database/procedures_triggers_functions.sql`.
+- **Kiểm tra đã chạy và kết quả:**
+  - Chạy `./mvnw test -Dtest=ShiftServiceTest` xanh 100%.
+  - Kiểm thử smoke test luồng nhập phiếu kho -> tăng tồn kho -> xuất POS -> lên báo cáo doanh thu.
+- **Điểm dừng:** Chốt Release Candidate (RC) cùng Triết và Thọ.
 
 ## Ngày 8 (24/10/2026) — Thọ (AI-H)
 
@@ -343,6 +360,29 @@
 ## Ngay 8 (24/10/2026) — Triet (AI-T)
 
 - **Nhanh lam viec:** `triet/day-08-testing-docker-rc`
+- **Pham vi:** Docker hoa, merge regression suite (Tho), bo E2E integration tests toan he thong.
+- **File da tao:**
+  - `Dockerfile` (multi-stage JDK 24 build + JRE 21 runtime, non-root user, HEALTHCHECK)
+  - `docker-compose.yml` (SQL Server 2022 + App, health-check 2 tang, named volumes)
+  - `.env.example` (mau bien moi truong Docker)
+  - `src/test/java/vn/yain/integration/SystemIntegrationE2ETest.java` (10 E2E tests)
+- **Ket qua:** **119/119 tests PASSED, BUILD SUCCESS** (27.311s)
+- **Commit:** `b5ca54c` — `feat: dockerize app, add E2E integration tests, merge regression suite – v1.0-RC1`
+
+## Ngay 9 (25/10/2026) — Triet (AI-T)
+
+- **Nhanh lam viec:** `triet/day-09-final-release`
+- **Pham vi:** Hoan thien tai lieu he thong, README phien ban release, chot v1.0.0.
+- **File da sua:**
+  - `README.md`: Viet lai hoan toan cho ban release v1.0.0: badges, muc luc, so do kien truc ASCII, bang tai khoan demo, huong dan Docker step-by-step, bang 119 test theo module, bang bien moi truong day du.
+  - `docs/progress.md`: Cap nhat nhat ky tien do Ngay 8-9 cua Triet.
+- **Chuc nang da xong:**
+  - Tai lieu README day du cho nguoi dung moi co the clone va chay ngay.
+  - So do kien truc day du the hien toan bo tang (Browser/Security/Controller/Service/Repository/DB).
+  - Tai khoan demo cho tat ca 5 vai tro (Admin/Director/Manager/POS/Customer).
+  - Huong dan Docker step-by-step (docker compose up --build -d).
+  - Bang 20 test class / 119 test ca voi ten chinh xac.
+- **Diem dung:** Hoan thanh toan bo muc tieu Ngay 9 cua Triet. San sang tao PR #27 va tag v1.0.0.
 - **Pham vi duoc giao:** Kiem thu toan dien toan he thong, Docker hoa va chot ban ung vien Release Candidate v1.0-RC1; merge va kiem tra tich hop ket qua Regression Test cua Tho (`tho/day-08-regression-testing`).
 - **File da tao/sua:**
   - `Dockerfile`: Multi-stage build (eclipse-temurin:24-jdk builder + eclipse-temurin:21-jre-jammy runtime), chay user khong root, HEALTHCHECK tu dong, JVM toi uu (-Xms256m -Xmx512m), kich hoat profile prod mac dinh.
@@ -385,3 +425,16 @@
   - Chuyển giao toàn bộ kết quả nghiệm thu cho Triết (AI-T) để gộp nhánh, đối chiếu tài liệu README và gắn tag phát hành chính thức `v1.0.0`.
 - **Điểm dừng:** Hoàn thành xuất sắc toàn bộ nhiệm vụ Ngày 9 của Thọ (AI-H). Sẵn sàng tạo PR `docs: finalize release notes and acceptance checklist`.
 
+## Ngày 9 (25/10/2026) — Đạt (AI-D) — NGHIỆM THU & BÀN GIAO
+
+- **Nhánh làm việc:** `dat/day-09-final-acceptance`
+- **Phạm vi thực hiện:** Demo nghiệm thu toàn diện phân hệ Kho, Nhân sự - Phân ca, Bảng giá - Khuyến mãi, Chi nhánh - Giải đấu, Báo cáo thống kê Giám đốc/Quản lý.
+- **Kết quả kiểm tra nghiệm thu (Acceptance Verification):**
+  - `[x]` **Kho & Bán lẻ:** CRUD Sản phẩm/Thiết bị, tạo phiếu nhập kho cộng tồn tự động, trừ tồn kho bán lẻ qua POS hoạt động chính xác, chặn âm kho.
+  - `[x]` **Nhân sự & Ca làm:** Lịch phân ca theo tuần, mở/đóng ca thu ngân khớp số liệu giao dịch; pass toàn bộ unit test `ShiftServiceTest`.
+  - `[x]` **Giá & Khuyến mãi:** Tính giá sân theo khung giờ/loại ngày, quy trình tạo và phê duyệt đề xuất giá (`PricingProposal`), áp dụng khuyến mãi hợp lệ.
+  - `[x]` **Chi nhánh & Giải đấu:** Quản lý đa chi nhánh, tạo/duyệt giải đấu và kiểm soát số lượng vận động viên đăng ký.
+  - `[x]` **Báo cáo & Dashboard:** Biểu đồ doanh thu ngày và tổng hợp KPI khớp với hóa đơn thanh toán thực tế.
+  - `[x]` **Cơ sở dữ liệu:** Đã đối chiếu hoàn tất `init_badminton.sql` và `procedures_triggers_functions.sql`.
+- **Điểm chưa xác minh:** Không còn. Toàn bộ các module của Đạt đã được kiểm chứng thực tế.
+- **Điểm dừng cuối:** Hoàn thành 100% khối lượng công việc của Đạt (AI-D) trong kế hoạch 9 ngày, bàn giao cho Triết gộp nhánh và đóng tag `v1.0.0`.
