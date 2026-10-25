@@ -438,3 +438,22 @@
   - `[x]` **Cơ sở dữ liệu:** Đã đối chiếu hoàn tất `init_badminton.sql` và `procedures_triggers_functions.sql`.
 - **Điểm chưa xác minh:** Không còn. Toàn bộ các module của Đạt đã được kiểm chứng thực tế.
 - **Điểm dừng cuối:** Hoàn thành 100% khối lượng công việc của Đạt (AI-D) trong kế hoạch 9 ngày, bàn giao cho Triết gộp nhánh và đóng tag `v1.0.0`.
+
+## Đồng bộ toàn diện mã nguồn dự án gốc Badminton_Management_Project (25/10/2026)
+
+- **Mục tiêu:** Sao chép và tích hợp toàn bộ 100% mã nguồn, cơ sở dữ liệu, mô hình học máy NLP, assets, templates và test suites từ dự án tham chiếu `Badminton_Management_Project` vào `Spring_Badminton_Website_Project`, bảo toàn lịch sử Git và báo cáo nghiệm thu 9 ngày.
+- **Các phân hệ & tệp tin đã đồng bộ:**
+  - **Hệ thống sao lưu & quản trị CSDL:** `DatabaseManagementService.java`, thư mục bản sao lưu `database/backups/` (`backup_ute_sport_initial.sql`, `backup_unit_test.sql.gz.sql`).
+  - **Mô hình Trí tuệ nhân tạo Phân loại ý định (NLP Classifier):** `IntentClassificationService.java` chạy thuần JVM qua TF-IDF (N-gram từ & ký tự) + Softmax Centroid Matching, bộ dữ liệu mẫu `src/main/resources/nlp/intent_dataset.json` (2,138 từ vựng, 21 nhãn ý định), kịch bản huấn luyện `scripts/train_intent_model.py`.
+  - **Phân hệ Live Support Chat với nhân viên:** `SupportChatService.java`, giao diện và kịch bản WebSocket `staff-support-chat.js`, `staff-support-chat.css`.
+  - **Phân hệ Webhook chuyển tiếp VietQR:** `WebhookForwardController.java`, `DataSourceConfig.java`, `DatabaseSeeder.java`.
+  - **Các thực thể & Repository bổ sung:** `ChatMessage`, `StockProductDetail`, `Supplier`, `SupportTicket` cùng các JPA Repository tương ứng.
+  - **Bộ kiểm thử toàn diện:**
+    - `SystemComprehensive50TestCasesTest.java`: 50 test cases bảo đảm toàn vẹn hệ thống.
+    - `SqlServerApiWorkflowIntegrationTest.java`: 12 test cases kiểm thử chu trình nghiệp vụ REST API trên SQL Server 2022.
+    - `SqlServerDatabaseIntegrationTest.java`: 17 test cases kiểm tra tương thích schema & dữ liệu SQL Server.
+    - `ChatbotBookingFlowTest.java`, `ChatbotMicroFaqTest.java`: Kiểm thử kịch bản hội thoại đa bước và FAQ.
+- **Kết quả nghiệm thu kiểm thử (Maven Test Suite):**
+  - Chạy toàn bộ test suite: **249/249 tests PASSED (0 Failures, 0 Errors, 0 Skipped)**.
+  - `BUILD SUCCESS` hoàn hảo trong 36 giây.
+
