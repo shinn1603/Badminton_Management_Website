@@ -124,6 +124,112 @@
       align-items: start;
     }
 
+    /* LUXURY CUSTOMER AVATAR CARD */
+    .customer-avatar-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      position: relative;
+    }
+    .avatar-ring-wrap {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 50%, #f59e0b 100%);
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    }
+    .avatar-ring-wrap img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      background: #0f1e1a;
+      border: 2px solid var(--surface);
+    }
+    .avatar-camera-btn {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #10b981;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid var(--surface);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+    }
+    .avatar-camera-btn:hover {
+      transform: scale(1.1);
+      background: #059669;
+    }
+    .avatar-uploading-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+    }
+    .avatar-info-col {
+      flex: 1;
+      min-width: 0;
+    }
+    .avatar-cust-name {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--cust-text-main);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .avatar-cust-meta {
+      font-size: 12px;
+      color: var(--cust-text-muted);
+      margin-top: 2px;
+    }
+    .avatar-tier-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .cloudinary-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
     /* Elegant Executive Luxury Metal Member Card */
     .digital-card {
       background: linear-gradient(135deg, #064e3b 0%, #022c22 55%, #011c15 100%);
@@ -790,6 +896,33 @@
   <div class="profile-layout">
     <!-- Left Column: Member Card & Tiers -->
     <div>
+      <!-- Customer Avatar Card (Cloudinary) -->
+      <div class="customer-avatar-card">
+        <div class="avatar-ring-wrap">
+          <img id="profCustomerAvatar" src="https://ui-avatars.com/api/?name=Khach+Hang&background=059669&color=fff&size=128" alt="Avatar" onerror="this.src='https://ui-avatars.com/api/?name=User&background=059669&color=fff&size=128'">
+          <label class="avatar-camera-btn" title="Cập nhật ảnh đại diện lên Cloudinary">
+            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2;">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <input type="file" id="inpCustomerAvatarFile" accept="image/*" style="display: none;" onchange="handleCustomerAvatarUpload(this)">
+          </label>
+          <div id="avatarUploadingSpinner" class="avatar-uploading-overlay" style="display: none;">
+            <span>⏳</span>
+          </div>
+        </div>
+        <div class="avatar-info-col">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3 class="avatar-cust-name" id="profAvatarName">Đang tải...</h3>
+            <span class="cloudinary-badge-tag">Cloudinary</span>
+          </div>
+          <div class="avatar-cust-meta" id="profAvatarPhone">---</div>
+          <div style="margin-top: 6px;">
+            <span class="avatar-tier-pill" id="profAvatarTierPill">Hội viên</span>
+          </div>
+        </div>
+      </div>
+
       <!-- The Card -->
       <div class="digital-card">
         <div class="card-brand-row">
@@ -1088,6 +1221,22 @@
     function renderProfileData(data) {
       if (!data) return;
 
+      // Avatar & Card Info (Cloudinary)
+      const avatarImg = document.getElementById('profCustomerAvatar');
+      if (avatarImg) {
+        if (data.avatarUrl && data.avatarUrl.trim() !== '') {
+          avatarImg.src = data.avatarUrl;
+        } else {
+          avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName || 'Khach Hang')}&background=059669&color=fff&size=128`;
+        }
+      }
+      const avatarName = document.getElementById('profAvatarName');
+      if (avatarName) avatarName.textContent = data.fullName || 'Thành Viên UTE';
+      const avatarPhone = document.getElementById('profAvatarPhone');
+      if (avatarPhone) avatarPhone.textContent = data.phone || data.email || 'Hội viên UTE Sport';
+      const avatarTierPill = document.getElementById('profAvatarTierPill');
+      if (avatarTierPill) avatarTierPill.textContent = 'Hạng ' + (data.membershipTier || 'Đồng');
+
       // Card
       const name = (data.fullName || 'Thành Viên UTE').toUpperCase();
       document.querySelectorAll('.card-holder-name').forEach(el => el.textContent = name);
@@ -1208,6 +1357,75 @@
             recentBookings: []
           });
         } catch (e) {}
+      }
+    }
+
+    async function handleCustomerAvatarUpload(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn tệp ảnh hợp lệ (JPG, PNG, WebP)!');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Dung lượng ảnh đại diện không được vượt quá 5MB!');
+        return;
+      }
+
+      const curToken = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+      if (!curToken) {
+        alert('Vui lòng đăng nhập lại để cập nhật ảnh đại diện!');
+        window.location.href = '/customer/auth?redirect=/customer/profile';
+        return;
+      }
+
+      const spinner = document.getElementById('avatarUploadingSpinner');
+      if (spinner) spinner.style.display = 'flex';
+
+      const formData = new FormData();
+      formData.append('avatarFile', file);
+
+      try {
+        const res = await fetch('/api/customer/avatar', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + curToken
+          },
+          body: formData
+        });
+
+        const json = await res.json();
+        if (res.ok && json.avatarUrl) {
+          const avatarImg = document.getElementById('profCustomerAvatar');
+          if (avatarImg) avatarImg.src = json.avatarUrl;
+
+          // Cập nhật localStorage
+          const raw = localStorage.getItem('utesport_user');
+          if (raw) {
+            try {
+              const u = JSON.parse(raw);
+              u.avatarUrl = json.avatarUrl;
+              localStorage.setItem('utesport_user', JSON.stringify(u));
+            } catch (e) {}
+          }
+
+          if (window.showToast) {
+            showToast('Tải lên ảnh đại diện Cloudinary thành công!', 'success');
+          } else {
+            alert('Tải lên ảnh đại diện Cloudinary thành công!');
+          }
+        } else {
+          const errMsg = json.message || 'Tải ảnh đại diện thất bại!';
+          if (window.showToast) showToast(errMsg, 'error');
+          else alert(errMsg);
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải ảnh đại diện:', err);
+        if (window.showToast) showToast('Lỗi kết nối khi tải ảnh đại diện!', 'error');
+        else alert('Lỗi kết nối khi tải ảnh đại diện!');
+      } finally {
+        if (spinner) spinner.style.display = 'none';
+        input.value = '';
       }
     }
 

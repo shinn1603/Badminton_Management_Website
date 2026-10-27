@@ -69,6 +69,96 @@
       font-weight: 800;
       color: var(--primary);
     }
+
+    /* CLOUDINARY MEDIA & CONDITION GALLERY STYLES */
+    .condition-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .condition-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .condition-img-card {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-subtle);
+      aspect-ratio: 4/3;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+    }
+    .condition-img-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+      border-color: var(--primary);
+    }
+    .condition-img-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .condition-img-card .img-delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.85;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .condition-img-card:hover .img-delete-btn {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    .upload-dropzone {
+      border: 2px dashed rgba(16, 185, 129, 0.45);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      background: rgba(16, 185, 129, 0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .upload-dropzone:hover {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: var(--primary);
+    }
+    .cloudinary-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(3, 105, 161, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -473,10 +563,123 @@
             <option value="Bảo trì">Bảo trì kỹ thuật</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Ảnh bìa sân (Cloudinary)</span>
+            <span class="cloudinary-badge-tag">Cloudinary CDN</span>
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-control" id="inpImageUrl" placeholder="URL ảnh bìa (hoặc bấm tải lên bên dưới)">
+            <label class="btn btn-outline" style="white-space: nowrap; cursor: pointer; padding: 7px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+              <span>📁 Tải ảnh</span>
+              <input type="file" id="inpModalFileCover" accept="image/*" style="display: none;" onchange="uploadCoverFromCreateModal(this)">
+            </label>
+          </div>
+          <div id="modalCoverPreviewWrap" style="margin-top: 8px; display: none;">
+            <img id="modalCoverPreviewImg" src="" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);">
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeCourtModal()">Hủy bỏ</button>
         <button class="btn btn-primary" onclick="saveCourt()">Lưu thông tin sân</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL QUẢN LÝ HÌNH ẢNH & TÌNH TRẠNG SÂN (CLOUDINARY) -->
+  <div class="modal-overlay" id="courtMediaModal">
+    <div class="modal-card" style="max-width: 680px; width: 95%;">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 id="mediaModalTitle" style="margin: 0; font-size: 17px; font-weight: 800;">Quản lý hình ảnh & Tình trạng sân</h3>
+            <span class="cloudinary-badge-tag">Cloudinary</span>
+          </div>
+          <p id="mediaModalSubtitle" style="margin: 4px 0 0; font-size: 12.5px; color: var(--text-muted);">Sân CL01 • Chi nhánh Thủ Đức</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeCourtMediaModal()">✕</button>
+      </div>
+
+      <!-- MEDIA MODAL TABS -->
+      <div style="display: flex; border-bottom: 1px solid var(--border-subtle); background: var(--surface-subtle); padding: 0 16px;">
+        <button type="button" class="btn" id="tabBtnCover" onclick="switchMediaTab('cover')" style="background: transparent; border: none; border-bottom: 2px solid var(--primary); color: var(--primary); border-radius: 0; padding: 10px 14px; font-weight: 700; font-size: 13px;">1. Ảnh Bìa Đại Diện</button>
+        <button type="button" class="btn" id="tabBtnCondition" onclick="switchMediaTab('condition')" style="background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); border-radius: 0; padding: 10px 14px; font-weight: 700; font-size: 13px;">2. Ảnh Tình Trạng Sân</button>
+        <button type="button" class="btn" id="tabBtnSpecs" onclick="switchMediaTab('specs')" style="background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); border-radius: 0; padding: 10px 14px; font-weight: 700; font-size: 13px;">3. Thông Số & Thiết Bị</button>
+      </div>
+
+      <div class="modal-body" style="padding: 18px 20px;">
+        <input type="hidden" id="curMediaCourtCode">
+
+        <!-- TAB 1: COVER IMAGE -->
+        <div id="mediaTabCover">
+          <div style="margin-bottom: 14px;">
+            <label style="font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; display: block;">Ảnh bìa đại diện hiện tại:</label>
+            <div style="position: relative; width: 100%; height: 180px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-subtle); background: #000;">
+              <img id="curCoverImageDisplay" src="/images/badminton-court.jpg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/images/badminton-court.jpg'">
+              <span style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 6px;">Ảnh bìa chính</span>
+            </div>
+          </div>
+
+          <div class="upload-dropzone" onclick="document.getElementById('coverFileInput').click()">
+            <input type="file" id="coverFileInput" accept="image/*" style="display: none;" onchange="handleCoverUpload(this)">
+            <svg viewBox="0 0 24 24" style="width: 36px; height: 36px; stroke: var(--primary); fill: none; stroke-width: 2; margin-bottom: 8px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark);">Bấm để chọn tệp tải lên Cloudinary</div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">Hỗ trợ JPG, PNG, WEBP tối đa 10MB</div>
+            <div id="coverUploadLoading" style="display: none; margin-top: 8px; font-size: 12px; color: var(--primary); font-weight: 700;">
+              ⏳ Đang tải ảnh lên Cloudinary...
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: CONDITION IMAGES GALLERY -->
+        <div id="mediaTabCondition" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-dark);">Ảnh tình trạng thực tế của sân</span>
+              <p style="margin: 2px 0 0; font-size: 11.5px; color: var(--text-muted);">Khách hàng sẽ xem được các ảnh này để đánh giá chất lượng thảm, lưới, đèn</p>
+            </div>
+            <label class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+              <span>+ Thêm ảnh tình trạng</span>
+              <input type="file" id="conditionFileInput" accept="image/*" multiple style="display: none;" onchange="handleConditionUpload(this)">
+            </label>
+          </div>
+
+          <div id="conditionUploadLoading" style="display: none; padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 10px; text-align: center;">
+            ⏳ Đang tải ảnh tình trạng lên Cloudinary...
+          </div>
+
+          <div class="condition-gallery-grid" id="conditionGalleryContainer">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+
+        <!-- TAB 3: SPECIFICATIONS -->
+        <div id="mediaTabSpecs" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Tình trạng hệ thống chiếu sáng (Đèn)</label>
+            <input type="text" class="form-control" id="inpSpecLighting" placeholder="Ví dụ: Đèn LED chống chói 500 Lux chuẩn BWF">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tình trạng mặt sàn / Thảm thi đấu</label>
+            <input type="text" class="form-control" id="inpSpecFloor" placeholder="Ví dụ: Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tình trạng hệ thống lưới & Cột biên</label>
+            <input type="text" class="form-control" id="inpSpecNet" placeholder="Ví dụ: Lưới thi đấu BWF căng mới, cột nhôm chắc chắn">
+          </div>
+          <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveCourtSpecs()">
+            Lưu thông số thiết bị sân
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeCourtMediaModal()">Đóng</button>
       </div>
     </div>
   </div>
@@ -557,6 +760,22 @@
       }
     }
 
+    function parseConditionList(raw) {
+      if (!raw) return [];
+      try {
+        if (typeof raw === 'string' && raw.trim().startsWith('[')) {
+          return JSON.parse(raw);
+        } else if (Array.isArray(raw)) {
+          return raw;
+        } else if (typeof raw === 'string') {
+          return raw.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      } catch (e) {
+        return [];
+      }
+      return [];
+    }
+
     function renderVisualGrid(courts) {
       const grid = document.getElementById('courtsVisualGrid');
       if (!grid) return;
@@ -579,56 +798,63 @@
         const imgSrc = c.imageUrl || '/images/badminton-court.jpg';
         const safeName = (c.courtName || ('Sân ' + c.courtCode)).replace(/'/g, "\\'");
         const safeType = (c.courtType || 'Cầu lông tiêu chuẩn').replace(/'/g, "\\'");
+        const conditionList = parseConditionList(c.conditionImages);
 
-        // Phân quyền & trạng thái nút theo yêu cầu:
-        // 1. "Đang sử dụng": CHỈ HIỂN THỊ DUY NHẤT TRẠNG THÁI "Đang sử dụng" (ẩn hoàn toàn nút Chỉnh sửa và Đặt sân).
-        // 2. "Trống": Hiển thị nút "Chỉnh sửa" và nút "Đặt sân" (chuyển sang /manager/bookings?court=...)
-        // 3. "Bảo trì": Hiển thị nút "Chỉnh sửa" và nút "Hoàn tất bảo trì" (chuyển nhanh về Trống và lưu CSDL)
         let actionButtonsHtml = '';
         if (c.status === 'Đang sử dụng') {
           actionButtonsHtml = `
-            <div style="margin-top: 12px; padding: 7px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px dashed rgba(245, 158, 11, 0.4); color: #d97706; font-size: 12px; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <div style="margin-top: 10px; padding: 6px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px dashed rgba(245, 158, 11, 0.4); color: #d97706; font-size: 11.5px; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
               <span style="display: inline-block; width: 7px; height: 7px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 6px #f59e0b;"></span>
               Đang có khách thi đấu
             </div>
-            <div style="margin-top: 8px; display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
-              <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 8px; font-size: 11.5px; background: #059669; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, chuyển ngay về trạng thái Trống">Trả sân (Về trống)</button>
+            <div style="margin-top: 8px; display: flex; gap: 6px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
+              <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #059669; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, chuyển ngay về trạng thái Trống">Trả sân</button>
             </div>
           `;
         } else if (c.status === 'Đã đặt trước') {
           actionButtonsHtml = `
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt (Về trống)</button>
+            <div style="margin-top: 10px; display: flex; gap: 6px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt</button>
             </div>
           `;
         } else if (c.status === 'Bảo trì') {
           actionButtonsHtml = `
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
-              <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 8px; font-size: 11.5px; background: #10b981; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hoàn tất bảo trì</button>
+            <div style="margin-top: 10px; display: flex; gap: 6px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
+              <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #10b981; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hoàn tất</button>
             </div>
           `;
         } else if (c.status === 'Đang giữ chỗ') {
           actionButtonsHtml = `
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px; border-color: #f59e0b; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hủy giữ chỗ</button>
+            <div style="margin-top: 10px; display: flex; gap: 6px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #f59e0b; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hủy giữ</button>
             </div>
           `;
         } else {
           actionButtonsHtml = `
-            <div style="margin-top: 12px; display: flex; gap: 8px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Chỉnh sửa</button>
-              <a href="/manager/bookings?court=${c.courtCode}" class="btn btn-primary" style="flex: 1; padding: 6px 8px; font-size: 11.5px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Đặt sân</a>
+            <div style="margin-top: 10px; display: flex; gap: 6px;">
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
+              <a href="/manager/bookings?court=${c.courtCode}" class="btn btn-primary" style="flex: 1; padding: 6px 6px; font-size: 11px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Đặt sân</a>
             </div>
           `;
         }
 
         return `
           <div class="court-card-luxury" data-court-code="${c.courtCode}">
-            <img src="${imgSrc}" class="court-card-thumb" alt="${c.courtName}" onerror="this.src='/images/badminton-court.jpg'">
+            <div style="position: relative;">
+              <img src="${imgSrc}" class="court-card-thumb" alt="${c.courtName}" onerror="this.src='/images/badminton-court.jpg'">
+              <span class="condition-badge-pill" style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.75); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); cursor: pointer;" onclick="openCourtMediaModal('${c.courtCode}')">
+                📷 ${conditionList.length} ảnh tình trạng
+              </span>
+            </div>
             <div class="court-card-body">
               <div class="court-card-header">
                 <h4 class="court-name">${c.courtName}</h4>
@@ -672,19 +898,27 @@
         const rateFormatted = Number(c.hourlyRate || 90000).toLocaleString('vi-VN') + ' đ/h';
         const safeName = (c.courtName || ('Sân ' + c.courtCode)).replace(/'/g, "\\'");
         const safeType = (c.courtType || 'Cầu lông tiêu chuẩn').replace(/'/g, "\\'");
+        const imgSrc = c.imageUrl || '/images/badminton-court.jpg';
+        const conditionList = parseConditionList(c.conditionImages);
 
         return `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
             <td><strong>${c.courtCode}</strong></td>
-            <td>${c.courtName}</td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="${imgSrc}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;" onerror="this.src='/images/badminton-court.jpg'">
+                <span>${c.courtName}</span>
+              </div>
+            </td>
             <td>${c.courtType}</td>
             <td>${branchDisplay}</td>
             <td><b style="color: var(--primary);">${rateFormatted}</b></td>
             <td><span class="badge ${badgeClass}">${c.status}</span></td>
             <td style="text-align: right;">
               <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
-                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}')">Sửa</button>
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh Cloudinary">📷 Ảnh (${conditionList.length})</button>
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
                 ${c.status === 'Đang sử dụng' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #059669; color: #059669;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, trả về sân trống">Trả sân</button>` : ''}
                 ${c.status === 'Đã đặt trước' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt</button>` : ''}
                 ${c.status === 'Bảo trì' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hoàn tất</button>` : ''}
@@ -740,8 +974,11 @@
       }
     }
 
-    function openCourtModal(code, name, type, rate, status) {
+    function openCourtModal(code, name, type, rate, status, imageUrl) {
       const modal = document.getElementById('courtModal');
+      const prevWrap = document.getElementById('modalCoverPreviewWrap');
+      const prevImg = document.getElementById('modalCoverPreviewImg');
+
       if (code) {
         document.getElementById('modalTitle').innerText = 'Cập nhật thông tin sân ' + code;
         document.getElementById('inpCourtCode').value = code;
@@ -750,6 +987,13 @@
         document.getElementById('inpCourtType').value = type || 'Cầu lông tiêu chuẩn';
         document.getElementById('inpHourlyRate').value = rate || 90000;
         document.getElementById('inpStatus').value = status || 'Trống';
+        document.getElementById('inpImageUrl').value = imageUrl || '';
+        if (imageUrl) {
+          prevImg.src = imageUrl;
+          prevWrap.style.display = 'block';
+        } else {
+          prevWrap.style.display = 'none';
+        }
       } else {
         document.getElementById('modalTitle').innerText = 'Thêm sân mới vào chi nhánh';
         const nextNum = allLoadedCourts.length + 1;
@@ -759,6 +1003,9 @@
         document.getElementById('inpCourtType').value = 'Cầu lông tiêu chuẩn';
         document.getElementById('inpHourlyRate').value = 90000;
         document.getElementById('inpStatus').value = 'Trống';
+        document.getElementById('inpImageUrl').value = '/images/badminton-court.jpg';
+        prevImg.src = '/images/badminton-court.jpg';
+        prevWrap.style.display = 'block';
       }
       modal.classList.add('open');
     }
@@ -767,12 +1014,48 @@
       document.getElementById('courtModal').classList.remove('open');
     }
 
+    async function uploadCoverFromCreateModal(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const courtCode = document.getElementById('inpCourtCode').value.trim() || 'CL01';
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('courtCode', courtCode);
+      formData.append('imageType', 'cover');
+
+      const token = localStorage.getItem('jwt_token') || '';
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      try {
+        showToast('Đang tải ảnh bìa lên Cloudinary...', 'info');
+        const res = await fetch('/api/courts/upload-image', {
+          method: 'POST',
+          headers: headers,
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('inpImageUrl').value = data.url;
+          document.getElementById('modalCoverPreviewImg').src = data.url;
+          document.getElementById('modalCoverPreviewWrap').style.display = 'block';
+          showToast('Tải ảnh bìa Cloudinary thành công!', 'success');
+        } else {
+          showToast(data.message || 'Lỗi tải ảnh lên Cloudinary', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ: ' + err.message, 'error');
+      }
+    }
+
     async function saveCourt() {
       const code = document.getElementById('inpCourtCode').value.trim();
       const name = document.getElementById('inpCourtName').value.trim() || ('Sân ' + code);
       const type = document.getElementById('inpCourtType').value;
       const rate = document.getElementById('inpHourlyRate').value;
       const status = document.getElementById('inpStatus').value;
+      const imageUrl = document.getElementById('inpImageUrl').value.trim() || '/images/badminton-court.jpg';
       const branch = getActiveBranchCode();
 
       if (!code) {
@@ -794,6 +1077,7 @@
             courtType: type,
             hourlyRate: Number(rate),
             status: status,
+            imageUrl: imageUrl,
             branchCode: branch
           })
         });
@@ -807,6 +1091,211 @@
         }
       } catch (err) {
         showToast(`Lỗi kết nối máy chủ: ${err.message}`, 'error');
+      }
+    }
+
+    // --- CLOUDINARY MEDIA & CONDITION GALLERY FUNCTIONS ---
+    let currentMediaCourt = null;
+
+    function switchMediaTab(tab) {
+      ['Cover', 'Condition', 'Specs'].forEach(t => {
+        const el = document.getElementById('mediaTab' + t);
+        const btn = document.getElementById('tabBtn' + t);
+        if (el) el.style.display = (t.toLowerCase() === tab.toLowerCase()) ? 'block' : 'none';
+        if (btn) {
+          if (t.toLowerCase() === tab.toLowerCase()) {
+            btn.style.borderBottomColor = 'var(--primary)';
+            btn.style.color = 'var(--primary)';
+          } else {
+            btn.style.borderBottomColor = 'transparent';
+            btn.style.color = 'var(--text-muted)';
+          }
+        }
+      });
+    }
+
+    async function openCourtMediaModal(courtCode) {
+      currentMediaCourt = courtCode;
+      document.getElementById('curMediaCourtCode').value = courtCode;
+      document.getElementById('mediaModalTitle').innerText = `Quản lý hình ảnh & Tình trạng sân ${courtCode}`;
+      document.getElementById('courtMediaModal').classList.add('open');
+      switchMediaTab('cover');
+
+      try {
+        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`);
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('mediaModalSubtitle').innerText = `${data.courtName} • ${data.courtType} • Chi nhánh ${data.branchCode}`;
+          document.getElementById('curCoverImageDisplay').src = data.imageUrl || '/images/badminton-court.jpg';
+          document.getElementById('inpSpecLighting').value = data.lightingCondition || '';
+          document.getElementById('inpSpecFloor').value = data.floorCondition || '';
+          document.getElementById('inpSpecNet').value = data.netCondition || '';
+          renderConditionGallery(data.conditionImages || [], courtCode);
+        }
+      } catch (e) {
+        console.warn('Lỗi tải chi tiết sân:', e);
+      }
+    }
+
+    function closeCourtMediaModal() {
+      document.getElementById('courtMediaModal').classList.remove('open');
+      loadCourtsFromApi();
+    }
+
+    function renderConditionGallery(images, courtCode) {
+      const container = document.getElementById('conditionGalleryContainer');
+      if (!container) return;
+
+      if (!images || images.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); background: var(--surface-subtle); border-radius: 10px; border: 1px dashed var(--border-subtle);">
+            Chưa có ảnh tình trạng nào được tải lên cho sân ${courtCode}. Hãy bấm nút "+ Thêm ảnh tình trạng" ở trên để chụp ảnh thảm, lưới, đèn.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = images.map((url, idx) => `
+        <div class="condition-img-card">
+          <img src="${url}" alt="Ảnh tình trạng ${idx + 1}" onerror="this.src='/images/badminton-court.jpg'">
+          <button type="button" class="img-delete-btn" onclick="deleteCourtConditionImage('${courtCode}', '${url}')" title="Xóa ảnh này">✕</button>
+        </div>
+      `).join('');
+    }
+
+    async function handleCoverUpload(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const courtCode = document.getElementById('curMediaCourtCode').value;
+      const loading = document.getElementById('coverUploadLoading');
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('courtCode', courtCode);
+      formData.append('imageType', 'cover');
+
+      const token = localStorage.getItem('jwt_token') || '';
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      try {
+        if (loading) loading.style.display = 'block';
+        const res = await fetch('/api/courts/upload-image', {
+          method: 'POST',
+          headers: headers,
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('curCoverImageDisplay').src = data.url;
+          showToast('Đã tải ảnh bìa mới lên Cloudinary thành công!', 'success');
+        } else {
+          showToast(data.message || 'Lỗi tải ảnh bìa', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ: ' + err.message, 'error');
+      } finally {
+        if (loading) loading.style.display = 'none';
+        input.value = '';
+      }
+    }
+
+    async function handleConditionUpload(input) {
+      if (!input.files || input.files.length === 0) return;
+      const courtCode = document.getElementById('curMediaCourtCode').value;
+      const loading = document.getElementById('conditionUploadLoading');
+      const token = localStorage.getItem('jwt_token') || '';
+      const headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      if (loading) loading.style.display = 'block';
+
+      try {
+        for (let i = 0; i < input.files.length; i++) {
+          const file = input.files[i];
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('courtCode', courtCode);
+          formData.append('imageType', 'condition');
+
+          const res = await fetch('/api/courts/upload-image', {
+            method: 'POST',
+            headers: headers,
+            body: formData
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            showToast(data.message || `Lỗi tải ảnh ${file.name}`, 'error');
+          }
+        }
+        showToast('Đã tải bộ ảnh tình trạng sân lên Cloudinary thành công!', 'success');
+        // Refresh modal data
+        const refreshRes = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`);
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          renderConditionGallery(data.conditionImages || [], courtCode);
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ: ' + err.message, 'error');
+      } finally {
+        if (loading) loading.style.display = 'none';
+        input.value = '';
+      }
+    }
+
+    async function deleteCourtConditionImage(courtCode, imageUrl) {
+      if (!confirm('Bạn có chắc muốn xóa ảnh tình trạng này khỏi sân?')) return;
+      const token = localStorage.getItem('jwt_token') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      try {
+        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/condition-image`, {
+          method: 'DELETE',
+          headers: headers,
+          body: JSON.stringify({ imageUrl: imageUrl })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Đã xóa ảnh tình trạng!', 'success');
+          renderConditionGallery(data.conditionImages || [], courtCode);
+        } else {
+          showToast(data.message || 'Lỗi xóa ảnh', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ: ' + err.message, 'error');
+      }
+    }
+
+    async function saveCourtSpecs() {
+      const courtCode = document.getElementById('curMediaCourtCode').value;
+      const lighting = document.getElementById('inpSpecLighting').value.trim();
+      const floor = document.getElementById('inpSpecFloor').value.trim();
+      const net = document.getElementById('inpSpecNet').value.trim();
+
+      const token = localStorage.getItem('jwt_token') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+
+      try {
+        const res = await fetch('/api/courts', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({
+            courtCode: courtCode,
+            lightingCondition: lighting,
+            floorCondition: floor,
+            netCondition: net
+          })
+        });
+        const data = await res.json();
+        if (res.ok && (data.success || data.court)) {
+          showToast('Đã lưu thông số thiết bị sân vào CSDL!', 'success');
+        } else {
+          showToast(data.message || 'Lỗi lưu thông số thiết bị', 'error');
+        }
+      } catch (err) {
+        showToast('Lỗi kết nối máy chủ: ' + err.message, 'error');
       }
     }
 

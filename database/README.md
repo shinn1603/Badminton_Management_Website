@@ -29,7 +29,7 @@ sqlcmd -f 65001 -S localhost,1433 -U sa -P 123456 -i database\init_badminton.sql
 
 ---
 
-## 3. Kiến trúc CSDL: 24 Bảng thực thể & 24 View tiếng Việt (Chương 5 File Word)
+## 3. Kiến trúc CSDL: 28 Bảng thực thể & 28 View tiếng Việt (Chương 5 File Word)
 
 Hệ thống hỗ trợ song song 2 cơ chế truy vấn:
 1. **Tên bảng Tiếng Anh:** Dành cho Spring Boot Data JPA & REST API (`branches`, `courts`, `users`, `bookings`, `products`, `invoices`, v.v.).
@@ -41,7 +41,7 @@ Hệ thống hỗ trợ song song 2 cơ chế truy vấn:
 | 2 | `courts` | `San` | Danh sách 26 sân cầu lông (VIP Yonex, BWF tiêu chuẩn, Taraflex) |
 | 3 | `time_slots` | `KhungGio` | 4 khung giờ hoạt động (Sáng, Ban ngày, Giờ vàng cao điểm, Tối) |
 | 4 | `pricing_rules` | `BangGia` | Chính sách giá theo chi nhánh, khung giờ, ngày thường / cuối tuần |
-| 5 | `customers` | `KhachHang` | Hội viên tích điểm (Đồng, Bạc, Vàng, Kim Cương), giờ chơi lũy kế |
+| 5 | `customers` | `KhachHang` | Hội viên tích điểm (Đồng, Bạc, Vàng, Kim Cương), giờ chơi lũy kế, raw_password |
 | 6 | `bookings` | `DonDatSan` | Đơn đặt sân (Đang sử dụng, Đã xác nhận, Chờ xác nhận, Đã cọc 30%, Hủy) |
 | 7 | `equipment` | `DungCu` | Dụng cụ cho thuê (Vợt Yonex Astrox 77/88, Victor, ống cầu) |
 | 8 | `products` | `SanPham` | Đồ uống và phụ kiện quầy (Revive, Pocari, Aquafina, quấn cán VS) |
@@ -50,7 +50,7 @@ Hệ thống hỗ trợ song song 2 cơ chế truy vấn:
 | 11 | `invoice_product_details` | `ChiTietBanSanPham` | Chi tiết sản phẩm bán ra trên từng hóa đơn |
 | 12 | `booking_services` | *(Tương thích ngược)* | Dịch vụ đi kèm đơn đặt sân |
 | 13 | `staff` | `NhanVien` | Nhân sự các chi nhánh (Quản lý, Thu ngân POS, Kỹ thuật sân) |
-| 14 | `users` | `TaiKhoan` | Tài khoản đăng nhập & RBAC phân quyền 5 vai trò hệ thống |
+| 14 | `users` | `TaiKhoan` | Tài khoản đăng nhập & RBAC phân quyền 5 vai trò hệ thống, raw_password |
 | 15 | `tournaments` | `GiaiDau` | Giải đấu phong trào (UTE Open 2026, Cúp Doanh Nghiệp & Sinh Viên) |
 | 16 | `tournament_registrations` | `DangKyGiaiDau` | Danh sách các cặp VĐV đăng ký tham gia thi đấu |
 | 17 | `payments` | `ThanhToan` | Giao dịch thanh toán cọc VietQR, tiền mặt, VNPay, MoMo |
@@ -59,10 +59,13 @@ Hệ thống hỗ trợ song song 2 cơ chế truy vấn:
 | 20 | `stock_equipment_details` | `ChiTietNhapDungCu` | Chi tiết số lượng và giá nhập dụng cụ vợt, ống cầu |
 | 21 | `stock_product_details` | `ChiTietNhapSanPham` | Chi tiết số lượng và giá nhập đồ uống, nước giải khát |
 | 22 | `promotions` | `KhuyenMai` | Chương trình ưu đãi giờ vàng thứ 4, giảm 15% VIP, khai trương |
-| 23 | `audit_logs` | `NhatKyHoatDong` | Nhật ký truy vết bảo mật (Đổi giá, check-in, phân quyền, login) |
+| 23 | `audit_logs` | `NhatKyHoatDong` | Nhật ký truy vết bảo mật (Đổi giá, check-in, phân quyền, login, user_code) |
 | 24 | `tournament_matches` | `TranDau` | Lịch thi đấu và kết quả các trận đấu trong giải |
 | 25 | `system_settings` | `CauHinhHeThong` | Cấu hình quy định: % cọc (30%), giữ chỗ (10p), hủy hoàn cọc |
 | 26 | `pricing_proposals` | `DeXuatGia` | Quản lý đề xuất điều chỉnh giá sân từ Quản lý chi nhánh gửi Giám đốc phê duyệt |
+| 27 | `suppliers` | `NhaCungCap` | Nhà cung cấp thiết bị, vợt thi đấu, nước giải khát (Yonex VN, Suntory PepsiCo) |
+| 28 | `support_tickets` | `PhieuHoTro` | Phiếu hỗ trợ khách hàng trực tuyến (Live Chat Support / Phân luồng Bot - Staff) |
+| 29 | `chat_messages` | `TinNhanHoTro` | Lịch sử trao đổi tin nhắn tư vấn và hỗ trợ trực tuyến giữa khách hàng và nhân sự |
 
 ---
 

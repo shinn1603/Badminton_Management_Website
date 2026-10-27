@@ -342,6 +342,24 @@ public class CourtService {
             if (court.getImageUrl() != null && !court.getImageUrl().isBlank()) {
                 existing.setImageUrl(court.getImageUrl());
             }
+            if (court.getConditionImages() != null) {
+                existing.setConditionImages(court.getConditionImages());
+            }
+            if (court.getLikesCount() != null) {
+                existing.setLikesCount(court.getLikesCount());
+            }
+            if (court.getComments() != null) {
+                existing.setComments(court.getComments());
+            }
+            if (court.getLightingCondition() != null && !court.getLightingCondition().isBlank()) {
+                existing.setLightingCondition(court.getLightingCondition());
+            }
+            if (court.getFloorCondition() != null && !court.getFloorCondition().isBlank()) {
+                existing.setFloorCondition(court.getFloorCondition());
+            }
+            if (court.getNetCondition() != null && !court.getNetCondition().isBlank()) {
+                existing.setNetCondition(court.getNetCondition());
+            }
             if (court.getBranchCode() != null && !court.getBranchCode().isBlank()) {
                 existing.setBranchCode(court.getBranchCode());
             }

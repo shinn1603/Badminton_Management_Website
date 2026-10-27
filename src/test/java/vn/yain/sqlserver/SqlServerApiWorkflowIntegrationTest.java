@@ -355,7 +355,7 @@ class SqlServerApiWorkflowIntegrationTest {
         reg.put("player2Name", "Tran Van B");
         reg.put("phone", "0908777666");
 
-        jdbcTemplate.update("UPDATE tournaments SET current_participants = 10, max_participants = 32, status = 'Đang mở đăng ký' WHERE tournament_code = 'GD02'");
+        jdbcTemplate.update("UPDATE tournaments SET current_participants = 10, max_participants = 32, status = 'Đang mở đăng ký', end_date = DATEADD(DAY, 30, GETDATE()) WHERE tournament_code = 'GD02'");
 
         mockMvc.perform(post("/api/tournaments/register")
                         .contentType(MediaType.APPLICATION_JSON)

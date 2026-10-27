@@ -1,6 +1,6 @@
 -- =====================================================================
 -- BẢN SAO LƯU TOÀN DIỆN HỆ THỐNG QUẢN LÝ SÂN CẦU LÔNG UTE SPORT
--- Thời gian xuất: 2026-10-25 22:49:00
+-- Thời gian xuất: 2026-10-27 22:48:01
 -- Người tạo: admin
 -- =====================================================================
 
@@ -70,9 +70,16 @@ IF OBJECT_ID('KhuyenMai', 'V') IS NOT NULL DROP VIEW KhuyenMai;
 IF OBJECT_ID('NhatKyHoatDong', 'V') IS NOT NULL DROP VIEW NhatKyHoatDong;
 IF OBJECT_ID('TranDau', 'V') IS NOT NULL DROP VIEW TranDau;
 IF OBJECT_ID('CauHinhHeThong', 'V') IS NOT NULL DROP VIEW CauHinhHeThong;
+IF OBJECT_ID('DeXuatGia', 'V') IS NOT NULL DROP VIEW DeXuatGia;
+IF OBJECT_ID('NhaCungCap', 'V') IS NOT NULL DROP VIEW NhaCungCap;
+IF OBJECT_ID('PhieuHoTro', 'V') IS NOT NULL DROP VIEW PhieuHoTro;
+IF OBJECT_ID('TinNhanHoTro', 'V') IS NOT NULL DROP VIEW TinNhanHoTro;
 GO
 
 -- 2.2 Xóa các bảng dữ liệu cũ
+IF OBJECT_ID('chat_messages', 'U') IS NOT NULL DROP TABLE chat_messages;
+IF OBJECT_ID('support_tickets', 'U') IS NOT NULL DROP TABLE support_tickets;
+IF OBJECT_ID('suppliers', 'U') IS NOT NULL DROP TABLE suppliers;
 IF OBJECT_ID('tournament_matches', 'U') IS NOT NULL DROP TABLE tournament_matches;
 IF OBJECT_ID('tournament_registrations', 'U') IS NOT NULL DROP TABLE tournament_registrations;
 IF OBJECT_ID('tournaments', 'U') IS NOT NULL DROP TABLE tournaments;
@@ -128,7 +135,13 @@ CREATE TABLE courts (
     court_type NVARCHAR(50) NOT NULL, -- Cầu lông VIP (Thảm Yonex), Cầu lông tiêu chuẩn (BWF), Cầu lông thi đấu
     hourly_rate DECIMAL(18,2) NOT NULL,
     status NVARCHAR(30) DEFAULT N'Trống', -- Trống, Đang sử dụng, Bảo trì, Đặt trước
-    image_url VARCHAR(255) DEFAULT '/images/badminton-court.jpg'
+    image_url NVARCHAR(500) DEFAULT '/images/badminton-court.jpg',
+    condition_images NVARCHAR(MAX) NULL,
+    likes_count INT DEFAULT 0,
+    comments NVARCHAR(MAX) NULL,
+    lighting_condition NVARCHAR(150) DEFAULT N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF',
+    floor_condition NVARCHAR(150) DEFAULT N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu',
+    net_condition NVARCHAR(150) DEFAULT N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn'
 );
 GO
 
@@ -161,10 +174,12 @@ CREATE TABLE customers (
     phone VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(100),
     password VARCHAR(100) NOT NULL DEFAULT '123456',
+    raw_password VARCHAR(100) DEFAULT '123456',
     total_play_hours DECIMAL(10,1) DEFAULT 0,
     reward_points INT DEFAULT 0,
     membership_tier NVARCHAR(30) DEFAULT N'Đồng', -- Đồng, Bạc, Vàng, Kim Cương
     status NVARCHAR(30) DEFAULT N'Hoạt động',
+    avatar_url NVARCHAR(500) NULL,
     created_at DATETIME DEFAULT GETDATE()
 );
 GO
@@ -290,13 +305,15 @@ CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
+    raw_password VARCHAR(100) DEFAULT '123456',
     full_name NVARCHAR(100) NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(20),
     role VARCHAR(30) NOT NULL, -- DIRECTOR, MANAGER, POS, CUSTOMER, ADMIN
     staff_code VARCHAR(20) NULL REFERENCES staff(staff_code),
-    branch_code VARCHAR(20) DEFAULT 'ALL',
+    branch_code VARCHAR(100) DEFAULT 'ALL',
     status NVARCHAR(30) DEFAULT N'Hoạt động',
+    avatar_url NVARCHAR(500) NULL,
     created_at DATETIME DEFAULT GETDATE(),
     last_login DATETIME NULL
 );
@@ -418,6 +435,7 @@ GO
 CREATE TABLE audit_logs (
     log_id INT IDENTITY(1,1) PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
+    user_code VARCHAR(20) NULL,
     action_type NVARCHAR(100) NOT NULL,
     action_time DATETIME DEFAULT GETDATE(),
     details NVARCHAR(MAX) NOT NULL,
@@ -467,6 +485,57 @@ CREATE TABLE pricing_proposals (
     created_at DATETIME2 DEFAULT GETDATE(),
     approved_at DATETIME2 NULL,
     note NVARCHAR(255) NULL
+);
+GO
+
+-- BẢNG 26: NHÀ CUNG CẤP VẬT TƯ & DỤNG CỤ (suppliers / NhaCungCap)
+CREATE TABLE suppliers (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    supplier_code VARCHAR(30) NOT NULL UNIQUE,
+    supplier_name NVARCHAR(150) NOT NULL,
+    contact_person NVARCHAR(100),
+    phone VARCHAR(30),
+    email VARCHAR(100),
+    address NVARCHAR(255),
+    category NVARCHAR(100),
+    status NVARCHAR(30) DEFAULT N'Đang hợp tác',
+    notes NVARCHAR(500),
+    created_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+-- BẢNG 27: PHIẾU HỖ TRỢ TRỰC TUYẾN LIVE CHAT (support_tickets / PhieuHoTro)
+CREATE TABLE support_tickets (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    session_id VARCHAR(100) NOT NULL UNIQUE,
+    customer_name NVARCHAR(100),
+    customer_phone VARCHAR(30),
+    branch_code VARCHAR(50),
+    status VARCHAR(30) NOT NULL DEFAULT 'BOT',
+    assigned_staff NVARCHAR(100),
+    last_message NVARCHAR(500),
+    last_message_at DATETIME2,
+    unread_staff_count INT DEFAULT 0,
+    unread_customer_count INT DEFAULT 0,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+-- BẢNG 28: TIN NHẮN TƯ VẤN & LIVE SUPPORT CHAT (chat_messages / TinNhanHoTro)
+CREATE TABLE chat_messages (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    session_id VARCHAR(100) NOT NULL,
+    customer_name NVARCHAR(100),
+    customer_phone VARCHAR(30),
+    sender VARCHAR(30) NOT NULL,
+    staff_name NVARCHAR(100),
+    staff_code VARCHAR(50),
+    branch_code VARCHAR(50),
+    content NVARCHAR(2500) NOT NULL,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    read_by_staff BIT DEFAULT 0,
+    read_by_customer BIT DEFAULT 0
 );
 GO
 
@@ -524,6 +593,12 @@ CREATE VIEW CauHinhHeThong AS SELECT setting_code AS MaCauHinh, setting_name AS 
 GO
 CREATE VIEW DeXuatGia AS SELECT proposal_code AS MaDeXuat, branch_code AS MaCN, proposer_name AS NguoiDeXuat, court_type AS LoaiSan, slot_info AS KhungGio, current_price AS GiaHienTai, proposed_price AS GiaDeXuat, reason AS LyDo, status AS TrangThai, created_at AS NgayDeXuat, approved_at AS NgayPheDuyet, note AS GhiChuPheDuyet FROM pricing_proposals;
 GO
+CREATE VIEW NhaCungCap AS SELECT supplier_code AS MaNCC, supplier_name AS TenNCC, contact_person AS NguoiLienHe, phone AS SoDienThoai, email AS Email, category AS NganhHang, status AS TrangThai FROM suppliers;
+GO
+CREATE VIEW PhieuHoTro AS SELECT session_id AS MaPhien, customer_name AS TenKH, customer_phone AS SDT, branch_code AS MaCN, status AS TrangThai, assigned_staff AS NhanVienPhuTrach, last_message AS TinNhanCuoi, last_message_at AS ThoiGianCuoi FROM support_tickets;
+GO
+CREATE VIEW TinNhanHoTro AS SELECT session_id AS MaPhien, sender AS NguoiGui, staff_name AS TenNV, content AS NoiDung, created_at AS ThoiGianTao FROM chat_messages;
+GO
 
 -- =====================================================================
 
@@ -549,33 +624,33 @@ GO
 -- Dữ liệu bảng: courts (26 bản ghi)
 -- -----------------------------------------------------
 SET IDENTITY_INSERT courts ON;
-INSERT INTO courts (HOURLY_RATE, ID, BRANCH_CODE, COURT_CODE, STATUS, COURT_TYPE, COURT_NAME, IMAGE_URL) VALUES
-(120000.00, 1, N'CN01', N'CL01', N'Trống', N'Cầu lông VIP', N'Sân cầu lông 1 (VIP)', N'/images/badminton-court.jpg'),
-(90000.00, 2, N'CN01', N'CL02', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 2', N'/images/badminton-court.jpg'),
-(90000.00, 3, N'CN01', N'CL03', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 3', N'/images/badminton-court.jpg'),
-(90000.00, 4, N'CN01', N'CL04', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 4', N'/images/badminton-court.jpg'),
-(90000.00, 5, N'CN01', N'CL05', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 5', N'/images/badminton-court.jpg'),
-(120000.00, 6, N'CN01', N'CL06', N'Bảo trì', N'Cầu lông VIP', N'Sân cầu lông 6 (VIP)', N'/images/badminton-court.jpg'),
-(90000.00, 7, N'CN01', N'CL07', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 7', N'/images/badminton-court.jpg'),
-(90000.00, 8, N'CN01', N'CL08', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 8', N'/images/badminton-court.jpg'),
-(120000.00, 9, N'CN02', N'BT01', N'Trống', N'Cầu lông VIP', N'Sân BT 1 (VIP)', N'/images/badminton-court.jpg'),
-(90000.00, 10, N'CN02', N'BT02', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 2', N'/images/badminton-court.jpg'),
-(90000.00, 11, N'CN02', N'BT03', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 3', N'/images/badminton-court.jpg'),
-(90000.00, 12, N'CN02', N'BT04', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 4', N'/images/badminton-court.jpg'),
-(90000.00, 13, N'CN02', N'BT05', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 5', N'/images/badminton-court.jpg'),
-(120000.00, 14, N'CN02', N'BT06', N'Trống', N'Cầu lông VIP', N'Sân BT 6 (VIP)', N'/images/badminton-court.jpg'),
-(120000.00, 15, N'CN03', N'Q901', N'Trống', N'Cầu lông VIP', N'Sân Q9 1 (VIP)', N'/images/badminton-court.jpg'),
-(90000.00, 16, N'CN03', N'Q902', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 2', N'/images/badminton-court.jpg'),
-(90000.00, 17, N'CN03', N'Q903', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 3', N'/images/badminton-court.jpg'),
-(90000.00, 18, N'CN03', N'Q904', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 4', N'/images/badminton-court.jpg'),
-(90000.00, 19, N'CN03', N'Q905', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 5', N'/images/badminton-court.jpg'),
-(90000.00, 20, N'CN03', N'Q906', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 6', N'/images/badminton-court.jpg'),
-(120000.00, 21, N'CN04', N'GV01', N'Trống', N'Cầu lông VIP', N'Sân GV 1 (VIP)', N'/images/badminton-court.jpg'),
-(90000.00, 22, N'CN04', N'GV02', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 2', N'/images/badminton-court.jpg'),
-(90000.00, 23, N'CN04', N'GV03', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 3', N'/images/badminton-court.jpg'),
-(90000.00, 24, N'CN04', N'GV04', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 4', N'/images/badminton-court.jpg'),
-(90000.00, 25, N'CN04', N'GV05', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 5', N'/images/badminton-court.jpg'),
-(90000.00, 26, N'CN04', N'GV06', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 6', N'/images/badminton-court.jpg');
+INSERT INTO courts (HOURLY_RATE, LIKES_COUNT, ID, BRANCH_CODE, COURT_CODE, STATUS, COURT_TYPE, COURT_NAME, FLOOR_CONDITION, LIGHTING_CONDITION, NET_CONDITION, IMAGE_URL, COMMENTS, CONDITION_IMAGES) VALUES
+(120000.00, 0, 1, N'CN01', N'CL01', N'Trống', N'Cầu lông VIP', N'Sân cầu lông 1 (VIP)', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 2, N'CN01', N'CL02', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 2', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 3, N'CN01', N'CL03', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 3', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 4, N'CN01', N'CL04', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 4', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 5, N'CN01', N'CL05', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 5', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(120000.00, 0, 6, N'CN01', N'CL06', N'Bảo trì', N'Cầu lông VIP', N'Sân cầu lông 6 (VIP)', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 7, N'CN01', N'CL07', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 7', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 8, N'CN01', N'CL08', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân cầu lông 8', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(120000.00, 0, 9, N'CN02', N'BT01', N'Đang sử dụng', N'Cầu lông VIP', N'Sân BT 1 (VIP)', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 10, N'CN02', N'BT02', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 2', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 11, N'CN02', N'BT03', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 3', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 12, N'CN02', N'BT04', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân BT 4', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 13, N'CN02', N'BT05', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân BT 5', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(120000.00, 0, 14, N'CN02', N'BT06', N'Trống', N'Cầu lông VIP', N'Sân BT 6 (VIP)', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(120000.00, 0, 15, N'CN03', N'Q901', N'Trống', N'Cầu lông VIP', N'Sân Q9 1 (VIP)', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 16, N'CN03', N'Q902', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân Q9 2', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 17, N'CN03', N'Q903', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 3', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 18, N'CN03', N'Q904', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 4', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 19, N'CN03', N'Q905', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 5', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 20, N'CN03', N'Q906', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân Q9 6', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(120000.00, 0, 21, N'CN04', N'GV01', N'Trống', N'Cầu lông VIP', N'Sân GV 1 (VIP)', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 22, N'CN04', N'GV02', N'Đang sử dụng', N'Cầu lông tiêu chuẩn', N'Sân GV 2', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 23, N'CN04', N'GV03', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 3', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 24, N'CN04', N'GV04', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 4', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 25, N'CN04', N'GV05', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 5', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL),
+(90000.00, 0, 26, N'CN04', N'GV06', N'Trống', N'Cầu lông tiêu chuẩn', N'Sân GV 6', N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu', N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF', N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn', N'/images/badminton-court.jpg', NULL, NULL);
 SET IDENTITY_INSERT courts OFF;
 GO
 
@@ -608,20 +683,22 @@ INSERT INTO pricing_rules (END_DATE, HOURLY_RATE, START_DATE, BRANCH_CODE, PRICI
 (NULL, 120000.00, N'2026-01-01', N'CN04', N'BG11', N'KG03', N'Ngày thường (T2-T6)');
 GO
 
+-- Bảng pricing_proposals: Không có dữ liệu.
+
 
 -- -----------------------------------------------------
 -- Dữ liệu bảng: customers (8 bản ghi)
 -- -----------------------------------------------------
 SET IDENTITY_INSERT customers ON;
-INSERT INTO customers (REWARD_POINTS, TOTAL_PLAY_HOURS, CREATED_AT, ID, CUSTOMER_CODE, PHONE, MEMBERSHIP_TIER, STATUS, EMAIL, FULL_NAME, PASSWORD, RAW_PASSWORD) VALUES
-(4250, 42.50, N'2026-10-25 22:48:48.838879', 1, N'KH001', N'0912345678', N'Kim Cương', N'Hoạt động', N'dat.le@gmail.com', N'Lê Bá Đạt', N'123456', NULL),
-(2800, 28.00, N'2026-10-25 22:48:48.838879', 2, N'KH002', N'0903123456', N'Vàng', N'Hoạt động', N'nam.nguyen@gmail.com', N'Nguyễn Hoàng Nam', N'123456', NULL),
-(1500, 15.00, N'2026-10-25 22:48:48.838879', 3, N'KH003', N'0988777666', N'Bạc', N'Hoạt động', N'huy.pham@gmail.com', N'Phạm Gia Huy', N'123456', NULL),
-(800, 8.00, N'2026-10-25 22:48:48.838879', 4, N'KH004', N'0977555444', N'Bạc', N'Hoạt động', N'maianh.vu@gmail.com', N'Vũ Thị Mai Anh', N'123456', NULL),
-(400, 4.00, N'2026-10-25 22:48:48.838879', 5, N'KH005', N'0933444555', N'Đồng', N'Hoạt động', N'hang.tran@gmail.com', N'Trần Thanh Hằng', N'123456', NULL),
-(350, 3.50, N'2026-10-25 22:48:48.838879', 6, N'KH006', N'0909111222', N'Đồng', N'Hoạt động', N'linh.bui@gmail.com', N'Bùi Khánh Linh', N'123456', NULL),
-(0, 0.00, N'2026-10-25 22:48:59.650406', 7, N'KH29936', N'0908123456', N'Đồng', N'Hoạt động', NULL, N'Nguyen Van Test', N'123456', NULL),
-(150, 0.00, N'2026-10-25 22:49:00.562359', 12, N'KH9999', N'0987654321', N'Vàng', N'Hoạt động', N'triet.test@utesport.vn', N'Nguyễn Văn Triết', N'$2a$10$abcdefghijklmnopqrstuvwxyz1234567890ABCDEF', NULL);
+INSERT INTO customers (REWARD_POINTS, TOTAL_PLAY_HOURS, CREATED_AT, ID, CUSTOMER_CODE, PHONE, MEMBERSHIP_TIER, STATUS, EMAIL, FULL_NAME, PASSWORD, RAW_PASSWORD, AVATAR_URL) VALUES
+(4250, 42.50, N'2026-10-27 22:47:53.971834', 1, N'KH001', N'0912345678', N'Kim Cương', N'Hoạt động', N'dat.le@gmail.com', N'Lê Bá Đạt', N'123456', NULL, NULL),
+(2800, 28.00, N'2026-10-27 22:47:53.972846', 2, N'KH002', N'0903123456', N'Vàng', N'Hoạt động', N'nam.nguyen@gmail.com', N'Nguyễn Hoàng Nam', N'123456', NULL, NULL),
+(1500, 15.00, N'2026-10-27 22:47:53.972846', 3, N'KH003', N'0988777666', N'Bạc', N'Hoạt động', N'huy.pham@gmail.com', N'Phạm Gia Huy', N'123456', NULL, NULL),
+(800, 8.00, N'2026-10-27 22:47:53.972846', 4, N'KH004', N'0977555444', N'Bạc', N'Hoạt động', N'maianh.vu@gmail.com', N'Vũ Thị Mai Anh', N'123456', NULL, NULL),
+(400, 4.00, N'2026-10-27 22:47:53.972846', 5, N'KH005', N'0933444555', N'Đồng', N'Hoạt động', N'hang.tran@gmail.com', N'Trần Thanh Hằng', N'123456', NULL, NULL),
+(350, 3.50, N'2026-10-27 22:47:53.972846', 6, N'KH006', N'0909111222', N'Đồng', N'Hoạt động', N'linh.bui@gmail.com', N'Bùi Khánh Linh', N'123456', NULL, NULL),
+(0, 0.00, N'2026-10-27 22:48:00.564079', 7, N'KH63011', N'0908123456', N'Đồng', N'Hoạt động', NULL, N'Nguyen Van Test', N'123456', NULL, NULL),
+(150, 0.00, N'2026-10-27 22:48:01.145494', 12, N'KH9999', N'0987654321', N'Vàng', N'Hoạt động', N'triet.test@utesport.vn', N'Nguyễn Văn Triết', N'$2a$10$abcdefghijklmnopqrstuvwxyz1234567890ABCDEF', NULL, NULL);
 SET IDENTITY_INSERT customers OFF;
 GO
 
@@ -653,32 +730,32 @@ GO
 -- Dữ liệu bảng: users (25 bản ghi)
 -- -----------------------------------------------------
 SET IDENTITY_INSERT users ON;
-INSERT INTO users (CREATED_AT, ID, PHONE, STAFF_CODE, ROLE, STATUS, USERNAME, BRANCH_CODE, EMAIL, FULL_NAME, PASSWORD, RAW_PASSWORD) VALUES
-(N'2026-10-25 22:48:48.895397', 1, N'0901111222', N'NS01', N'DIRECTOR', N'Hoạt động', N'director', N'ALL', N'director@utesport.vn', N'Nguyễn Phước Thọ', N'$2a$10$sgQdSyzPVRMhZKGEfizLYOZZsnDAltWlQ.TZ.e5SuR5oKBlmUueny', NULL),
-(N'2026-10-25 22:48:48.973207', 2, N'0903123456', N'NS02', N'MANAGER', N'Hoạt động', N'manager', N'CN01,CN02', N'manager@utesport.vn', N'Trần Phúc Bảo', N'$2a$10$ibQbUELBuJd44BoimmGgsOwqAqsWsiMXkq4BiJ/MC.dBIqcJIY9NW', NULL),
-(N'2026-10-25 22:48:49.038006', 3, N'0904555666', N'NS03', N'POS', N'Hoạt động', N'pos', N'CN01', N'pos@utesport.vn', N'Nguyễn Thanh Tâm', N'$2a$10$ixWyC9IhqTKd020z3z5jfucNsrxG3L4g9ncF.egpca0Jc.jNw5Skm', NULL),
-(N'2026-10-25 22:48:49.101518', 4, N'0908888999', NULL, N'ADMIN', N'Hoạt động', N'admin', N'ALL', N'admin@utesport.vn', N'Trần Biểu Hương', N'$2a$10$H3DISxopjX8O9emomQ9RJOAVy4kZiI896/gOfTou5ifEK0QW34QM2', NULL),
-(N'2026-10-25 22:48:49.174196', 5, N'0912345678', NULL, N'CUSTOMER', N'Hoạt động', N'customer', N'CN01', N'khachhang@gmail.com', N'Lê Bá Đạt', N'$2a$10$ZVzY7r3DQFmWPOjj6ZAE8eqHFid5epqH4O1dtFv.uJFGj/BB3rLBS', NULL),
-(N'2026-10-25 22:48:49.239833', 6, N'0901111222', N'NS01', N'DIRECTOR', N'Hoạt động', N'nam.vh', N'ALL', N'nam.vh@utesport.vn', N'Võ Hoàng Nam', N'$2a$10$rte.rvyWOJhkMXM34ELqV.ceSx9aJ7Z2Fr.mV1ybxL3QcV5mSHLnu', NULL),
-(N'2026-10-25 22:48:49.305318', 7, N'0903123456', N'NS02', N'MANAGER', N'Hoạt động', N'ql_cn01', N'CN01', N'bao.tran@utesport.vn', N'Trần Phúc Bảo', N'$2a$10$xxRCZGT88hmEG8RD8AFGDONZmTO8WI3ues7x2pioaJ7C9K9C4hsy2', NULL),
-(N'2026-10-25 22:48:49.373975', 8, N'0903333444', N'NS05', N'MANAGER', N'Hoạt động', N'quan.nv', N'CN02', N'quan.nv@utesport.vn', N'Nguyễn Văn Quản', N'$2a$10$1HBD2fTjZPVac18GyY3gqO5u/7OjqmzPbMVKyiwB4hkgaN.3mhD3.', NULL),
-(N'2026-10-25 22:48:49.445359', 9, N'0903333444', N'NS05', N'MANAGER', N'Hoạt động', N'ql_cn02', N'CN02', N'quan.nv.mgr@utesport.vn', N'Nguyễn Văn Quản', N'$2a$10$QxkJ6bbHp5vDIaamHEz5NuPHBe/qTJqHTHn4UCiNoFNH0OI7mHV6.', NULL),
-(N'2026-10-25 22:48:49.511085', 10, N'0903789012', N'NS06', N'MANAGER', N'Hoạt động', N'nam.th', N'CN03', N'nam.th@utesport.vn', N'Trần Hữu Nam', N'$2a$10$RP7UlYPrY1xAUeTPzznrC.i0Gy1j49yTOCThIj9nQknb5PzNxnzAK', NULL),
-(N'2026-10-25 22:48:49.575417', 11, N'0903789012', N'NS06', N'MANAGER', N'Hoạt động', N'ql_cn03', N'CN03', N'nam.th.mgr@utesport.vn', N'Trần Hữu Nam', N'$2a$10$ubt7YwSenKIM9aQm0/ICTu4gCDqfWR7iUZ2jVFnkdsuuKaQNLPGIC', NULL),
-(N'2026-10-25 22:48:49.644144', 12, N'0903555777', N'NS07', N'MANAGER', N'Hoạt động', N'khang.lh', N'CN04', N'khang.lh@utesport.vn', N'Lê Hoàng Khang', N'$2a$10$E81IGDBYsVtoYZPzLMH/0eGSIdcsAYXxTOyU1L8jRdQFMlwGTPelq', NULL),
-(N'2026-10-25 22:48:49.707004', 13, N'0903555777', N'NS07', N'MANAGER', N'Hoạt động', N'ql_cn04', N'CN04', N'khang.lh.mgr@utesport.vn', N'Lê Hoàng Khang', N'$2a$10$y1M/ljm66JHUpyefBjwgROBceaWJnsfMCxbitIVF8gqLHnNoVOgv.', NULL),
-(N'2026-10-25 22:48:49.780103', 14, N'0904777888', N'NS04', N'POS', N'Hoạt động', N'mai.lt', N'CN01', N'mai.lt@utesport.vn', N'Lê Thị Mai', N'$2a$10$lcfXmNrZyinTLUk1W//xCOihCWcBIQtFbWrHMP6QQSUq1w3wa5phO', NULL),
-(N'2026-10-25 22:48:49.848654', 15, N'0903999888', N'NS04', N'POS', N'Hoạt động', N'nv_cn01', N'CN01', N'mai.nguyen@utesport.vn', N'Nguyễn Thị Mai', N'$2a$10$JRwVXeJ/2IXqF9/UWI8Be.rvRfHf4GH/7dtE07OD64zyADV.Nz4Oa', NULL),
-(N'2026-10-25 22:48:49.911901', 16, N'0904555666', N'NS03', N'POS', N'Hoạt động', N'tam.nguyen', N'CN01', N'tam.nguyen@utesport.vn', N'Nguyễn Thanh Tâm', N'$2a$10$x1jln3d2bEmnqFVewhwb.eU/gdHuPwz5vTzABBGg14H42tF6jhtjO', NULL),
-(N'2026-10-25 22:48:49.977061', 17, N'0903888777', N'NS10', N'POS', N'Hoạt động', N'nam.nh', N'CN01', N'nam.nh@utesport.vn', N'Nguyễn Hoàng Nam', N'$2a$10$ZISJZ6DENvjNtHMz6Ixzou8xriiuet4M9Ho9TJO2W0HND7u.rcWKe', NULL),
-(N'2026-10-25 22:48:50.040344', 18, N'0988777666', N'NS11', N'POS', N'Hoạt động', N'huy.pg', N'CN01', N'huy.pg@utesport.vn', N'Phạm Gia Huy', N'$2a$10$kX.py7.b7tfpREyF2fDLCeO6kEXZ6L893MuZLbirqKptBSRHrj/ja', NULL),
-(N'2026-10-25 22:48:50.105242', 19, N'0908111222', NULL, N'POS', N'Hoạt động', N'nv_cn02', N'CN02', N'quy.le@utesport.vn', N'Lê Văn Quý', N'$2a$10$xhOQChZ4LpK50m4bvjU9yuNoznIPbSqMUypsQw/nFvm4EVeVSq98K', NULL),
-(N'2026-10-25 22:48:50.180433', 20, N'0909555444', NULL, N'POS', N'Hoạt động', N'nv_cn03', N'CN03', N'lan.hoang@utesport.vn', N'Hoàng Thị Lan', N'$2a$10$FMe6KHxgrseadeM1c4eX7OZaSPz8cycNrEKJGtdZg.dVPzPOc8Olu', NULL),
-(N'2026-10-25 22:48:50.259096', 21, N'0908111333', N'NS08', N'POS', N'Hoạt động', N'nv_cn04', N'CN04', N'hung.lv@utesport.vn', N'Lê Văn Hùng', N'$2a$10$lPotmPBmFFpgla3Adkn7tObXfNYp4J87USKeoFNn8lS7LOioePUju', NULL),
-(N'2026-10-25 22:48:59.141302', 22, NULL, NULL, N'CUSTOMER', N'Hoạt động', N'toggle_test_user', NULL, NULL, N'User Can Khoa', N'Pass123456', NULL),
-(N'2026-10-25 22:48:59.28834', 23, NULL, NULL, N'MANAGER', N'Hoạt động', N'perm_test_user', N'CN02', NULL, N'Perm Test User', N'Pass123456', NULL),
-(N'2026-10-25 22:48:59.315595', 24, N'0911223344', NULL, N'POS', N'Hoạt động', N'test_staff_day05', N'CN01', NULL, N'Nguyen Van Staff Updated', N'$2a$10$K/3qBDFjqr0/gZBzG0IsNeIcubvXsNGZ9YSLrlsVO2rydPi6vqp2m', NULL),
-(N'2026-10-25 22:49:00.561259', 29, N'0987654321', NULL, N'CUSTOMER', N'Hoạt động', N'cust_profile_test', N'CN01', N'triet.test@utesport.vn', N'Nguyễn Văn Triết', N'$2a$10$abcdefghijklmnopqrstuvwxyz1234567890ABCDEF', NULL);
+INSERT INTO users (CREATED_AT, ID, PHONE, STAFF_CODE, ROLE, STATUS, USERNAME, BRANCH_CODE, EMAIL, FULL_NAME, PASSWORD, RAW_PASSWORD, AVATAR_URL) VALUES
+(N'2026-10-27 22:47:54.006392', 1, N'0901111222', N'NS01', N'DIRECTOR', N'Hoạt động', N'director', N'ALL', N'director@utesport.vn', N'Nguyễn Phước Thọ', N'$2a$10$/fuVtg3Z54yQEooQKMBToeidT0JfBzMV02QjNoH9rTqsCCKMNSeQW', NULL, NULL),
+(N'2026-10-27 22:47:54.069531', 2, N'0903123456', N'NS02', N'MANAGER', N'Hoạt động', N'manager', N'CN01,CN02', N'manager@utesport.vn', N'Trần Phúc Bảo', N'$2a$10$H4IL/.NZB6Hjq8TUzd6ZXe1spVQmPTGSeq5S0MZnxuTaGZYayvtyu', NULL, NULL),
+(N'2026-10-27 22:47:54.125075', 3, N'0904555666', N'NS03', N'POS', N'Hoạt động', N'pos', N'CN01', N'pos@utesport.vn', N'Nguyễn Thanh Tâm', N'$2a$10$WFAF4rbHqRUIAS.gvzNseuNYKpZpH6b/RKLQVrLAx5MUC1Qn9Uqli', NULL, NULL),
+(N'2026-10-27 22:47:54.183078', 4, N'0908888999', NULL, N'ADMIN', N'Hoạt động', N'admin', N'ALL', N'admin@utesport.vn', N'Trần Biểu Hương', N'$2a$10$gwXBjDRGVEhLQxpN1T8hf.7tcTmaVy2XuXZT8wsLqyaWQMMt0ANQ2', NULL, NULL),
+(N'2026-10-27 22:47:54.241674', 5, N'0912345678', NULL, N'CUSTOMER', N'Hoạt động', N'customer', N'CN01', N'khachhang@gmail.com', N'Lê Bá Đạt', N'$2a$10$M.VtzZDE/QLg0p0tQIoyo.SVnadOBXYW0eNV7DcY0TOeFLF.vykNe', NULL, NULL),
+(N'2026-10-27 22:47:54.298946', 6, N'0901111222', N'NS01', N'DIRECTOR', N'Hoạt động', N'nam.vh', N'ALL', N'nam.vh@utesport.vn', N'Võ Hoàng Nam', N'$2a$10$Mmp/xq6uQW22mWLfHj6x9On15bfoNCrxNAa2.ayDAXcK/QEg8P6jq', NULL, NULL),
+(N'2026-10-27 22:47:54.353498', 7, N'0903123456', N'NS02', N'MANAGER', N'Hoạt động', N'ql_cn01', N'CN01', N'bao.tran@utesport.vn', N'Trần Phúc Bảo', N'$2a$10$TjX6ZG7Qu//bMiC8KKeTmuIttN2UZmf2JafrWM9fnpKdYxJ.W/b0e', NULL, NULL),
+(N'2026-10-27 22:47:54.408164', 8, N'0903333444', N'NS05', N'MANAGER', N'Hoạt động', N'quan.nv', N'CN02', N'quan.nv@utesport.vn', N'Nguyễn Văn Quản', N'$2a$10$QMUwhXOEZPIjbLNORq.gSecqHQk.Iptb3lLbI4BY.RmRY8MzAhnw2', NULL, NULL),
+(N'2026-10-27 22:47:54.463143', 9, N'0903333444', N'NS05', N'MANAGER', N'Hoạt động', N'ql_cn02', N'CN02', N'quan.nv.mgr@utesport.vn', N'Nguyễn Văn Quản', N'$2a$10$UhGNhTsgZB3D6OAItg4ffe95UzB5lcpn/3AawsCaV0dPglpuSOPMa', NULL, NULL),
+(N'2026-10-27 22:47:54.519657', 10, N'0903789012', N'NS06', N'MANAGER', N'Hoạt động', N'nam.th', N'CN03', N'nam.th@utesport.vn', N'Trần Hữu Nam', N'$2a$10$4sRkriQLknw840tGbWl6U.15A3VE5Qi.FfzPShNrmROBHtxp3i/Uq', NULL, NULL),
+(N'2026-10-27 22:47:54.576819', 11, N'0903789012', N'NS06', N'MANAGER', N'Hoạt động', N'ql_cn03', N'CN03', N'nam.th.mgr@utesport.vn', N'Trần Hữu Nam', N'$2a$10$b5Iar189u.FtFC7K753Aneup/wTR3YsACacO5ReI52qGDcHg/UJPO', NULL, NULL),
+(N'2026-10-27 22:47:54.628566', 12, N'0903555777', N'NS07', N'MANAGER', N'Hoạt động', N'khang.lh', N'CN04', N'khang.lh@utesport.vn', N'Lê Hoàng Khang', N'$2a$10$G9DXe5mJGgKdd0/WzZUG3uGB/IF9nCEJDPk/W73WGwD2dCPiMqtxW', NULL, NULL),
+(N'2026-10-27 22:47:54.68068', 13, N'0903555777', N'NS07', N'MANAGER', N'Hoạt động', N'ql_cn04', N'CN04', N'khang.lh.mgr@utesport.vn', N'Lê Hoàng Khang', N'$2a$10$slWcYk83sLm7750gd8cRUue5wBr0WpMZywUFGIu5dSVrRM68qOtX.', NULL, NULL),
+(N'2026-10-27 22:47:54.732415', 14, N'0904777888', N'NS04', N'POS', N'Hoạt động', N'mai.lt', N'CN01', N'mai.lt@utesport.vn', N'Lê Thị Mai', N'$2a$10$I57u.bsE/WV8hBreSXeIKu/mj9yHfJNq/goA3OdjX1NUjR5invwjW', NULL, NULL),
+(N'2026-10-27 22:47:54.783539', 15, N'0903999888', N'NS04', N'POS', N'Hoạt động', N'nv_cn01', N'CN01', N'mai.nguyen@utesport.vn', N'Nguyễn Thị Mai', N'$2a$10$gPOt3OnCKDsZA9NjEImT..4mDiVAp1F7j2arFT5QiBfVO9V3WujXy', NULL, NULL),
+(N'2026-10-27 22:47:54.83409', 16, N'0904555666', N'NS03', N'POS', N'Hoạt động', N'tam.nguyen', N'CN01', N'tam.nguyen@utesport.vn', N'Nguyễn Thanh Tâm', N'$2a$10$igaSlhVl3kCCiiGFapv7FOBYDAD9WP9mdN1H5bWUl/lBMn.yxNLWy', NULL, NULL),
+(N'2026-10-27 22:47:54.885046', 17, N'0903888777', N'NS10', N'POS', N'Hoạt động', N'nam.nh', N'CN01', N'nam.nh@utesport.vn', N'Nguyễn Hoàng Nam', N'$2a$10$z43KZtaUExYyXIPoF8gOUObq2NcjcRp6Fw9CA0wsCcjn9D6Kz5SOy', NULL, NULL),
+(N'2026-10-27 22:47:54.934674', 18, N'0988777666', N'NS11', N'POS', N'Hoạt động', N'huy.pg', N'CN01', N'huy.pg@utesport.vn', N'Phạm Gia Huy', N'$2a$10$Nk95mdQof/ryCzfM3TNgcuOyAXLmBtkRWV01pebLXCYsE42XX/FDq', NULL, NULL),
+(N'2026-10-27 22:47:54.98486', 19, N'0908111222', NULL, N'POS', N'Hoạt động', N'nv_cn02', N'CN02', N'quy.le@utesport.vn', N'Lê Văn Quý', N'$2a$10$xDKgx56fGiT2/YMaCVw8tuTc2VvW/3k4HP.EChDdvyVka1rbYb6oS', NULL, NULL),
+(N'2026-10-27 22:47:55.034496', 20, N'0909555444', NULL, N'POS', N'Hoạt động', N'nv_cn03', N'CN03', N'lan.hoang@utesport.vn', N'Hoàng Thị Lan', N'$2a$10$wZLzI8cpY1aD2xw88Wygx.hfbeG3NM11K1GY2zp1.L8g/.ad4z5r2', NULL, NULL),
+(N'2026-10-27 22:47:55.089322', 21, N'0908111333', N'NS08', N'POS', N'Hoạt động', N'nv_cn04', N'CN04', N'hung.lv@utesport.vn', N'Lê Văn Hùng', N'$2a$10$S1QlYcRCp9wOCL/keeJ0YOmLza3g1qmIDC3QlNeME2Zqq0veqVg3u', NULL, NULL),
+(N'2026-10-27 22:48:00.13894', 22, NULL, NULL, N'CUSTOMER', N'Hoạt động', N'toggle_test_user', NULL, NULL, N'User Can Khoa', N'Pass123456', NULL, NULL),
+(N'2026-10-27 22:48:00.273886', 23, NULL, NULL, N'MANAGER', N'Hoạt động', N'perm_test_user', N'CN02', NULL, N'Perm Test User', N'Pass123456', NULL, NULL),
+(N'2026-10-27 22:48:00.299665', 24, N'0911223344', NULL, N'POS', N'Hoạt động', N'test_staff_day05', N'CN01', NULL, N'Nguyen Van Staff Updated', N'$2a$10$aQ.kouKJC3a8SeYIcYHukORV4LTpPYMw2tgm0JhTm6pIrNiNTKpJO', NULL, NULL),
+(N'2026-10-27 22:48:01.144916', 29, N'0987654321', NULL, N'CUSTOMER', N'Hoạt động', N'cust_profile_test', N'CN01', N'triet.test@utesport.vn', N'Nguyễn Văn Triết', N'$2a$10$abcdefghijklmnopqrstuvwxyz1234567890ABCDEF', NULL, NULL);
 SET IDENTITY_INSERT users OFF;
 GO
 
@@ -720,38 +797,52 @@ GO
 
 
 -- -----------------------------------------------------
+-- Dữ liệu bảng: suppliers (5 bản ghi)
+-- -----------------------------------------------------
+SET IDENTITY_INSERT suppliers ON;
+INSERT INTO suppliers (CREATED_AT, ID, PHONE, STATUS, SUPPLIER_CODE, CATEGORY, CONTACT_PERSON, EMAIL, SUPPLIER_NAME, NOTES, ADDRESS) VALUES
+(N'2026-10-27 22:47:55.257575', 1, N'0908112233', N'Đang hợp tác', N'NCC01', N'Nước giải khát', N'Nguyễn Tuấn Anh', N'tuananh.beverage@gmail.com', N'Đại lý Nước giải khát Tuấn Anh', N'Đại lý phân phối cấp 1 nước Revive, Pocari, Aquafina, Bò Húc', N'125 Kha Vạn Cân, Phường Linh Tây, TP. Thủ Đức'),
+(N'2026-10-27 22:47:55.257575', 2, N'0918223344', N'Đang hợp tác', N'NCC02', N'Dụng cụ & Trang phục', N'Lê Minh Hoàng', N'contact@yonex.com.vn', N'Công ty TNHH Thể Thao Yonex Việt Nam', N'Nhà phân phối độc quyền thiết bị cầu lông Yonex, vợt thi đấu, giày và túi', N'Số 45 Lê Duẩn, Bến Nghé, Quận 1, TP.HCM'),
+(N'2026-10-27 22:47:55.257575', 3, N'0938334455', N'Đang hợp tác', N'NCC03', N'Cầu lông', N'Trần Văn Thành', N'kinhdoanh@thanhcongbadminton.vn', N'Công ty Cầu Lông Thành Công', N'Xưởng sản xuất ống cầu lông thi đấu Thành Công 77, Hải Yến Đỏ', N'Lô 12 KCN Tân Bình, Tây Thạnh, Tân Phú, TP.HCM'),
+(N'2026-10-27 22:47:55.257575', 4, N'0948556677', N'Đang hợp tác', N'NCC04', N'Phụ kiện', N'Phạm Quốc Việt', N'vssport.distributor@gmail.com', N'Đại lý Phụ Kiện Thể Thao VS', N'Cung cấp quấn cán vợt chống trượt, khăn lau thể thao, cước đan vợt', N'Số 88 Nguyễn Oanh, Phường 7, Gò Vấp, TP.HCM'),
+(N'2026-10-27 22:47:55.257575', 5, N'0909887766', N'Đang hợp tác', N'NCC05', N'Nước giải khát', N'Vũ Đình Trọng', N'tongkhosaigon.sport@gmail.com', N'Tổng kho Nước suối & Bù khoáng Sài Gòn', N'Cung cấp nước suối Aquafina, Dasani, Revive theo pallet chiết khấu cao', N'Số 12 Quốc Lộ 13, Hiệp Bình Phước, TP. Thủ Đức');
+SET IDENTITY_INSERT suppliers OFF;
+GO
+
+
+-- -----------------------------------------------------
 -- Dữ liệu bảng: bookings (28 bản ghi)
 -- -----------------------------------------------------
 SET IDENTITY_INSERT bookings ON;
 INSERT INTO bookings (BOOKING_DATE, DEPOSIT_AMOUNT, HOURLY_PRICE, TOTAL_PRICE, CHECK_IN_TIME, CHECK_OUT_TIME, CREATED_AT, ID, BRANCH_CODE, COURT_CODE, CUSTOMER_CODE, CUSTOMER_PHONE, BOOKING_CODE, PAYMENT_METHOD, STATUS, TIME_SLOT, CUSTOMER_EMAIL, CUSTOMER_NAME, NOTES) VALUES
-(N'2026-10-25', 54000.00, 90000.00, 180000.00, NULL, N'2026-10-25 22:48:58.262602', N'2026-10-25 22:48:50.428339', 1, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS0101', N'Tiền mặt', N'Hoàn thành', N'08:00 - 10:00', NULL, N'Nguyễn Hoàng Nam', N'Khách quen tuần 3 buổi'),
-(N'2026-10-25', 36000.00, 120000.00, 120000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 2, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS0102', N'Tiền mặt', N'Hoàn thành', N'09:00 - 10:00', NULL, N'Lê Bá Đạt', N'Đã thanh toán đủ tiền mặt'),
-(N'2026-10-25', 72000.00, 120000.00, 240000.00, NULL, N'2026-10-25 22:48:58.262602', N'2026-10-25 22:48:50.428339', 3, N'CN01', N'CL05', N'KH003', N'0988777666', N'DS0103', N'Chuyển khoản VietQR', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Phạm Gia Huy', N'Đặt sân VIP tối'),
-(N'2026-10-25', 27000.00, 90000.00, 90000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 4, N'CN01', N'CL03', N'KH004', N'0977555444', N'DS0104', N'VietQR Pro', N'Chờ xác nhận', N'19:00 - 20:00', NULL, N'Vũ Thị Mai Anh', N'Khách đặt qua web portal'),
-(N'2026-10-26', 36000.00, 120000.00, 120000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 5, N'CN01', N'CL01', N'KH005', N'0933444555', N'DS0105', N'Chuyển khoản VietQR', N'Đã cọc 30%', N'17:00 - 18:00', NULL, N'Trần Thanh Hằng', N'Chuyển khoản VietQR giữ chỗ 10p'),
-(N'2026-10-26', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 6, N'CN01', N'CL04', N'KH006', N'0909111222', N'DS0106', N'Tiền mặt', N'Đã xác nhận', N'20:00 - 22:00', NULL, N'Bùi Khánh Linh', N'Giao lưu công ty FPT'),
-(N'2026-10-24', 0.00, 90000.00, 90000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 7, N'CN01', N'CL02', N'KH002', N'0944333222', N'DS0107', N'Tiền mặt', N'Đã hủy', N'15:00 - 16:00', NULL, N'Đỗ Quang Vinh', N'Bận công tác đột xuất'),
-(N'2026-10-25', 72000.00, 120000.00, 240000.00, NULL, N'2026-10-25 22:48:58.262602', N'2026-10-25 22:48:50.428339', 8, N'CN02', N'BT01', N'KH001', N'0912345678', N'DS0201', N'Chuyển khoản VietQR', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Lê Bá Đạt', N'Sân VIP Bình Thạnh'),
-(N'2026-10-25', 54000.00, 90000.00, 180000.00, NULL, N'2026-10-25 22:48:58.262602', N'2026-10-25 22:48:50.428339', 9, N'CN02', N'BT04', N'KH003', N'0988777666', N'DS0202', N'Tiền mặt', N'Hoàn thành', N'19:00 - 21:00', NULL, N'Phạm Gia Huy', N'Tập luyện đôi nam'),
-(N'2026-10-25', 54000.00, 90000.00, 180000.00, NULL, N'2026-10-25 22:48:58.262602', N'2026-10-25 22:48:50.428339', 10, N'CN03', N'Q902', N'KH004', N'0977555444', N'DS0301', N'VietQR Pro', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Vũ Thị Mai Anh', N'Nhóm bạn sinh viên'),
-(N'2026-10-25', 54000.00, 90000.00, 180000.00, NULL, N'2026-10-25 22:48:58.262602', N'2026-10-25 22:48:50.428339', 11, N'CN04', N'GV02', N'KH005', N'0933444555', N'DS0401', N'Tiền mặt', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Trần Thanh Hằng', N'Khách vãng lai chi nhánh GV'),
-(N'2026-10-20', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 12, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1001_1', N'Tiền mặt', N'Hoàn thành', N'08:00 - 10:00', NULL, N'Lê Bá Đạt', N'Khách quen tập sáng'),
-(N'2026-10-20', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 13, N'CN01', N'CL03', N'KH003', N'0988777666', N'DS01_1001_2', N'VietQR Pro', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Phạm Gia Huy', N'Đặt sân sau giờ làm'),
-(N'2026-10-21', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 14, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1002_1', N'Tiền mặt', N'Hoàn thành', N'09:00 - 11:00', NULL, N'Nguyễn Hoàng Nam', N'Tập thể lực'),
-(N'2026-10-21', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 15, N'CN01', N'CL04', N'KH005', N'0933444555', N'DS01_1002_2', N'VietQR Pro', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Trần Thanh Hằng', N'CLB Thủ Đức'),
-(N'2026-10-22', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 16, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1003_1', N'Chuyển khoản VietQR', N'Hoàn thành', N'15:00 - 17:00', NULL, N'Lê Bá Đạt', N'Tập đôi nam'),
-(N'2026-10-22', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 17, N'CN01', N'CL05', N'KH003', N'0988777666', N'DS01_1003_2', N'VietQR Pro', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Phạm Gia Huy', N'Khách vãng lai'),
-(N'2026-10-23', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 18, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1004_1', N'Tiền mặt', N'Hoàn thành', N'08:00 - 10:00', NULL, N'Nguyễn Hoàng Nam', N'Khách cố định'),
-(N'2026-10-23', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 19, N'CN01', N'CL03', N'KH005', N'0933444555', N'DS01_1004_2', N'VietQR Pro', N'Hoàn thành', N'10:00 - 12:00', NULL, N'Trần Thanh Hằng', N'Tập kỹ thuật'),
-(N'2026-10-23', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 20, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1005_1', N'VietQR Pro', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Lê Bá Đạt', N'Tối thứ 2'),
-(N'2026-10-24', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 21, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1006_1', N'Tiền mặt', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Nguyễn Hoàng Nam', N'Tập phát cầu'),
-(N'2026-10-24', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 22, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1007_1', N'Chuyển khoản VietQR', N'Hoàn thành', N'09:00 - 11:00', NULL, N'Lê Bá Đạt', N'Khách quen VIP'),
-(N'2026-10-24', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 23, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1008_1', N'Tiền mặt', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Nguyễn Hoàng Nam', N'Định kỳ thứ 5'),
-(N'2026-10-24', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-25 22:48:50.428339', 24, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1009_1', N'Chuyển khoản VietQR', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Lê Bá Đạt', N'VIP Thứ 6'),
-(N'2026-10-25', 30000.00, 100000.00, 100000.00, NULL, NULL, N'2026-10-25 22:49:00.034687', 25, N'CN01', N'CL03', NULL, N'0905556667', N'DS623515', N'Chuyển khoản VietQR', N'Đã cọc 30%', N'10:00 - 11:00', NULL, N'Khach Webhook', NULL),
-(N'2026-11-24', 0.00, 90000.00, 90000.00, NULL, NULL, N'2026-10-25 22:49:00.105804', 26, N'CN01', N'CL02', NULL, N'0903334445', N'DS_API_TRF_105', N'Tiền mặt', N'Đang sử dụng', N'19:00 - 20:00', NULL, N'Khach Chuyen San', N'Chuyển từ CL01 sang CL02 (Chênh lệch: 0.00đ)'),
-(N'2026-11-14', 30000.00, 100000.00, 100000.00, NULL, NULL, N'2026-10-25 22:49:00.219225', 27, N'CN01', N'CL02', NULL, N'0901112223', N'DS_CONFLICT_TEST_219', N'Tiền mặt', N'Chờ cọc 30%', N'07:00 - 08:00', NULL, N'Khach Hang Cu', NULL),
-(N'2026-12-14', 36000.00, 120000.00, 120000.00, NULL, NULL, N'2026-10-25 22:49:00.38129', 28, N'CN01', N'CL01', NULL, N'0908888777', N'DS562219', N'Chuyển khoản VietQR', N'Chờ cọc 30%', N'06:00 - 07:00', NULL, N'Nguyen Van Test', N'Đặt qua Lưới giờ Sân trực tuyến');
+(N'2026-10-27', 54000.00, 90000.00, 180000.00, NULL, N'2026-10-27 22:48:00.763421', N'2026-10-27 22:47:55.184765', 1, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS0101', N'Tiền mặt', N'Hoàn thành', N'08:00 - 10:00', NULL, N'Nguyễn Hoàng Nam', N'Khách quen tuần 3 buổi'),
+(N'2026-10-27', 36000.00, 120000.00, 120000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 2, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS0102', N'Tiền mặt', N'Hoàn thành', N'09:00 - 10:00', NULL, N'Lê Bá Đạt', N'Đã thanh toán đủ tiền mặt'),
+(N'2026-10-27', 72000.00, 120000.00, 240000.00, NULL, N'2026-10-27 22:48:00.763421', N'2026-10-27 22:47:55.184765', 3, N'CN01', N'CL05', N'KH003', N'0988777666', N'DS0103', N'Chuyển khoản VietQR', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Phạm Gia Huy', N'Đặt sân VIP tối'),
+(N'2026-10-27', 27000.00, 90000.00, 90000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 4, N'CN01', N'CL03', N'KH004', N'0977555444', N'DS0104', N'VietQR Pro', N'Chờ xác nhận', N'19:00 - 20:00', NULL, N'Vũ Thị Mai Anh', N'Khách đặt qua web portal'),
+(N'2026-10-28', 36000.00, 120000.00, 120000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 5, N'CN01', N'CL01', N'KH005', N'0933444555', N'DS0105', N'Chuyển khoản VietQR', N'Đã cọc 30%', N'17:00 - 18:00', NULL, N'Trần Thanh Hằng', N'Chuyển khoản VietQR giữ chỗ 10p'),
+(N'2026-10-28', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 6, N'CN01', N'CL04', N'KH006', N'0909111222', N'DS0106', N'Tiền mặt', N'Đã xác nhận', N'20:00 - 22:00', NULL, N'Bùi Khánh Linh', N'Giao lưu công ty FPT'),
+(N'2026-10-26', 0.00, 90000.00, 90000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 7, N'CN01', N'CL02', N'KH002', N'0944333222', N'DS0107', N'Tiền mặt', N'Đã hủy', N'15:00 - 16:00', NULL, N'Đỗ Quang Vinh', N'Bận công tác đột xuất'),
+(N'2026-10-27', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 8, N'CN02', N'BT01', N'KH001', N'0912345678', N'DS0201', N'Chuyển khoản VietQR', N'Đang sử dụng', N'18:00 - 20:00', NULL, N'Lê Bá Đạt', N'Sân VIP Bình Thạnh'),
+(N'2026-10-27', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 9, N'CN02', N'BT04', N'KH003', N'0988777666', N'DS0202', N'Tiền mặt', N'Đang sử dụng', N'19:00 - 21:00', NULL, N'Phạm Gia Huy', N'Tập luyện đôi nam'),
+(N'2026-10-27', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 10, N'CN03', N'Q902', N'KH004', N'0977555444', N'DS0301', N'VietQR Pro', N'Đang sử dụng', N'17:00 - 19:00', NULL, N'Vũ Thị Mai Anh', N'Nhóm bạn sinh viên'),
+(N'2026-10-27', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 11, N'CN04', N'GV02', N'KH005', N'0933444555', N'DS0401', N'Tiền mặt', N'Đang sử dụng', N'18:00 - 20:00', NULL, N'Trần Thanh Hằng', N'Khách vãng lai chi nhánh GV'),
+(N'2026-10-22', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 12, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1001_1', N'Tiền mặt', N'Hoàn thành', N'08:00 - 10:00', NULL, N'Lê Bá Đạt', N'Khách quen tập sáng'),
+(N'2026-10-22', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 13, N'CN01', N'CL03', N'KH003', N'0988777666', N'DS01_1001_2', N'VietQR Pro', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Phạm Gia Huy', N'Đặt sân sau giờ làm'),
+(N'2026-10-23', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 14, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1002_1', N'Tiền mặt', N'Hoàn thành', N'09:00 - 11:00', NULL, N'Nguyễn Hoàng Nam', N'Tập thể lực'),
+(N'2026-10-23', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 15, N'CN01', N'CL04', N'KH005', N'0933444555', N'DS01_1002_2', N'VietQR Pro', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Trần Thanh Hằng', N'CLB Thủ Đức'),
+(N'2026-10-24', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 16, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1003_1', N'Chuyển khoản VietQR', N'Hoàn thành', N'15:00 - 17:00', NULL, N'Lê Bá Đạt', N'Tập đôi nam'),
+(N'2026-10-24', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 17, N'CN01', N'CL05', N'KH003', N'0988777666', N'DS01_1003_2', N'VietQR Pro', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Phạm Gia Huy', N'Khách vãng lai'),
+(N'2026-10-25', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 18, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1004_1', N'Tiền mặt', N'Hoàn thành', N'08:00 - 10:00', NULL, N'Nguyễn Hoàng Nam', N'Khách cố định'),
+(N'2026-10-25', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 19, N'CN01', N'CL03', N'KH005', N'0933444555', N'DS01_1004_2', N'VietQR Pro', N'Hoàn thành', N'10:00 - 12:00', NULL, N'Trần Thanh Hằng', N'Tập kỹ thuật'),
+(N'2026-10-25', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 20, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1005_1', N'VietQR Pro', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Lê Bá Đạt', N'Tối thứ 2'),
+(N'2026-10-26', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 21, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1006_1', N'Tiền mặt', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Nguyễn Hoàng Nam', N'Tập phát cầu'),
+(N'2026-10-26', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 22, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1007_1', N'Chuyển khoản VietQR', N'Hoàn thành', N'09:00 - 11:00', NULL, N'Lê Bá Đạt', N'Khách quen VIP'),
+(N'2026-10-26', 54000.00, 90000.00, 180000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 23, N'CN01', N'CL02', N'KH002', N'0903123456', N'DS01_1008_1', N'Tiền mặt', N'Hoàn thành', N'18:00 - 20:00', NULL, N'Nguyễn Hoàng Nam', N'Định kỳ thứ 5'),
+(N'2026-10-26', 72000.00, 120000.00, 240000.00, NULL, NULL, N'2026-10-27 22:47:55.184765', 24, N'CN01', N'CL01', N'KH001', N'0912345678', N'DS01_1009_1', N'Chuyển khoản VietQR', N'Hoàn thành', N'17:00 - 19:00', NULL, N'Lê Bá Đạt', N'VIP Thứ 6'),
+(N'2026-10-27', 30000.00, 100000.00, 100000.00, NULL, NULL, N'2026-10-27 22:48:00.806235', 25, N'CN01', N'CL03', NULL, N'0905556667', N'DS758309', N'Chuyển khoản VietQR', N'Đã cọc 30%', N'10:00 - 11:00', NULL, N'Khach Webhook', NULL),
+(N'2026-11-26', 0.00, 90000.00, 90000.00, NULL, NULL, N'2026-10-27 22:48:00.85015', 26, N'CN01', N'CL02', NULL, N'0903334445', N'DS_API_TRF_850', N'Tiền mặt', N'Đang sử dụng', N'19:00 - 20:00', NULL, N'Khach Chuyen San', N'Chuyển từ CL01 sang CL02 (Chênh lệch: 0.00đ)'),
+(N'2026-11-16', 30000.00, 100000.00, 100000.00, NULL, NULL, N'2026-10-27 22:48:00.904896', 27, N'CN01', N'CL02', NULL, N'0901112223', N'DS_CONFLICT_TEST_904', N'Tiền mặt', N'Chờ cọc 30%', N'07:00 - 08:00', NULL, N'Khach Hang Cu', NULL),
+(N'2026-12-16', 36000.00, 120000.00, 120000.00, NULL, NULL, N'2026-10-27 22:48:00.987456', 28, N'CN01', N'CL01', NULL, N'0908888777', N'DS555140', N'Chuyển khoản VietQR', N'Chờ cọc 30%', N'06:00 - 07:00', NULL, N'Nguyen Van Test', N'Đặt qua Lưới giờ Sân trực tuyến');
 SET IDENTITY_INSERT bookings OFF;
 GO
 
@@ -773,7 +864,7 @@ SELECT * FROM invoice_product_details [42102-240]
 SET IDENTITY_INSERT tournaments ON;
 INSERT INTO tournaments (CURRENT_PARTICIPANTS, ENTRY_FEE, MAX_PARTICIPANTS, TOTAL_PRIZE, END_DATE, ID, START_DATE, BRANCH_CODE, TOURNAMENT_CODE, CATEGORY, STATUS, TOURNAMENT_NAME, RULES) VALUES
 (24, 300000.00, 32, 20000000.00, N'2026-10-12 18:00:00.0', 1, N'2026-10-10 08:00:00.0', N'CN01', N'GD01', N'Đôi nam nữ', N'Đã kết thúc', N'Giải Cầu Lông Đôi Nam Nữ Mùa Thu UTE Open 2026', N'clob9: U&''Thi \0111\1ea5u theo th\1ec3 th\1ee9c lo\1ea1i tr\1ef1c ti\1ebfp 3 hi\1ec7p 21 \0111i\1ec3m theo lu\1eadt BWF. M\1ed7i V\0110V ch\1ec9 \0111\01b0\1ee3c \0111\0103ng k\00fd 1 n\1ed9i dung.'''),
-(9, 250000.00, 24, 15000000.00, N'2026-10-26 17:00:00.0', 2, N'2026-10-25 08:00:00.0', N'CN01', N'GD02', N'Tổng hợp nhiều nội dung', N'Đang mở đăng ký', N'Giải Cầu Lông Doanh Nghiệp & Sinh Viên Cúp Thủ Đức 2026', N'clob10: U&''Gi\1ea3i \0111\1ea5u phong tr\00e0o k\1ebft n\1ed1i c\00e1c doanh nghi\1ec7p v\00e0 c\1ef1u sinh vi\00ean \0111am m\00ea c\1ea7u l\00f4ng.'''),
+(9, 250000.00, 24, 15000000.00, N'2026-11-26 17:00:00.0', 2, N'2026-11-25 08:00:00.0', N'CN01', N'GD02', N'Tổng hợp nhiều nội dung', N'Đang mở đăng ký', N'Giải Cầu Lông Doanh Nghiệp & Sinh Viên Cúp Thủ Đức 2026', N'clob10: U&''Gi\1ea3i \0111\1ea5u phong tr\00e0o k\1ebft n\1ed1i c\00e1c doanh nghi\1ec7p v\00e0 c\1ef1u sinh vi\00ean \0111am m\00ea c\1ea7u l\00f4ng.'''),
 (0, 200000.00, 16, 10000000.00, N'2026-11-06 18:00:00.0', 3, N'2026-11-05 08:00:00.0', N'CN02', N'GD03', N'Đơn nam', N'Sắp mở đăng ký', N'Giải Đơn Nam Bình Thạnh Mở Rộng 2026', N'clob11: U&''Gi\1ea3i \0111\01a1n nam c\00e1c CLB phong tr\00e0o khu v\1ef1c B\00ecnh Th\1ea1nh - Ph\00fa Nhu\1eadn.'''),
 (4, 250000.00, 24, 20000000.00, N'2026-11-13 18:00:00.0', 4, N'2026-11-12 08:00:00.0', N'CN03', N'GD04', N'Đôi nam nữ', N'Sắp mở đăng ký', N'Giải Đôi Nam Nữ Trẻ Quận 9 Mở Rộng 2026', N'clob12: U&''Gi\1ea3i \0111\1ea5u phong tr\00e0o d\00e0nh cho thanh ni\00ean v\00e0 sinh vi\00ean khu v\1ef1c TP Th\1ee7 \0110\1ee9c - Qu\1eadn 9.'''),
 (6, 200000.00, 20, 18000000.00, N'2026-11-21 18:00:00.0', 5, N'2026-11-20 08:00:00.0', N'CN04', N'GD05', N'Đôi nam', N'Sắp mở đăng ký', N'Giải Cầu Lông Giao Lưu Các CLB Gò Vấp 2026', N'clob13: U&''S\00e2n ch\01a1i k\1ebft n\1ed1i giao l\01b0u gi\1eefa c\00e1c c\00e2u l\1ea1c b\1ed9 c\1ea7u l\00f4ng khu v\1ef1c G\00f2 V\1ea5p - T\00e2n B\00ecnh.''');
@@ -786,12 +877,12 @@ GO
 -- -----------------------------------------------------
 SET IDENTITY_INSERT tournament_registrations ON;
 INSERT INTO tournament_registrations (ID, REGISTRATION_DATE, CUSTOMER_CODE, PHONE, TOURNAMENT_CODE, CATEGORY, STATUS, EMAIL, TEAM_NAME) VALUES
-(1, N'2026-10-25 22:48:50.517087', N'KH001', N'0912345678', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Đạt & Trang (CLB Thủ Đức)'),
-(2, N'2026-10-25 22:48:50.517087', N'KH002', N'0903123456', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Nam & Thảo (ĐH Sư Phạm Kỹ Thuật)'),
-(3, N'2026-10-25 22:48:50.517087', N'KH003', N'0988777666', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Huy & Hằng (Công ty TMA)'),
-(4, N'2026-10-25 22:48:50.517087', N'KH004', N'0977555444', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Mai Anh & Đức (CLB Yonex)'),
-(5, N'2026-10-25 22:48:50.517087', N'KH005', N'0933221100', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Tuấn & Lan (CLB Bình Thạnh)'),
-(6, N'2026-10-25 22:48:59.651423', N'KH29936', N'0908123456', N'GD02', N'Doi Nam Nu', N'Đã xác nhận', NULL, N'CLB UTE Masters Test - Nguyen Van Test');
+(1, N'2026-10-27 22:47:55.220656', N'KH001', N'0912345678', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Đạt & Trang (CLB Thủ Đức)'),
+(2, N'2026-10-27 22:47:55.220656', N'KH002', N'0903123456', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Nam & Thảo (ĐH Sư Phạm Kỹ Thuật)'),
+(3, N'2026-10-27 22:47:55.220656', N'KH003', N'0988777666', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Huy & Hằng (Công ty TMA)'),
+(4, N'2026-10-27 22:47:55.220656', N'KH004', N'0977555444', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Mai Anh & Đức (CLB Yonex)'),
+(5, N'2026-10-27 22:47:55.220656', N'KH005', N'0933221100', N'GD01', N'Đôi nam nữ', N'Đã xác nhận', NULL, N'Cặp Đôi Tuấn & Lan (CLB Bình Thạnh)'),
+(6, N'2026-10-27 22:48:00.566081', N'KH63011', N'0908123456', N'GD02', N'Doi Nam Nu', N'Đã xác nhận', NULL, N'CLB UTE Masters Test - Nguyen Van Test');
 SET IDENTITY_INSERT tournament_registrations OFF;
 GO
 
@@ -804,13 +895,13 @@ SELECT * FROM tournament_matches [42102-240]
 -- -----------------------------------------------------
 SET IDENTITY_INSERT payments ON;
 INSERT INTO payments (AMOUNT, ID, PAYMENT_TIME, BOOKING_CODE, PAYMENT_CODE, STATUS, METHOD, TRANSACTION_TYPE, TRANSACTION_REF) VALUES
-(54000.00, 1, N'2026-10-25 22:48:50.523573', N'DS0101', N'TT0101', N'Thành công', N'Tiền mặt', N'Đặt cọc 30%', N'CASH-20260919-01'),
-(36000.00, 2, N'2026-10-25 22:48:50.523573', N'DS0102', N'TT0102', N'Thành công', N'Tiền mặt', N'Đặt cọc 30%', N'CASH-20260919-02'),
-(72000.00, 3, N'2026-10-25 22:48:50.523573', N'DS0103', N'TT0103', N'Thành công', N'VietQR Pro', N'Đặt cọc 30%', N'MB-998822110034'),
-(27000.00, 4, N'2026-10-25 22:48:50.523573', N'DS0104', N'TT0104', N'Đang xử lý', N'VietQR Pro', N'Đặt cọc 30%', N'VCB-776655441122'),
-(36000.00, 5, N'2026-10-25 22:48:50.523573', N'DS0105', N'TT0105', N'Thành công', N'VietQR Pro', N'Đặt cọc 30%', N'TCB-334455667788'),
-(72000.00, 6, N'2026-10-25 22:48:50.523573', N'DS0201', N'TT0106', N'Thành công', N'VietQR Pro', N'Đặt cọc 30%', N'MB-556677889900'),
-(30000.00, 7, N'2026-10-25 22:49:00.042722', N'DS623515', N'PAY521444', N'Thành công', N'Chuyển khoản VietQR', N'Đặt cọc 30%', N'SEPAY-DS623515');
+(54000.00, 1, N'2026-10-27 22:47:55.223658', N'DS0101', N'TT0101', N'Thành công', N'Tiền mặt', N'Đặt cọc 30%', N'CASH-20260919-01'),
+(36000.00, 2, N'2026-10-27 22:47:55.223658', N'DS0102', N'TT0102', N'Thành công', N'Tiền mặt', N'Đặt cọc 30%', N'CASH-20260919-02'),
+(72000.00, 3, N'2026-10-27 22:47:55.223658', N'DS0103', N'TT0103', N'Thành công', N'VietQR Pro', N'Đặt cọc 30%', N'MB-998822110034'),
+(27000.00, 4, N'2026-10-27 22:47:55.223658', N'DS0104', N'TT0104', N'Đang xử lý', N'VietQR Pro', N'Đặt cọc 30%', N'VCB-776655441122'),
+(36000.00, 5, N'2026-10-27 22:47:55.223658', N'DS0105', N'TT0105', N'Thành công', N'VietQR Pro', N'Đặt cọc 30%', N'TCB-334455667788'),
+(72000.00, 6, N'2026-10-27 22:47:55.223658', N'DS0201', N'TT0106', N'Thành công', N'VietQR Pro', N'Đặt cọc 30%', N'MB-556677889900'),
+(30000.00, 7, N'2026-10-27 22:48:00.814835', N'DS758309', N'PAY497758', N'Thành công', N'Chuyển khoản VietQR', N'Đặt cọc 30%', N'SEPAY-DS758309');
 SET IDENTITY_INSERT payments OFF;
 GO
 
@@ -820,11 +911,11 @@ GO
 -- -----------------------------------------------------
 SET IDENTITY_INSERT work_shifts ON;
 INSERT INTO work_shifts (SHIFT_DATE, ID, DAY_OF_WEEK, END_TIME, START_TIME, BRANCH_CODE, STAFF_CODE, ICON, SHIFT_TYPE, SHIFT_CODE, DUTY, STATUS) VALUES
-(N'2026-10-25', 1, NULL, N'14:00', N'06:00', N'CN01', N'NS03', N'POS', N'Ca Sáng', N'CA01', N'POS Bán hàng & Quản lý', N'Đang trực'),
-(N'2026-10-25', 2, NULL, N'22:00', N'14:00', N'CN01', N'NS04', N'POS', N'Ca Chiều', N'CA02', N'POS Bán hàng & Quản lý', N'Đã phân ca'),
-(N'2026-10-25', 5, NULL, N'23:00', N'17:00', N'CN01', N'NS08', N'POS', N'Ca Tối', N'CA05', N'POS Bán hàng & Quản lý', N'Đang trực'),
-(N'2026-10-25', 6, N'mon', N'13:30', N'05:00', N'CN01', N'NV-TEST-01', N'POS', N'morning', N'WS-MON-MOR-NV-TEST-01-3DCAB0', N'POS', N'Đã phân ca'),
-(N'2026-10-25', 7, N'sun', N'22:48', N'06:00', N'CN01', N'NVQ01', N'POS', N'handover', N'BG733813', N'POS', N'Đã kết ca');
+(N'2026-10-27', 1, NULL, N'14:00', N'06:00', N'CN01', N'NS03', N'POS', N'Ca Sáng', N'CA01', N'POS Bán hàng & Quản lý', N'Đang trực'),
+(N'2026-10-27', 2, NULL, N'22:00', N'14:00', N'CN01', N'NS04', N'POS', N'Ca Chiều', N'CA02', N'POS Bán hàng & Quản lý', N'Đã phân ca'),
+(N'2026-10-27', 5, NULL, N'23:00', N'17:00', N'CN01', N'NS08', N'POS', N'Ca Tối', N'CA05', N'POS Bán hàng & Quản lý', N'Đang trực'),
+(N'2026-10-27', 6, N'mon', N'13:30', N'05:00', N'CN01', N'NV-TEST-01', N'POS', N'morning', N'WS-MON-MOR-NV-TEST-01-CC48B7', N'POS', N'Đã phân ca'),
+(N'2026-10-27', 7, N'tue', N'22:48', N'06:00', N'CN01', N'NVQ01', N'POS', N'handover', N'BG452478', N'POS', N'Đã kết ca');
 SET IDENTITY_INSERT work_shifts OFF;
 GO
 
@@ -834,9 +925,9 @@ GO
 -- -----------------------------------------------------
 SET IDENTITY_INSERT stock_receipts ON;
 INSERT INTO stock_receipts (TOTAL_AMOUNT, ID, RECEIPT_DATE, BRANCH_CODE, STAFF_CODE, RECEIPT_CODE, SUPPLIER_NAME, NOTES) VALUES
-(14500000.00, 1, N'2026-10-20 22:48:50.593642', N'CN01', N'NS02', N'PN0101', N'Công ty TNHH Thể Thao Yonex Việt Nam', N'Nhập bổ sung vợt Yonex Astrox và 50 ống cầu Hải Yến'),
-(4200000.00, 2, N'2026-10-23 22:48:50.596825', N'CN01', N'NS02', N'PN0102', N'NPP Dụng Cụ Cầu Lông Đại Phát', N'Nhập nước bù khoáng Revive và Pocari Sweat đợt cuối tháng'),
-(150000.00, 3, N'2026-10-25 22:48:59.726134', N'CN01', N'NS02', N'PNK235053', N'Cong Ty TNHH The Thao Viet', N'Nhap hang dau tuan - Nước bù khoáng Revive Chanh muối 500ml x10');
+(14500000.00, 1, N'2026-10-22 22:47:55.255573', N'CN01', N'NS02', N'PN0101', N'Công ty TNHH Thể Thao Yonex Việt Nam', N'Nhập bổ sung vợt Yonex Astrox và 50 ống cầu Hải Yến'),
+(4200000.00, 2, N'2026-10-25 22:47:55.256602', N'CN01', N'NS02', N'PN0102', N'NPP Dụng Cụ Cầu Lông Đại Phát', N'Nhập nước bù khoáng Revive và Pocari Sweat đợt cuối tháng'),
+(150000.00, 3, N'2026-10-27 22:48:00.609052', N'CN01', N'NS02', N'PNK545358', N'Cong Ty TNHH The Thao Viet', N'Nhap hang dau tuan - Nước bù khoáng Revive Chanh muối 500ml x10');
 SET IDENTITY_INSERT stock_receipts OFF;
 GO
 
@@ -849,7 +940,7 @@ SELECT * FROM stock_equipment_details [42102-240]
 -- -----------------------------------------------------
 SET IDENTITY_INSERT stock_product_details ON;
 INSERT INTO stock_product_details (IMPORT_PRICE, QUANTITY, TOTAL_AMOUNT, ID, PRODUCT_CODE, RECEIPT_CODE) VALUES
-(15000.00, 10, 150000.00, 1, N'P01', N'PNK235053');
+(15000.00, 10, 150000.00, 1, N'P01', N'PNK545358');
 SET IDENTITY_INSERT stock_product_details OFF;
 GO
 
@@ -871,26 +962,30 @@ GO
 -- -----------------------------------------------------
 SET IDENTITY_INSERT system_settings ON;
 INSERT INTO system_settings (ID, UPDATED_AT, SETTING_CODE, SETTING_NAME, DESCRIPTION, SETTING_VALUE) VALUES
-(1, N'2026-10-25 22:48:50.550096', N'CFG_DEPOSIT_RATE', N'Tỷ lệ đặt cọc tối thiểu (%)', N'Khách hàng phải thanh toán cọc ít nhất 30% để giữ sân hợp lệ', N'30'),
-(2, N'2026-10-25 22:48:50.55356', N'CFG_HOLDING_MINUTES', N'Thời gian tạm giữ chỗ chờ cọc (Phút)', N'Sau 10 phút nếu không có giao dịch cọc, hệ thống tự động giải phóng ô sân', N'10'),
-(3, N'2026-10-25 22:48:50.555565', N'CFG_CANCEL_HOURS', N'Thời hạn hủy sân tối thiểu để được hoàn cọc (Giờ)', N'Hủy trước giờ chơi tối thiểu 4 tiếng để được nhận lại 100% tiền cọc (QĐ-KH03)', N'4'),
-(4, N'2026-10-25 22:48:50.55859', N'CFG_ADVANCE_DAYS', N'Số ngày tối đa được phép đặt trước', N'Giới hạn đặt sân trong vòng 30 ngày tới', N'30'),
-(5, N'2026-10-25 22:48:50.560567', N'CFG_VNPAY_TMN', N'Mã đối tác VNPay (TMN Code)', N'Tích hợp cổng thanh toán VNPay QR Sandbox/Production', N'UTESPORT2026'),
-(6, N'2026-10-25 22:48:50.562566', N'CFG_VNPAY_ENV', N'Môi trường VNPay', N'Môi trường thử nghiệm Sandbox hoặc Production', N'SANDBOX'),
-(7, N'2026-10-25 22:48:50.565108', N'CFG_VNPAY_SECRET', N'Khóa bí mật VNPay Hash Secret', N'Khóa mã hóa bảo mật checksum giao dịch VNPay', N'••••••••••••••••••••••••'),
-(8, N'2026-10-25 22:48:50.567108', N'CFG_MOMO_PARTNER', N'Partner Code MoMo Business', N'Tích hợp cổng Ví điện tử MoMo Business', N'MOMO_UTE_BADMINTON'),
-(9, N'2026-10-25 22:48:50.570109', N'CFG_MOMO_KEY', N'Access Key MoMo', N'Khóa truy cập API tích hợp MoMo Business', N'F8B24C5E9012A34B'),
-(10, N'2026-10-25 22:48:50.572109', N'CFG_POINTS_PER_1000', N'Số điểm tích lũy cho mỗi 1.000 VNĐ chi tiêu', N'Nhập số điểm nhận được cho mỗi 1.000 VNĐ chi tiêu', N'1'),
-(11, N'2026-10-25 22:48:50.574662', N'CFG_TIER_SILVER_POINTS', N'Hạn mức điểm lên Hạng Bạc', N'Tích lũy đủ 500 điểm để thăng hạng Bạc (Giảm 5%)', N'500'),
-(12, N'2026-10-25 22:48:50.576667', N'CFG_TIER_GOLD_POINTS', N'Hạn mức điểm lên Hạng Vàng', N'Tích lũy đủ 2.000 điểm để thăng hạng Vàng (Giảm 10%)', N'2000'),
-(13, N'2026-10-25 22:48:50.57956', N'CFG_TIER_DIAMOND_POINTS', N'Hạn mức điểm lên Hạng Kim Cương', N'Tích lũy đủ 4.000 điểm để thăng hạng Kim Cương (Giảm 15%)', N'4000'),
-(14, N'2026-10-25 22:48:50.581536', N'CFG_MAIL_HOST', N'Máy chủ gửi thư SMTP', N'Địa chỉ máy chủ SMTP (mặc định: smtp.gmail.com)', N'smtp.gmail.com'),
-(15, N'2026-10-25 22:48:50.584105', N'CFG_MAIL_PORT', N'Cổng kết nối SMTP', N'Cổng gửi thư STARTTLS (mặc định: 587)', N'587'),
-(16, N'2026-10-25 22:48:50.586111', N'CFG_MAIL_USERNAME', N'Tài khoản gửi email (Gmail)', N'Địa chỉ email Gmail của Ban quản trị để gửi OTP và vé điện tử', N'tho8189@gmail.com'),
-(17, N'2026-10-25 22:48:50.589097', N'CFG_MAIL_PASSWORD', N'Mật khẩu ứng dụng Google (App Password)', N'Mật khẩu ứng dụng 16 ký tự tạo từ myaccount.google.com/apppasswords', N''),
-(18, N'2026-10-25 22:48:50.590644', N'CFG_MAIL_FROM_NAME', N'Tên hiển thị người gửi', N'Tên hiển thị thương hiệu trong hộp thư người nhận', N'UTE Sport Badminton Arena');
+(1, N'2026-10-27 22:47:55.235172', N'CFG_DEPOSIT_RATE', N'Tỷ lệ đặt cọc tối thiểu (%)', N'Khách hàng phải thanh toán cọc ít nhất 30% để giữ sân hợp lệ', N'30'),
+(2, N'2026-10-27 22:47:55.237208', N'CFG_HOLDING_MINUTES', N'Thời gian tạm giữ chỗ chờ cọc (Phút)', N'Sau 10 phút nếu không có giao dịch cọc, hệ thống tự động giải phóng ô sân', N'10'),
+(3, N'2026-10-27 22:47:55.238171', N'CFG_CANCEL_HOURS', N'Thời hạn hủy sân tối thiểu để được hoàn cọc (Giờ)', N'Hủy trước giờ chơi tối thiểu 4 tiếng để được nhận lại 100% tiền cọc (QĐ-KH03)', N'4'),
+(4, N'2026-10-27 22:47:55.240172', N'CFG_ADVANCE_DAYS', N'Số ngày tối đa được phép đặt trước', N'Giới hạn đặt sân trong vòng 30 ngày tới', N'30'),
+(5, N'2026-10-27 22:47:55.241171', N'CFG_VNPAY_TMN', N'Mã đối tác VNPay (TMN Code)', N'Tích hợp cổng thanh toán VNPay QR Sandbox/Production', N'UTESPORT2026'),
+(6, N'2026-10-27 22:47:55.242169', N'CFG_VNPAY_ENV', N'Môi trường VNPay', N'Môi trường thử nghiệm Sandbox hoặc Production', N'SANDBOX'),
+(7, N'2026-10-27 22:47:55.243169', N'CFG_VNPAY_SECRET', N'Khóa bí mật VNPay Hash Secret', N'Khóa mã hóa bảo mật checksum giao dịch VNPay', N'••••••••••••••••••••••••'),
+(8, N'2026-10-27 22:47:55.24417', N'CFG_MOMO_PARTNER', N'Partner Code MoMo Business', N'Tích hợp cổng Ví điện tử MoMo Business', N'MOMO_UTE_BADMINTON'),
+(9, N'2026-10-27 22:47:55.245172', N'CFG_MOMO_KEY', N'Access Key MoMo', N'Khóa truy cập API tích hợp MoMo Business', N'F8B24C5E9012A34B'),
+(10, N'2026-10-27 22:47:55.245172', N'CFG_POINTS_PER_1000', N'Số điểm tích lũy cho mỗi 1.000 VNĐ chi tiêu', N'Nhập số điểm nhận được cho mỗi 1.000 VNĐ chi tiêu', N'1'),
+(11, N'2026-10-27 22:47:55.247574', N'CFG_TIER_SILVER_POINTS', N'Hạn mức điểm lên Hạng Bạc', N'Tích lũy đủ 500 điểm để thăng hạng Bạc (Giảm 5%)', N'500'),
+(12, N'2026-10-27 22:47:55.248574', N'CFG_TIER_GOLD_POINTS', N'Hạn mức điểm lên Hạng Vàng', N'Tích lũy đủ 2.000 điểm để thăng hạng Vàng (Giảm 10%)', N'2000'),
+(13, N'2026-10-27 22:47:55.249575', N'CFG_TIER_DIAMOND_POINTS', N'Hạn mức điểm lên Hạng Kim Cương', N'Tích lũy đủ 4.000 điểm để thăng hạng Kim Cương (Giảm 15%)', N'4000'),
+(14, N'2026-10-27 22:47:55.250574', N'CFG_MAIL_HOST', N'Máy chủ gửi thư SMTP', N'Địa chỉ máy chủ SMTP (mặc định: smtp.gmail.com)', N'smtp.gmail.com'),
+(15, N'2026-10-27 22:47:55.250574', N'CFG_MAIL_PORT', N'Cổng kết nối SMTP', N'Cổng gửi thư STARTTLS (mặc định: 587)', N'587'),
+(16, N'2026-10-27 22:47:55.251594', N'CFG_MAIL_USERNAME', N'Tài khoản gửi email (Gmail)', N'Địa chỉ email Gmail của Ban quản trị để gửi OTP và vé điện tử', N'tho8189@gmail.com'),
+(17, N'2026-10-27 22:47:55.252598', N'CFG_MAIL_PASSWORD', N'Mật khẩu ứng dụng Google (App Password)', N'Mật khẩu ứng dụng 16 ký tự tạo từ myaccount.google.com/apppasswords', N''),
+(18, N'2026-10-27 22:47:55.253575', N'CFG_MAIL_FROM_NAME', N'Tên hiển thị người gửi', N'Tên hiển thị thương hiệu trong hộp thư người nhận', N'UTE Sport Badminton Arena');
 SET IDENTITY_INSERT system_settings OFF;
 GO
+
+-- Bảng support_tickets: Không có dữ liệu.
+
+-- Bảng chat_messages: Không có dữ liệu.
 
 
 -- -----------------------------------------------------
@@ -898,24 +993,24 @@ GO
 -- -----------------------------------------------------
 SET IDENTITY_INSERT audit_logs ON;
 INSERT INTO audit_logs (LOG_ID, ACTION_TIME, USER_CODE, STATUS, IP_ADDRESS, MODULE, USERNAME, ACTION_TYPE, DETAILS) VALUES
-(1, N'2026-10-25 22:36:50.607342', N'AD01', N'Thành công', N'192.168.1.105', N'An ninh & Đăng nhập', N'admin', N'Đăng nhập hệ thống', N'clob14: U&''X\00e1c th\1ef1c t\00e0i kho\1ea3n qu\1ea3n tr\1ecb vi\00ean th\00e0nh c\00f4ng'''),
-(2, N'2026-10-25 21:23:50.607342', N'AD01', N'Thành công', N'192.168.1.105', N'Bảng giá & Khuyến mãi', N'admin', N'Cập nhật bảng giá sân', N'clob15: U&''\0110i\1ec1u ch\1ec9nh ph\1ee5 thu khung gi\1edd cao \0111i\1ec3m 17:00 - 21:00 chi nh\00e1nh Th\1ee7 \0110\1ee9c (CN01)'''),
-(3, N'2026-10-25 19:48:50.607342', N'NVQ01', N'Thành công', N'192.168.1.42', N'Quản lý sân', N'baophuc', N'Chuyển trạng thái bảo trì', N'clob16: U&''T\1ea1m kh\00f3a b\1ea3o tr\00ec s\00e2n CL06 (Th\1ee7 \0110\1ee9c) \0111\1ec3 thay th\1ea3m s\00e0n thi \0111\1ea5u BWF'''),
-(4, N'2026-10-25 17:48:50.607342', N'SYS', N'Thành công', N'127.0.0.1', N'Hệ thống sao lưu', N'system', N'Sao lưu cơ sở dữ liệu tự động', N'clob17: U&''T\1ea1o b\1ea3n sao l\01b0u \0111\1ecbnh k\1ef3 backup_ute_sport_auto_20261019.sql.gz (28.5 MB)'''),
-(5, N'2026-10-25 16:48:50.607342', N'NV01', N'Thành công', N'192.168.1.18', N'Thanh toán & Thu ngân', N'thu_ngan_01', N'Xác nhận thanh toán tiền cọc', N'clob18: U&''Ghi nh\1eadn giao d\1ecbch chuy\1ec3n kho\1ea3n VietQR 60.000\0111 cho \0111\01a1n \0111\1eb7t s\00e2n DS001248'''),
-(6, N'2026-10-25 14:48:50.607342', N'AD01', N'Thành công', N'192.168.1.105', N'Tài khoản & Phân quyền', N'admin', N'Phân quyền người dùng', N'clob19: U&''G\00e1n vai tr\00f2 Qu\1ea3n l\00fd chi nh\00e1nh B\00ecnh Th\1ea1nh cho t\00e0i kho\1ea3n ql_binhthanh'''),
-(7, N'2026-10-25 08:48:50.607342', N'AD01', N'Thành công', N'192.168.1.105', N'Cấu hình thông số', N'admin', N'Cấu hình tham số hệ thống', N'clob20: U&''C\1eadp nh\1eadt th\1eddi h\1ea1n gi\1eef ch\1ed7 tr\01b0\1edbc khi h\1ee7y c\1ecdc th\00e0nh 15 ph\00fat'''),
-(8, N'2026-10-25 04:48:50.607342', N'SYS', N'Thành công', N'127.0.0.1', N'Tích hợp VietQR', N'system', N'Đồng bộ giao dịch VietQR', N'clob21: U&''Ki\1ec3m tra webhook \0111\1ed1i so\00e1t v\1edbi ng\00e2n h\00e0ng VietinBank/MBBank'''),
-(9, N'2026-10-24 22:48:50.607342', N'GD01', N'Thành công', N'192.168.1.200', N'Giải đấu & Sự kiện', N'giam_doc', N'Phê duyệt kế hoạch giải đấu', N'clob22: U&''Ph\00ea duy\1ec7t \0111i\1ec1u l\1ec7 Gi\1ea3i C\1ea7u L\00f4ng Doanh Nghi\1ec7p C\00fap Th\1ee7 \0110\1ee9c 2026'''),
-(10, N'2026-10-24 20:48:50.607342', N'AD01', N'Thành công', N'192.168.1.105', N'Hệ thống sao lưu', N'admin', N'Sao lưu CSDL thủ công', N'clob23: U&''T\1ea1o b\1ea3n sao l\01b0u backup_ute_sport_manual_20261018.sql.gz tr\01b0\1edbc khi b\1ea3o tr\00ec'''),
-(11, N'2026-10-23 22:48:50.607342', N'NVQ01', N'Thành công', N'192.168.1.42', N'Kho hàng & Dịch vụ', N'baophuc', N'Nhập kho sản phẩm POS', N'clob24: U&''Nh\1eadp b\1ed5 sung 50 \1ed1ng c\1ea7u Yonex Aerosensa 50 cho chi nh\00e1nh CN01'''),
-(12, N'2026-10-22 22:48:50.607342', N'SYS', N'Thành công', N'127.0.0.1', N'Bảo trì CSDL', N'system', N'Tối ưu hóa chỉ mục CSDL', N'clob25: U&''Rebuild index b\1ea3ng bookings v\00e0 audit_logs \0111\1ecbnh k\1ef3'''),
-(13, N'2026-10-25 22:48:59.174162', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Khóa / Mở khóa tài khoản', N'clob26: U&''Chuy\1ec3n tr\1ea1ng th\00e1i t\00e0i kho\1ea3n [toggle_test_user] sang: B\1ecb kh\00f3a'''),
-(14, N'2026-10-25 22:48:59.188721', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Khóa / Mở khóa tài khoản', N'clob27: U&''Chuy\1ec3n tr\1ea1ng th\00e1i t\00e0i kho\1ea3n [toggle_test_user] sang: Ho\1ea1t \0111\1ed9ng'''),
-(15, N'2026-10-25 22:48:59.298864', NULL, N'Thành công', N'127.0.0.1', N'Phân hệ Quản trị', N'admin', N'Cập nhật ma trận phân quyền chi nhánh', N'clob28: U&''C\1eadp nh\1eadt ph\00e2n quy\1ec1n chi nh\00e1nh cho: perm_test_user -> CN02; '''),
-(16, N'2026-10-25 22:48:59.383276', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Phân quyền & Cập nhật người dùng', N'clob29: U&''Thi\1ebft l\1eadp t\00e0i kho\1ea3n [test_staff_day05] - Vai tr\00f2: POS - Chi nh\00e1nh: CN01'''),
-(17, N'2026-10-25 22:48:59.456487', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Phân quyền & Cập nhật người dùng', N'clob30: U&''Thi\1ebft l\1eadp t\00e0i kho\1ea3n [test_staff_day05] - Vai tr\00f2: POS - Chi nh\00e1nh: CN01'''),
-(18, N'2026-10-25 22:49:00.172887', NULL, N'Cảnh báo', N'127.0.0.1', N'An ninh & Đăng nhập', N'non_existing_user_9999', N'Đăng nhập thất bại', N'clob31: U&''\0110\0103ng nh\1eadp kh\00f4ng th\00e0nh c\00f4ng: T\00e0i kho\1ea3n ho\1eb7c m\1eadt kh\1ea9u kh\00f4ng ch\00ednh x\00e1c!''');
+(1, N'2026-10-27 22:35:55.260575', N'AD01', N'Thành công', N'192.168.1.105', N'An ninh & Đăng nhập', N'admin', N'Đăng nhập hệ thống', N'clob14: U&''X\00e1c th\1ef1c t\00e0i kho\1ea3n qu\1ea3n tr\1ecb vi\00ean th\00e0nh c\00f4ng'''),
+(2, N'2026-10-27 21:22:55.260575', N'AD01', N'Thành công', N'192.168.1.105', N'Bảng giá & Khuyến mãi', N'admin', N'Cập nhật bảng giá sân', N'clob15: U&''\0110i\1ec1u ch\1ec9nh ph\1ee5 thu khung gi\1edd cao \0111i\1ec3m 17:00 - 21:00 chi nh\00e1nh Th\1ee7 \0110\1ee9c (CN01)'''),
+(3, N'2026-10-27 19:47:55.260575', N'NVQ01', N'Thành công', N'192.168.1.42', N'Quản lý sân', N'baophuc', N'Chuyển trạng thái bảo trì', N'clob16: U&''T\1ea1m kh\00f3a b\1ea3o tr\00ec s\00e2n CL06 (Th\1ee7 \0110\1ee9c) \0111\1ec3 thay th\1ea3m s\00e0n thi \0111\1ea5u BWF'''),
+(4, N'2026-10-27 17:47:55.260575', N'SYS', N'Thành công', N'127.0.0.1', N'Hệ thống sao lưu', N'system', N'Sao lưu cơ sở dữ liệu tự động', N'clob17: U&''T\1ea1o b\1ea3n sao l\01b0u \0111\1ecbnh k\1ef3 backup_ute_sport_auto_20261019.sql.gz (28.5 MB)'''),
+(5, N'2026-10-27 16:47:55.260575', N'NV01', N'Thành công', N'192.168.1.18', N'Thanh toán & Thu ngân', N'thu_ngan_01', N'Xác nhận thanh toán tiền cọc', N'clob18: U&''Ghi nh\1eadn giao d\1ecbch chuy\1ec3n kho\1ea3n VietQR 60.000\0111 cho \0111\01a1n \0111\1eb7t s\00e2n DS001248'''),
+(6, N'2026-10-27 14:47:55.260575', N'AD01', N'Thành công', N'192.168.1.105', N'Tài khoản & Phân quyền', N'admin', N'Phân quyền người dùng', N'clob19: U&''G\00e1n vai tr\00f2 Qu\1ea3n l\00fd chi nh\00e1nh B\00ecnh Th\1ea1nh cho t\00e0i kho\1ea3n ql_binhthanh'''),
+(7, N'2026-10-27 08:47:55.260575', N'AD01', N'Thành công', N'192.168.1.105', N'Cấu hình thông số', N'admin', N'Cấu hình tham số hệ thống', N'clob20: U&''C\1eadp nh\1eadt th\1eddi h\1ea1n gi\1eef ch\1ed7 tr\01b0\1edbc khi h\1ee7y c\1ecdc th\00e0nh 15 ph\00fat'''),
+(8, N'2026-10-27 04:47:55.260575', N'SYS', N'Thành công', N'127.0.0.1', N'Tích hợp VietQR', N'system', N'Đồng bộ giao dịch VietQR', N'clob21: U&''Ki\1ec3m tra webhook \0111\1ed1i so\00e1t v\1edbi ng\00e2n h\00e0ng VietinBank/MBBank'''),
+(9, N'2026-10-26 22:47:55.260575', N'GD01', N'Thành công', N'192.168.1.200', N'Giải đấu & Sự kiện', N'giam_doc', N'Phê duyệt kế hoạch giải đấu', N'clob22: U&''Ph\00ea duy\1ec7t \0111i\1ec1u l\1ec7 Gi\1ea3i C\1ea7u L\00f4ng Doanh Nghi\1ec7p C\00fap Th\1ee7 \0110\1ee9c 2026'''),
+(10, N'2026-10-26 20:47:55.260575', N'AD01', N'Thành công', N'192.168.1.105', N'Hệ thống sao lưu', N'admin', N'Sao lưu CSDL thủ công', N'clob23: U&''T\1ea1o b\1ea3n sao l\01b0u backup_ute_sport_manual_20261018.sql.gz tr\01b0\1edbc khi b\1ea3o tr\00ec'''),
+(11, N'2026-10-25 22:47:55.260575', N'NVQ01', N'Thành công', N'192.168.1.42', N'Kho hàng & Dịch vụ', N'baophuc', N'Nhập kho sản phẩm POS', N'clob24: U&''Nh\1eadp b\1ed5 sung 50 \1ed1ng c\1ea7u Yonex Aerosensa 50 cho chi nh\00e1nh CN01'''),
+(12, N'2026-10-24 22:47:55.260575', N'SYS', N'Thành công', N'127.0.0.1', N'Bảo trì CSDL', N'system', N'Tối ưu hóa chỉ mục CSDL', N'clob25: U&''Rebuild index b\1ea3ng bookings v\00e0 audit_logs \0111\1ecbnh k\1ef3'''),
+(13, N'2026-10-27 22:48:00.170231', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Khóa / Mở khóa tài khoản', N'clob26: U&''Chuy\1ec3n tr\1ea1ng th\00e1i t\00e0i kho\1ea3n [toggle_test_user] sang: B\1ecb kh\00f3a'''),
+(14, N'2026-10-27 22:48:00.186133', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Khóa / Mở khóa tài khoản', N'clob27: U&''Chuy\1ec3n tr\1ea1ng th\00e1i t\00e0i kho\1ea3n [toggle_test_user] sang: Ho\1ea1t \0111\1ed9ng'''),
+(15, N'2026-10-27 22:48:00.285508', NULL, N'Thành công', N'127.0.0.1', N'Phân hệ Quản trị', N'admin', N'Cập nhật ma trận phân quyền chi nhánh', N'clob28: U&''C\1eadp nh\1eadt ph\00e2n quy\1ec1n chi nh\00e1nh cho: perm_test_user -> CN02; '''),
+(16, N'2026-10-27 22:48:00.364264', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Phân quyền & Cập nhật người dùng', N'clob29: U&''Thi\1ebft l\1eadp t\00e0i kho\1ea3n [test_staff_day05] - Vai tr\00f2: POS - Chi nh\00e1nh: CN01'''),
+(17, N'2026-10-27 22:48:00.427728', NULL, N'Thành công', N'127.0.0.1', N'Tài khoản & Phân quyền', N'admin', N'Phân quyền & Cập nhật người dùng', N'clob30: U&''Thi\1ebft l\1eadp t\00e0i kho\1ea3n [test_staff_day05] - Vai tr\00f2: POS - Chi nh\00e1nh: CN01'''),
+(18, N'2026-10-27 22:48:00.886702', NULL, N'Cảnh báo', N'127.0.0.1', N'An ninh & Đăng nhập', N'non_existing_user_9999', N'Đăng nhập thất bại', N'clob31: U&''\0110\0103ng nh\1eadp kh\00f4ng th\00e0nh c\00f4ng: T\00e0i kho\1ea3n ho\1eb7c m\1eadt kh\1ea9u kh\00f4ng ch\00ednh x\00e1c!''');
 SET IDENTITY_INSERT audit_logs OFF;
 GO
 
@@ -934,9 +1029,18 @@ IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_courts_branch_sta
 
 IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_invoices_booking_date')
     CREATE INDEX idx_invoices_booking_date ON invoices(booking_code, invoice_date);
+
+IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_chat_messages_session')
+    CREATE INDEX idx_chat_messages_session ON chat_messages(session_id);
+
+IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_support_tickets_session')
+    CREATE INDEX idx_support_tickets_session ON support_tickets(session_id);
+
+IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_suppliers_code')
+    CREATE INDEX idx_suppliers_code ON suppliers(supplier_code);
 GO
 
-PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 25 BẢNG DỮ LIỆU, 25 VIEW TIẾNG VIỆT VÀ CHÈN SEED DATA HOÀN TẤT THÀNH CÔNG!';
+PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 28 BẢNG DỮ LIỆU, 28 VIEW TIẾNG VIỆT VÀ CHÈN SEED DATA HOÀN TẤT THÀNH CÔNG!';
 GO
 
 -- =====================================================================
@@ -1704,7 +1808,7 @@ END;
 GO
 
 PRINT N'=====================================================================';
-PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 25 BẢNG DỮ LIỆU, 25 VIEW TIẾNG VIỆT,';
+PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 28 BẢNG DỮ LIỆU, 28 VIEW TIẾNG VIỆT,';
 PRINT N'>>> 5 FUNCTIONS, 7 STORED PROCEDURES VÀ 6 TRIGGERS HOÀN TẤT THÀNH CÔNG!';
 PRINT N'=====================================================================';
 GO
