@@ -288,7 +288,18 @@
       font-size: 26px;
       cursor: pointer;
       color: #cbd5e1;
-      transition: color 0.15s;
+      transition: color 0.15s, transform 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .star-btn svg {
+      width: 26px;
+      height: 26px;
+      fill: currentColor;
+    }
+    .star-btn:hover {
+      transform: scale(1.15);
     }
     .star-btn.active { color: #f59e0b; }
 
@@ -822,17 +833,29 @@
     <div class="modal-card" style="max-width: 440px;">
       <div class="modal-header">
         <h3 id="reviewModalTitle" style="font-size: 15px;">Đánh Giá Chất Lượng Sân</h3>
-        <button type="button" class="modal-close-btn" onclick="closeModals()">✕</button>
+        <button type="button" class="modal-close-btn" onclick="closeModals()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--cust-text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="modal-body">
         <div style="text-align: center;">
           <div style="font-size: 13px; color: var(--cust-text-muted);">Bạn cảm thấy chất lượng mặt thảm và dịch vụ thế nào?</div>
           <div class="star-rating">
-            <span class="star-btn active" onclick="setRating(1)">★</span>
-            <span class="star-btn active" onclick="setRating(2)">★</span>
-            <span class="star-btn active" onclick="setRating(3)">★</span>
-            <span class="star-btn active" onclick="setRating(4)">★</span>
-            <span class="star-btn active" onclick="setRating(5)">★</span>
+            <span class="star-btn active" onclick="setRating(1)">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </span>
+            <span class="star-btn active" onclick="setRating(2)">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </span>
+            <span class="star-btn active" onclick="setRating(3)">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </span>
+            <span class="star-btn active" onclick="setRating(4)">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </span>
+            <span class="star-btn active" onclick="setRating(5)">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </span>
           </div>
         </div>
 
@@ -858,7 +881,9 @@
             <h3 style="font-size: 19px; font-weight: 800; margin: 0; color: #ffffff;" id="payModalCourt">Sân Thi Đấu</h3>
             <div style="font-family: monospace; font-size: 14px; color: #6ee7b7; font-weight: 700; margin-top: 2px;" id="payModalCode">DS000000</div>
           </div>
-          <button type="button" onclick="closePaymentModal()" style="background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; color: #ffffff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">✕</button>
+          <button type="button" onclick="closePaymentModal()" title="Đóng" style="background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 32px; height: 32px; color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">
+            <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
 
         <div style="margin-top: 14px; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.15);">

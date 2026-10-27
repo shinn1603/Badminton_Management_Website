@@ -489,7 +489,9 @@
     <div class="modal-card">
       <div class="modal-header">
         <h3 id="modalTitle">Thông tin nhân sự chi nhánh</h3>
-        <button class="modal-close-btn" onclick="closeStaffModal()">✕</button>
+        <button type="button" class="modal-close-btn" onclick="closeStaffModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="editStaffIndex" value="-1">
@@ -538,7 +540,9 @@
     <div class="modal-card">
       <div class="modal-header">
         <h3>Phân công nhân sự vào ca trực</h3>
-        <button class="modal-close-btn" onclick="closeAssignShiftModal()">✕</button>
+        <button type="button" class="modal-close-btn" onclick="closeAssignShiftModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -879,7 +883,9 @@
                   <span style="font-size: 10px; opacity: 0.85; font-weight: 600;">[${dutyText}]</span>
                 </div>
                 <div style="display: flex; align-items: center;">
-                  <button type="button" class="btn-del-shift" onclick="removeStaffFromShift('${dayKey}', '${shift.key}', '${item.staffId}')" title="Xóa nhân viên khỏi ca này">✕</button>
+                  <button type="button" class="btn-del-shift" onclick="removeStaffFromShift('${dayKey}', '${shift.key}', '${item.staffId}')" title="Xóa nhân viên khỏi ca này" style="display: inline-flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" style="width: 11px; height: 11px; stroke: currentColor; stroke-width: 2.2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
                 </div>
               </div>
             `;

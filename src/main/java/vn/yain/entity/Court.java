@@ -53,4 +53,7 @@ public class Court {
 
     @Column(name = "net_condition", length = 150)
     private String netCondition = "Lưới thi đấu BWF căng mới, cột nhôm chắc chắn";
+
+    @Column(name = "description", length = 1000)
+    private String description;
 }

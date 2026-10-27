@@ -1268,13 +1268,12 @@
     }
     .gallery-preview-frame {
       width: 100%;
-      height: 270px;
-      border-radius: 16px;
+      height: 280px;
+      border-radius: 14px;
       overflow: hidden;
-      background: #0f1e1a;
+      background: #0f172a;
       position: relative;
       border: 1px solid var(--border-subtle);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     }
     .gallery-preview-frame img {
       width: 100%;
@@ -1286,39 +1285,41 @@
       position: absolute;
       top: 12px;
       left: 12px;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(6px);
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
       color: #34d399;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11.5px;
       font-weight: 700;
       border: 1px solid rgba(52, 211, 153, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
     .gallery-thumbs-strip {
       display: flex;
       gap: 10px;
       overflow-x: auto;
-      padding: 10px 2px 4px;
-      margin-top: 10px;
+      padding: 8px 2px 4px;
+      margin-top: 8px;
     }
     .gallery-thumb-item {
-      width: 72px;
-      height: 52px;
-      border-radius: 10px;
+      width: 68px;
+      height: 48px;
+      border-radius: 8px;
       overflow: hidden;
       flex-shrink: 0;
       cursor: pointer;
       border: 2px solid transparent;
-      opacity: 0.7;
+      opacity: 0.65;
       transition: all 0.2s ease;
-      background: #000;
-      position: relative;
+      background: #0f172a;
     }
     .gallery-thumb-item.active, .gallery-thumb-item:hover {
       opacity: 1;
       border-color: var(--primary);
-      transform: scale(1.05);
+      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
     .gallery-thumb-item img {
@@ -1326,71 +1327,168 @@
       height: 100%;
       object-fit: cover;
     }
+    /* TECHNICAL SPECS CARD */
     .condition-specs-box {
       margin-top: 18px;
       background: var(--surface-subtle);
       border: 1px solid var(--border-subtle);
       border-radius: 14px;
-      padding: 14px 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .spec-header-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .spec-grid-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    .spec-row {
+    .spec-item-card {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
-      font-size: 12.5px;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      transition: border-color 0.2s ease;
     }
-    .spec-icon {
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      background: rgba(16, 185, 129, 0.15);
-      color: #059669;
+    .spec-item-card:hover {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    .spec-item-icon {
+      color: var(--primary);
+      margin-top: 2px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
+      width: 20px;
+      height: 20px;
+    }
+    .spec-item-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .spec-item-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 2px;
+    }
+    .spec-item-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.4;
+    }
+
+    /* PRICING & FAVORITE CARD */
+    .court-pricing-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .court-price-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .court-price-val {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: -0.02em;
     }
     .court-like-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       padding: 8px 16px;
       border-radius: 9999px;
-      border: 1.5px solid #f43f5e;
-      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      background: rgba(244, 63, 94, 0.06);
       color: #e11d48;
       font-weight: 700;
-      font-size: 13.5px;
+      font-size: 13px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .court-like-btn:hover {
-      background: #f43f5e;
-      color: #ffffff;
-      transform: scale(1.04);
-      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
+      background: rgba(244, 63, 94, 0.14);
+      border-color: #f43f5e;
+      transform: translateY(-1px);
     }
     .court-like-btn.liked {
       background: #f43f5e;
       color: #ffffff;
+      border-color: #f43f5e;
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
     }
-    .court-like-btn .heart-anim {
-      display: inline-block;
+    .court-like-btn.liked svg {
+      fill: #ffffff;
+      stroke: #ffffff;
+    }
+    .court-like-btn svg {
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .court-like-btn:active .heart-anim {
-      transform: scale(1.4);
+    .court-like-btn:active svg {
+      transform: scale(1.3);
     }
+
+    /* PRIMARY CTA BUTTON */
+    .btn-book-primary-action {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+      letter-spacing: 0.3px;
+    }
+    .btn-book-primary-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+      background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    }
+
+    /* REVIEWS & RATINGS */
     .court-comments-box {
       border: 1px solid var(--border-subtle);
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 16px;
       background: var(--surface);
-      margin-top: 14px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -1407,7 +1505,7 @@
       background: var(--surface-subtle);
       border: 1px solid var(--border-subtle);
       border-radius: 10px;
-      padding: 8px 12px;
+      padding: 10px 12px;
       font-size: 12.5px;
     }
     .star-rating-select {
@@ -1417,12 +1515,25 @@
       user-select: none;
     }
     .star-rating-select span {
-      font-size: 18px;
-      color: #cbd5e1;
-      transition: color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-    .star-rating-select span.gold {
+    .star-rating-select svg {
+      width: 16px;
+      height: 16px;
+      color: #cbd5e1;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+    .star-rating-select svg.gold {
       color: #f59e0b;
+      fill: #f59e0b;
+    }
+    .star-rating-select svg:hover {
+      transform: scale(1.2);
     }
   </style>
 </head>
@@ -1936,7 +2047,9 @@
           <div class="slot-modal-title" id="gridModalCourtTitle">Chọn Giờ Đặt Sân</div>
           <div class="slot-modal-sub" id="gridModalBranchSub">Chi nhánh Thủ Đức • Chuẩn thi đấu BWF</div>
         </div>
-        <button type="button" class="btn-icon" onclick="closeCourtTimeGridModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); font-size: 20px;">✕</button>
+        <button type="button" class="btn-icon" onclick="closeCourtTimeGridModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
       <div class="slot-modal-body">
@@ -2061,21 +2174,24 @@
     </div>
   </div>
 
-  <!-- COURT DETAIL & CONDITION GALLERY MODAL (CLOUDINARY) -->
+  <!-- COURT DETAIL & CONDITION GALLERY MODAL (MODERN SPORTS DESIGN) -->
   <div id="courtDetailCustomerModal" class="slot-modal-overlay">
     <div class="court-detail-card">
       <div class="court-detail-header">
         <div>
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <h3 id="cdmCourtName" style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-dark);">Sân Đang Tải...</h3>
-            <span id="cdmCourtBadge" class="court-thumb-badge badge-standard" style="position: static;">Tiêu chuẩn</span>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h3 id="cdmCourtName" style="margin: 0; font-size: 20px; font-weight: 800; color: var(--text-dark); letter-spacing: -0.01em;">Sân Đang Tải...</h3>
+            <span id="cdmCourtBadge" class="court-thumb-badge badge-standard" style="position: static;">Sân Tiêu Chuẩn</span>
           </div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
-            <span id="cdmCourtCode" style="font-family: monospace; font-weight: 700;">SAN01</span> • 
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+            <span id="cdmCourtCode" style="font-family: monospace; font-weight: 700; color: var(--primary); background: rgba(16, 185, 129, 0.1); padding: 1px 6px; border-radius: 4px;">SAN01</span>
+            <span>•</span>
             <span id="cdmBranchName">Chi nhánh UTE</span>
           </div>
         </div>
-        <button type="button" class="btn-icon" onclick="closeCourtDetailModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 4px 8px;">✕</button>
+        <button type="button" class="modal-close-btn" onclick="closeCourtDetailModal()" title="Đóng cửa sổ" style="border: none; background: var(--surface-subtle); cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; transition: all 0.2s ease;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
       <div class="court-detail-grid">
@@ -2083,43 +2199,66 @@
         <div>
           <div class="gallery-preview-frame">
             <img id="cdmMainImage" src="/images/badminton-court.jpg" alt="Ảnh sân thi đấu">
-            <div class="gallery-preview-badge" id="cdmImageTag">Ảnh bìa sân thi đấu</div>
+            <div class="gallery-preview-badge" id="cdmImageTag">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <span>Ảnh bìa sân thi đấu</span>
+            </div>
           </div>
           <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Tình Trạng Thực Tế Sân (Cloudinary):</span>
-            <span id="cdmGalleryCount" style="font-size: 11px; color: var(--primary); font-weight: 700;">0 ảnh</span>
+            <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Hình ảnh thực tế từ sân:</span>
+            <span id="cdmGalleryCount" style="font-size: 11.5px; color: var(--primary); font-weight: 700;">1 ảnh</span>
           </div>
           <div class="gallery-thumbs-strip" id="cdmGalleryStrip">
             <!-- Dynamic thumbnails -->
           </div>
 
+          <!-- TECHNICAL SPECIFICATIONS CARD (CONFIGURED BY DIRECTOR) -->
           <div class="condition-specs-box">
-            <div style="font-size: 12px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.4px;">Thông Số Kỹ Thuật Đạt Chuẩn BWF</div>
-            <div class="spec-row">
-              <div class="spec-icon">
-                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-              </div>
-              <div>
-                <strong style="color: var(--text-dark);">Mặt thảm sàn:</strong>
-                <span id="cdmFloorSpec" style="color: var(--text-muted); margin-left: 4px;">Thảm Enlio BWF Certified 5mm chống trượt đàn hồi cao</span>
-              </div>
+            <div class="spec-header-title">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Thông Số Kỹ Thuật Đạt Chuẩn BWF</span>
             </div>
-            <div class="spec-row">
-              <div class="spec-icon">
-                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+
+            <div class="spec-grid-list">
+              <div class="spec-item-card">
+                <div class="spec-item-icon">
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                </div>
+                <div class="spec-item-meta">
+                  <div class="spec-item-label">Mặt thảm sàn thi đấu</div>
+                  <div id="cdmFloorSpec" class="spec-item-val">Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu</div>
+                </div>
               </div>
-              <div>
-                <strong style="color: var(--text-dark);">Hệ thống chiếu sáng:</strong>
-                <span id="cdmLightingSpec" style="color: var(--text-muted); margin-left: 4px;">Hệ thống đèn LED chống chói 500 Lux chuyên dụng</span>
+
+              <div class="spec-item-card">
+                <div class="spec-item-icon">
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+                </div>
+                <div class="spec-item-meta">
+                  <div class="spec-item-label">Hệ thống chiếu sáng</div>
+                  <div id="cdmLightingSpec" class="spec-item-val">Đèn LED chống chói 500 Lux chuẩn BWF</div>
+                </div>
               </div>
-            </div>
-            <div class="spec-row">
-              <div class="spec-icon">
-                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+
+              <div class="spec-item-card">
+                <div class="spec-item-icon">
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+                </div>
+                <div class="spec-item-meta">
+                  <div class="spec-item-label">Lưới & Khung cột</div>
+                  <div id="cdmNetSpec" class="spec-item-val">Lưới thi đấu BWF căng mới, cột nhôm chắc chắn</div>
+                </div>
               </div>
-              <div>
-                <strong style="color: var(--text-dark);">Lưới & Khung cột:</strong>
-                <span id="cdmNetSpec" style="color: var(--text-muted); margin-left: 4px;">Lưới chuẩn thi đấu BWF, căng đều không chùng</span>
+
+              <!-- DYNAMIC COURT DESCRIPTION (DIRECTOR ADDED) -->
+              <div class="spec-item-card" id="cdmDescRow" style="display: none;">
+                <div class="spec-item-icon">
+                  <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </div>
+                <div class="spec-item-meta">
+                  <div class="spec-item-label">Tiện ích & Ghi chú</div>
+                  <div id="cdmDescSpec" class="spec-item-val" style="color: var(--text-muted); font-size: 12.5px;">--</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2127,33 +2266,40 @@
 
         <!-- RIGHT: PRICING, LIKE BUTTON, COMMENTS & BOOKING ACTION -->
         <div style="display: flex; flex-direction: column;">
-          <div style="background: var(--surface-subtle); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div class="court-pricing-card">
             <div>
-              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Đơn Giá Niêm Yết</div>
-              <div style="font-size: 22px; font-weight: 900; color: var(--primary);">
+              <div class="court-price-label">Đơn Giá Niêm Yết</div>
+              <div class="court-price-val">
                 <span id="cdmHourlyRate">90.000</span> <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">đ / giờ</span>
               </div>
             </div>
-            <!-- LIKE BUTTON WITH HEART ANIMATION -->
-            <button type="button" class="court-like-btn" id="cdmBtnLike" onclick="handleCourtLikeClick()" title="Thả tim yêu thích sân">
-              <span class="heart-anim">❤️</span>
-              <span id="cdmLikesCount">0</span> Tim
+            <!-- LIKE BUTTON WITH SVG HEART -->
+            <button type="button" class="court-like-btn" id="cdmBtnLike" onclick="handleCourtLikeClick()" title="Yêu thích sân đấu này">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2;">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+              <span id="cdmLikesCount">0</span>
+              <span>Yêu thích</span>
             </button>
           </div>
 
           <!-- BOOK COURT CTA BUTTON -->
-          <button type="button" class="btn-book-instant" id="cdmBtnBookNow" onclick="bookFromDetailModal()" style="padding: 13px; font-size: 15px; border-radius: 12px; margin-bottom: 14px;">
-            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 17px; height: 17px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>⚡ Đặt Lịch Sân Này Ngay</span>
+          <button type="button" class="btn-book-primary-action" id="cdmBtnBookNow" onclick="bookFromDetailModal()">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Đặt Lịch Sân Này Ngay</span>
           </button>
 
           <!-- COMMENTS & RATINGS -->
           <div class="court-comments-box">
             <div style="display: flex; align-items: center; justify-content: space-between;">
               <span style="font-size: 13px; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
-                <span>💬 Nhận Xét & Đánh Giá</span>
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Nhận Xét & Đánh Giá</span>
               </span>
-              <span id="cdmAvgRating" style="font-size: 12px; font-weight: 800; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 2px 8px; border-radius: 6px;">⭐ 5.0</span>
+              <span id="cdmAvgRating" style="font-size: 12px; font-weight: 800; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: #d97706; stroke: #d97706;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span id="cdmAvgRatingText">5.0 (Mới)</span>
+              </span>
             </div>
 
             <div class="comment-list-scroll" id="cdmCommentsList">
@@ -2162,20 +2308,31 @@
 
             <!-- ADD COMMENT FORM -->
             <form onsubmit="handleCourtCommentSubmit(event)" style="border-top: 1px dashed var(--border-subtle); padding-top: 12px; margin-top: 2px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                 <label style="font-size: 11.5px; font-weight: 700; color: var(--text-dark);">Gửi nhận xét về tình trạng sân:</label>
                 <div class="star-rating-select" id="cdmStarPicker">
-                  <span data-star="1" class="gold" onclick="setCommentRating(1)">★</span>
-                  <span data-star="2" class="gold" onclick="setCommentRating(2)">★</span>
-                  <span data-star="3" class="gold" onclick="setCommentRating(3)">★</span>
-                  <span data-star="4" class="gold" onclick="setCommentRating(4)">★</span>
-                  <span data-star="5" class="gold" onclick="setCommentRating(5)">★</span>
+                  <span data-star="1" onclick="setCommentRating(1)">
+                    <svg viewBox="0 0 24 24" class="gold"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </span>
+                  <span data-star="2" onclick="setCommentRating(2)">
+                    <svg viewBox="0 0 24 24" class="gold"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </span>
+                  <span data-star="3" onclick="setCommentRating(3)">
+                    <svg viewBox="0 0 24 24" class="gold"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </span>
+                  <span data-star="4" onclick="setCommentRating(4)">
+                    <svg viewBox="0 0 24 24" class="gold"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </span>
+                  <span data-star="5" onclick="setCommentRating(5)">
+                    <svg viewBox="0 0 24 24" class="gold"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                  </span>
                 </div>
               </div>
               <div style="display: flex; gap: 8px;">
-                <input type="text" id="cdmCommentInput" class="form-control" placeholder="Cảm nhận về thảm, ánh sáng, dịch vụ sân..." style="font-size: 12.5px; padding: 7px 12px; border-radius: 8px;" required>
-                <button type="submit" class="btn btn-primary" id="cdmBtnSubmitComment" style="padding: 7px 14px; font-size: 12.5px; font-weight: 700; border-radius: 8px; white-space: nowrap;">
-                  Gửi
+                <input type="text" id="cdmCommentInput" class="form-control" placeholder="Cảm nhận về thảm, ánh sáng, dịch vụ sân..." style="font-size: 12.5px; padding: 8px 12px; border-radius: 8px;" required>
+                <button type="submit" class="btn btn-primary" id="cdmBtnSubmitComment" style="padding: 8px 16px; font-size: 12.5px; font-weight: 700; border-radius: 8px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                  <span>Gửi</span>
                 </button>
               </div>
             </form>
@@ -2190,7 +2347,9 @@
     <div class="vietqr-modal-card">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
         <span class="badge badge-green" style="font-size: 12px; padding: 4px 10px;">Đặt Sân Thành Công</span>
-        <button type="button" class="btn-icon" onclick="closeVietQrModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); font-size: 18px;">✕</button>
+        <button type="button" class="btn-icon" onclick="closeVietQrModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
       <h3 style="margin: 0 0 6px; font-size: 20px; font-weight: 800; color: var(--text-dark);">Thanh Toán VietQR</h3>
@@ -2654,7 +2813,8 @@
                   ${isVip ? 'Sân VIP' : 'Sân Thường'}
                 </span>
                 <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: #f43f5e; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 800; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(244, 63, 94, 0.4);">
-                  <span>❤️</span> <span>${c.likesCount || 0}</span>
+                  <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: #f43f5e; stroke: #f43f5e;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  <span>${c.likesCount || 0}</span>
                 </div>
                 <div class="court-status-indicator">
                   ${isMaintenance 
@@ -2688,8 +2848,9 @@
                   </button>
                 ` : `
                   <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn btn-outline" style="flex: 1; padding: 10px 8px; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap;" onclick="openCourtDetailModal('${c.courtCode}')">
-                      🔍 Tình Trạng
+                    <button type="button" class="btn btn-outline" style="flex: 1; padding: 10px 8px; font-size: 12px; font-weight: 700; border-radius: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 5px;" onclick="openCourtDetailModal('${c.courtCode}')">
+                      <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                      <span>Chi tiết</span>
                     </button>
                     <button type="button" class="btn-book-instant" style="flex: 1.4; padding: 10px 12px;" onclick="openCourtTimeGridModal('${c.courtCode}', '${c.courtName}', ${c.hourlyRate || 90000}, '${c.branchCode}')">
                       <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -3665,18 +3826,13 @@
       if (!courtCode) return;
       try {
         const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`);
-        if (!res.ok) {
-          if (window.showToast) showToast('Không thể tải chi tiết sân!', 'error');
-          else alert('Không thể tải chi tiết sân!');
-          return;
-        }
-
+        if (!res.ok) throw new Error('Không thể tải thông tin sân');
         const court = await res.json();
         currentDetailCourt = court;
 
-        // Populate Header
+        // Modal Header Info
         const nameEl = document.getElementById('cdmCourtName');
-        if (nameEl) nameEl.textContent = court.courtName || courtCode;
+        if (nameEl) nameEl.textContent = court.courtName || 'Chi Tiết Sân Đấu';
         const codeEl = document.getElementById('cdmCourtCode');
         if (codeEl) codeEl.textContent = court.courtCode;
         const branchEl = document.getElementById('cdmBranchName');
@@ -3693,17 +3849,22 @@
         const imgTag = document.getElementById('cdmImageTag');
         const coverUrl = court.imageUrl || '/images/badminton-court.jpg';
         if (mainImg) mainImg.src = coverUrl;
-        if (imgTag) imgTag.textContent = 'Ảnh bìa sân thi đấu';
+        if (imgTag) {
+          imgTag.innerHTML = `
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <span>Ảnh bìa sân thi đấu</span>
+          `;
+        }
 
         // Gallery thumbs strip
         const strip = document.getElementById('cdmGalleryStrip');
         const countEl = document.getElementById('cdmGalleryCount');
         const conditionList = Array.isArray(court.conditionImages) ? court.conditionImages : [];
-        if (countEl) countEl.textContent = `${conditionList.length + 1} ảnh Cloudinary`;
+        if (countEl) countEl.textContent = `${conditionList.length + 1} ảnh thực tế`;
 
         if (strip) {
           let stripHtml = `
-            <div class="gallery-thumb-item active" onclick="selectCdmPreviewImage('${coverUrl}', 'Ảnh bìa sân thi đấu', this)" title="Ảnh bìa">
+            <div class="gallery-thumb-item active" onclick="selectCdmPreviewImage('${coverUrl}', 'Ảnh bìa sân thi đấu', this)" title="Ảnh bìa sân">
               <img src="${coverUrl}" alt="Cover">
             </div>
           `;
@@ -3717,13 +3878,22 @@
           strip.innerHTML = stripHtml;
         }
 
-        // Hardware Specs
+        // Hardware Specs (Configured dynamically by Director)
         const floorEl = document.getElementById('cdmFloorSpec');
-        if (floorEl) floorEl.textContent = court.floorCondition || 'Thảm Enlio BWF Certified 5mm chống trượt đàn hồi cao';
+        if (floorEl) floorEl.textContent = court.floorCondition || 'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu';
         const lightEl = document.getElementById('cdmLightingSpec');
-        if (lightEl) lightEl.textContent = court.lightingCondition || 'Hệ thống đèn LED chống chói 500 Lux chuyên dụng';
+        if (lightEl) lightEl.textContent = court.lightingCondition || 'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF';
         const netEl = document.getElementById('cdmNetSpec');
-        if (netEl) netEl.textContent = court.netCondition || 'Lưới chuẩn thi đấu BWF, căng đều không chùng';
+        if (netEl) netEl.textContent = court.netCondition || 'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn';
+
+        const descRow = document.getElementById('cdmDescRow');
+        const descEl = document.getElementById('cdmDescSpec');
+        if (court.description && court.description.trim()) {
+          if (descEl) descEl.textContent = court.description.trim();
+          if (descRow) descRow.style.display = 'flex';
+        } else {
+          if (descRow) descRow.style.display = 'none';
+        }
 
         // Price & Likes
         const priceEl = document.getElementById('cdmHourlyRate');
@@ -3754,7 +3924,12 @@
       const mainImg = document.getElementById('cdmMainImage');
       const imgTag = document.getElementById('cdmImageTag');
       if (mainImg) mainImg.src = url;
-      if (imgTag) imgTag.textContent = tag || 'Ảnh sân thi đấu';
+      if (imgTag) {
+        imgTag.innerHTML = `
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <span>${tag || 'Ảnh sân thi đấu'}</span>
+        `;
+      }
 
       document.querySelectorAll('#cdmGalleryStrip .gallery-thumb-item').forEach(el => el.classList.remove('active'));
       if (thumbEl) thumbEl.classList.add('active');
@@ -3781,34 +3956,34 @@
             if (cardLikes) cardLikes.textContent = data.likesCount;
           }
 
-          if (window.showToast) showToast('Cảm ơn bạn đã yêu thích sân đấu này! ❤️', 'success');
+          if (window.showToast) showToast('Cảm ơn bạn đã yêu thích sân đấu này!', 'success');
         }
       } catch (err) {
-        console.error('Lỗi thả tim sân:', err);
+        console.error('Lỗi yêu thích sân:', err);
       }
     }
 
     function setCommentRating(stars) {
       currentCommentRating = stars;
-      const spans = document.querySelectorAll('#cdmStarPicker span');
-      spans.forEach((sp, idx) => {
-        if (idx < stars) sp.classList.add('gold');
-        else sp.classList.remove('gold');
+      const svgs = document.querySelectorAll('#cdmStarPicker svg');
+      svgs.forEach((svg, idx) => {
+        if (idx < stars) svg.classList.add('gold');
+        else svg.classList.remove('gold');
       });
     }
 
     function renderCourtComments(comments) {
       const listEl = document.getElementById('cdmCommentsList');
-      const avgEl = document.getElementById('cdmAvgRating');
+      const avgText = document.getElementById('cdmAvgRatingText');
       if (!listEl) return;
 
       if (!comments || comments.length === 0) {
         listEl.innerHTML = `
-          <div style="text-align: center; color: var(--text-muted); padding: 16px; font-size: 12px;">
-            Chưa có đánh giá nào cho sân này. Hãy là người đầu tiên để lại nhận xét!
+          <div style="text-align: center; color: var(--text-muted); padding: 20px; font-size: 12.5px;">
+            Chưa có đánh giá nào cho sân này. Hãy là người đầu tiên chia sẻ cảm nhận!
           </div>
         `;
-        if (avgEl) avgEl.textContent = '⭐ 5.0 (Mới)';
+        if (avgText) avgText.textContent = '5.0 (Mới)';
         return;
       }
 
@@ -3817,22 +3992,31 @@
       comments.forEach(c => {
         const rating = c.rating || 5;
         totalStars += rating;
-        const starsStr = '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+        let starsSvg = '';
+        for (let s = 1; s <= 5; s++) {
+          starsSvg += `<svg viewBox="0 0 24 24" style="width: 13px; height: 13px; ${s <= rating ? 'color: #f59e0b; fill: #f59e0b;' : 'color: #cbd5e1; fill: none;'} stroke: currentColor; stroke-width: 1.5;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+        }
+        const authorInitial = (c.author || 'KH').trim().charAt(0).toUpperCase();
         html += `
           <div class="comment-card-item">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <strong style="color: var(--text-dark); font-size: 12.5px;">${escapeHtml(c.author || 'Người chơi UTE')}</strong>
-              <span style="color: #f59e0b; font-size: 12px; letter-spacing: 1px;">${starsStr}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--primary); font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center;">
+                  ${authorInitial}
+                </div>
+                <strong style="color: var(--text-dark); font-size: 12.5px;">${escapeHtml(c.author || 'Người chơi')}</strong>
+              </div>
+              <div style="display: flex; gap: 2px;">${starsSvg}</div>
             </div>
-            <div style="color: var(--text-body); line-height: 1.4;">${escapeHtml(c.content || '')}</div>
-            <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 4px;">${escapeHtml(c.createdAt || 'Gần đây')}</div>
+            <div style="color: var(--text-body); line-height: 1.45; font-size: 12.5px; padding-left: 32px;">${escapeHtml(c.content || '')}</div>
+            <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 4px; padding-left: 32px;">${escapeHtml(c.createdAt || 'Gần đây')}</div>
           </div>
         `;
       });
 
       listEl.innerHTML = html;
       const avg = (totalStars / comments.length).toFixed(1);
-      if (avgEl) avgEl.textContent = `⭐ ${avg} (${comments.length})`;
+      if (avgText) avgText.textContent = `${avg} (${comments.length} đánh giá)`;
     }
 
     async function handleCourtCommentSubmit(e) {
@@ -3842,8 +4026,7 @@
       const content = input ? input.value.trim() : '';
       if (!content) return;
 
-      // Extract author from local user or default
-      let author = 'Khách hàng UTE';
+      let author = 'Hội viên UTE Sport';
       try {
         const raw = localStorage.getItem('utesport_user');
         if (raw) {
@@ -3873,11 +4056,11 @@
           renderCourtComments(data.comments);
           if (window.showToast) showToast('Cảm ơn bạn đã gửi đánh giá tình trạng sân!', 'success');
         } else {
-          if (window.showToast) showToast(data.message || 'Không thể gửi bình luận!', 'error');
+          if (window.showToast) showToast(data.message || 'Không thể gửi nhận xét!', 'error');
         }
       } catch (err) {
-        console.error('Lỗi gửi bình luận:', err);
-        if (window.showToast) showToast('Lỗi kết nối khi gửi đánh giá!', 'error');
+        console.error('Lỗi gửi nhận xét:', err);
+        if (window.showToast) showToast('Lỗi kết nối khi gửi nhận xét!', 'error');
       } finally {
         if (btn) btn.disabled = false;
       }

@@ -2937,6 +2937,7 @@ public class ApiController {
             resp.put("lightingCondition", court.getLightingCondition() != null ? court.getLightingCondition() : "Đèn LED chống chói 500 Lux chuẩn BWF");
             resp.put("floorCondition", court.getFloorCondition() != null ? court.getFloorCondition() : "Thảm PVC Enlio 4.5mm tiêu chuẩn thi đấu");
             resp.put("netCondition", court.getNetCondition() != null ? court.getNetCondition() : "Lưới thi đấu BWF căng mới, cột nhôm chắc chắn");
+            resp.put("description", court.getDescription() != null ? court.getDescription() : "");
 
             return ResponseEntity.ok(resp);
         } catch (Exception e) {

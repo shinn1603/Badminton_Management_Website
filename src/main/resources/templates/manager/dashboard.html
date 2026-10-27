@@ -597,7 +597,9 @@
     <div class="modal-container">
       <div class="modal-header">
         <h3 class="modal-title">Tạo phiếu đặt sân nhanh</h3>
-        <button type="button" class="btn-icon" onclick="closeCreateBookingModal()">✕</button>
+        <button type="button" class="btn-icon" onclick="closeCreateBookingModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <form id="createBookingForm" onsubmit="handleCreateBooking(event)">
         <div class="modal-body">
@@ -663,7 +665,9 @@
     <div class="modal-container">
       <div class="modal-header">
         <h3 class="modal-title">Thêm khách hàng thành viên mới</h3>
-        <button type="button" class="btn-icon" onclick="closeCreateCustomerModal()">✕</button>
+        <button type="button" class="btn-icon" onclick="closeCreateCustomerModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <form id="createCustomerForm" onsubmit="handleCreateCustomer(event)">
         <div class="modal-body">
@@ -702,7 +706,9 @@
     <div class="modal-container" style="max-width: 520px;">
       <div class="modal-header">
         <h3 class="modal-title" id="dtModalTitle">Chi tiết phiếu đặt sân</h3>
-        <button type="button" class="btn-icon" onclick="closeBookingDetailModal()">✕</button>
+        <button type="button" class="btn-icon" onclick="closeBookingDetailModal()" title="Đóng" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="modal-body" id="dtModalBody">
         <!-- Content will be rendered dynamically -->

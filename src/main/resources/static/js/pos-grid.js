@@ -1409,7 +1409,9 @@ function renderInvoice() {
         <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: right;">${item.price.toLocaleString('vi-VN')} đ</td>
         <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: right; font-weight: bold;">${lineTotal.toLocaleString('vi-VN')} đ</td>
         <td style="padding: 6px 4px; border-bottom: 1px solid var(--border-subtle); text-align: center;">
-          <button type="button" class="btn btn-xs btn-outline" style="padding: 2px 6px; color: var(--danger); line-height: 1; border-color: transparent;" onclick="removePosItem('${safeName}')" title="Bớt 1 / Xóa món">✕</button>
+          <button type="button" class="btn btn-xs btn-outline" style="padding: 3px 6px; color: var(--danger); line-height: 1; border-color: transparent; display: inline-flex; align-items: center; justify-content: center;" onclick="removePosItem('${safeName}')" title="Bớt 1 / Xóa món">
+            <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </td>
       </tr>
     `;

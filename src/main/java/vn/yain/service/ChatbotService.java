@@ -1156,7 +1156,7 @@ public class ChatbotService {
                 ctx.stage = "AWAITING_CONFIRMATION";
                 String summary = String.format(
                         "Tuyệt vời! Tôi đã tổng hợp đầy đủ các thông tin cần thiết cho đơn đặt sân của bạn:\n\n" +
-                        "📋 **PHIẾU THÔNG TIN ĐẶT VÀ TỰ KHÓA SÂN GIỮ CHỖ**\n" +
+                        "**PHIẾU THÔNG TIN ĐẶT VÀ TỰ KHÓA SÂN GIỮ CHỖ**\n" +
                         "• **Họ tên khách hàng**: **%s**\n" +
                         "• **Số điện thoại**: **%s**\n" +
                         "• **Chi nhánh thi đấu**: **%s**\n" +
