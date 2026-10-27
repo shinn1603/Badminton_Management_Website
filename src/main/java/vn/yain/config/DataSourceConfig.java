@@ -107,6 +107,8 @@ public class DataSourceConfig {
             config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         } else if (finalUrl != null && finalUrl.startsWith("jdbc:sqlserver:")) {
             config.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        } else if (finalUrl != null && finalUrl.startsWith("jdbc:h2:")) {
+            config.setDriverClassName("org.h2.Driver");
         }
 
         config.setMaximumPoolSize(10);
