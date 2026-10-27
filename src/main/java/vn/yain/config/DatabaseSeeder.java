@@ -80,6 +80,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
 
 
     @Override
@@ -87,6 +89,8 @@ public class DatabaseSeeder implements CommandLineRunner {
     public void run(String... args) {
 
         try {
+
+            ensureSchemaUpdated();
 
             log.info(">>> ĐANG KIỂM TRA VÀ ĐỒNG BỘ TOÀN DIỆN DỮ LIỆU ĐẶC TẢ UTE SPORT <<<");
 
@@ -138,7 +142,37 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
+    private void ensureSchemaUpdated() {
+        if (jdbcTemplate == null) return;
+        try {
+            // Courts columns
+            String[] courtAlters = {
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'condition_images') ALTER TABLE dbo.courts ADD condition_images NVARCHAR(MAX);",
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'likes_count') ALTER TABLE dbo.courts ADD likes_count INT DEFAULT 0;",
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'comments') ALTER TABLE dbo.courts ADD comments NVARCHAR(MAX);",
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'lighting_condition') ALTER TABLE dbo.courts ADD lighting_condition NVARCHAR(150);",
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'floor_condition') ALTER TABLE dbo.courts ADD floor_condition NVARCHAR(150);",
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'net_condition') ALTER TABLE dbo.courts ADD net_condition NVARCHAR(150);"
+            };
+            for (String sql : courtAlters) {
+                try {
+                    jdbcTemplate.execute(sql);
+                } catch (Exception ignored) {}
+            }
 
+            // Customers avatar
+            try {
+                jdbcTemplate.execute("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.customers') AND name = 'avatar_url') ALTER TABLE dbo.customers ADD avatar_url NVARCHAR(500);");
+            } catch (Exception ignored) {}
+
+            // Users avatar
+            try {
+                jdbcTemplate.execute("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.users') AND name = 'avatar_url') ALTER TABLE dbo.users ADD avatar_url NVARCHAR(500);");
+            } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.debug("ensureSchemaUpdated skipped: {}", e.getMessage());
+        }
+    }
 
     private void seedBranches() {
 
@@ -993,7 +1027,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         List<Tournament> defaultTournaments = List.of(
             createTournament("GD01", "CN01", "Giải Cầu Lông Đôi Nam Nữ Mùa Thu UTE Open 2026", "Đôi nam nữ", LocalDateTime.of(2026, 10, 10, 8, 0), LocalDateTime.of(2026, 10, 12, 18, 0), "Thi đấu theo thể thức loại trực tiếp 3 hiệp 21 điểm theo luật BWF. Mỗi VĐV chỉ được đăng ký 1 nội dung.", 32, 24, new BigDecimal("300000"), new BigDecimal("20000000"), "Đã kết thúc"),
-            createTournament("GD02", "CN01", "Giải Cầu Lông Doanh Nghiệp & Sinh Viên Cúp Thủ Đức 2026", "Tổng hợp nhiều nội dung", LocalDateTime.of(2026, 10, 25, 8, 0), LocalDateTime.of(2026, 10, 26, 17, 0), "Giải đấu phong trào kết nối các doanh nghiệp và cựu sinh viên đam mê cầu lông.", 24, 8, new BigDecimal("250000"), new BigDecimal("15000000"), "Đang mở đăng ký"),
+            createTournament("GD02", "CN01", "Giải Cầu Lông Doanh Nghiệp & Sinh Viên Cúp Thủ Đức 2026", "Tổng hợp nhiều nội dung", LocalDateTime.of(2026, 11, 25, 8, 0), LocalDateTime.of(2026, 11, 26, 17, 0), "Giải đấu phong trào kết nối các doanh nghiệp và cựu sinh viên đam mê cầu lông.", 24, 8, new BigDecimal("250000"), new BigDecimal("15000000"), "Đang mở đăng ký"),
             createTournament("GD03", "CN02", "Giải Đơn Nam Bình Thạnh Mở Rộng 2026", "Đơn nam", LocalDateTime.of(2026, 11, 5, 8, 0), LocalDateTime.of(2026, 11, 6, 18, 0), "Giải đơn nam các CLB phong trào khu vực Bình Thạnh - Phú Nhuận.", 16, 0, new BigDecimal("200000"), new BigDecimal("10000000"), "Sắp mở đăng ký"),
             createTournament("GD04", "CN03", "Giải Đôi Nam Nữ Trẻ Quận 9 Mở Rộng 2026", "Đôi nam nữ", LocalDateTime.of(2026, 11, 12, 8, 0), LocalDateTime.of(2026, 11, 13, 18, 0), "Giải đấu phong trào dành cho thanh niên và sinh viên khu vực TP Thủ Đức - Quận 9.", 24, 4, new BigDecimal("250000"), new BigDecimal("20000000"), "Sắp mở đăng ký"),
             createTournament("GD05", "CN04", "Giải Cầu Lông Giao Lưu Các CLB Gò Vấp 2026", "Đôi nam", LocalDateTime.of(2026, 11, 20, 8, 0), LocalDateTime.of(2026, 11, 21, 18, 0), "Sân chơi kết nối giao lưu giữa các câu lạc bộ cầu lông khu vực Gò Vấp - Tân Bình.", 20, 6, new BigDecimal("200000"), new BigDecimal("18000000"), "Sắp mở đăng ký")

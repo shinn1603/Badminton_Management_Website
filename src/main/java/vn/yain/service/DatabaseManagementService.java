@@ -32,17 +32,19 @@ public class DatabaseManagementService {
     public static final String BASE_SCRIPT_PATH = "database/init_badminton.sql";
     public static final String BACKUP_DIR_PATH = "database/backups";
 
-    // Danh sách 25 bảng cốt lõi theo đúng thứ tự ràng buộc khóa ngoại (Foreign Key)
+    // Danh sách 28 bảng cốt lõi theo đúng thứ tự ràng buộc khóa ngoại (Foreign Key)
     public static final List<String> CORE_TABLES = List.of(
             "branches",
             "courts",
             "time_slots",
             "pricing_rules",
+            "pricing_proposals",
             "customers",
             "staff",
             "users",
             "equipment",
             "products",
+            "suppliers",
             "bookings",
             "booking_services",
             "invoices",
@@ -58,6 +60,8 @@ public class DatabaseManagementService {
             "stock_product_details",
             "promotions",
             "system_settings",
+            "support_tickets",
+            "chat_messages",
             "audit_logs"
     );
 

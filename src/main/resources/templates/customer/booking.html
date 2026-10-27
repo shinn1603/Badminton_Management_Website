@@ -1196,6 +1196,224 @@
       flex-wrap: wrap;
       gap: 12px;
     }
+
+    /* =========================================================
+       COURT DETAIL & CONDITION GALLERY MODAL (LUXURY SPORT-TECH)
+       ========================================================= */
+    #courtDetailCustomerModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 20, 16, 0.82);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 10001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #courtDetailCustomerModal.active {
+      display: flex;
+    }
+    .court-detail-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 980px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .court-detail-header {
+      padding: 18px 26px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 10;
+    }
+    .court-detail-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 26px;
+      padding: 24px 26px;
+    }
+    @media (max-width: 860px) {
+      .court-detail-grid {
+        grid-template-columns: 1fr;
+        padding: 18px 16px;
+        gap: 20px;
+      }
+      .court-detail-card {
+        max-height: 94vh;
+        border-radius: 18px;
+      }
+    }
+    .gallery-preview-frame {
+      width: 100%;
+      height: 270px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0f1e1a;
+      position: relative;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .gallery-preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .gallery-preview-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      color: #34d399;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+    .gallery-thumbs-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 2px 4px;
+      margin-top: 10px;
+    }
+    .gallery-thumb-item {
+      width: 72px;
+      height: 52px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      cursor: pointer;
+      border: 2px solid transparent;
+      opacity: 0.7;
+      transition: all 0.2s ease;
+      background: #000;
+      position: relative;
+    }
+    .gallery-thumb-item.active, .gallery-thumb-item:hover {
+      opacity: 1;
+      border-color: var(--primary);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .gallery-thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .condition-specs-box {
+      margin-top: 18px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .spec-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.5px;
+    }
+    .spec-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #059669;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .court-like-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      border: 1.5px solid #f43f5e;
+      background: rgba(244, 63, 94, 0.08);
+      color: #e11d48;
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .court-like-btn:hover {
+      background: #f43f5e;
+      color: #ffffff;
+      transform: scale(1.04);
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.3);
+    }
+    .court-like-btn.liked {
+      background: #f43f5e;
+      color: #ffffff;
+    }
+    .court-like-btn .heart-anim {
+      display: inline-block;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .court-like-btn:active .heart-anim {
+      transform: scale(1.4);
+    }
+    .court-comments-box {
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--surface);
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .comment-list-scroll {
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .comment-card-item {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12.5px;
+    }
+    .star-rating-select {
+      display: flex;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .star-rating-select span {
+      font-size: 18px;
+      color: #cbd5e1;
+      transition: color 0.15s ease;
+    }
+    .star-rating-select span.gold {
+      color: #f59e0b;
+    }
   </style>
 </head>
 <body>
@@ -1912,7 +2130,12 @@
           } else {
             html += `
               <div class="court-chip-btn" id="chipCourt_${c.courtCode}" onclick="onSelectCourt('${c.courtCode}', '${escapeHtml(c.courtName)}', ${c.hourlyRate || 90000}, '${isVip ? 'Sân VIP' : 'Sân Thường'}')">
-                <div class="chip-name">${escapeHtml(c.courtName)}</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                  <div class="chip-name">${escapeHtml(c.courtName)}</div>
+                  <button type="button" class="btn-court-preview-icon" onclick="event.stopPropagation(); openCourtDetailModal('${c.courtCode}')" title="Xem ảnh tình trạng thực tế Cloudinary & đánh giá" style="border: none; background: rgba(16, 185, 129, 0.15); color: #059669; border-radius: 6px; padding: 2px 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                    📷
+                  </button>
+                </div>
                 <div class="chip-desc">${isVip ? 'Thảm VIP BWF' : 'Tiêu Chuẩn BWF'}</div>
                 <div class="chip-rate">${rateFormatted} đ/h</div>
               </div>
@@ -2855,6 +3078,360 @@
         setTimeout(() => applyPromoCode(promoParam), 500);
       }
     });
+
+    // =========================================================
+    // COURT DETAIL & CONDITION GALLERY LOGIC (CLOUDINARY)
+    // =========================================================
+    let currentDetailCourt = null;
+    let currentCommentRating = 5;
+
+    async function openCourtDetailModal(courtCode) {
+      if (!courtCode) return;
+      try {
+        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`);
+        if (!res.ok) {
+          if (window.showToast) showToast('Không thể tải chi tiết sân!', 'error');
+          else alert('Không thể tải chi tiết sân!');
+          return;
+        }
+
+        const court = await res.json();
+        currentDetailCourt = court;
+
+        // Populate Header
+        const nameEl = document.getElementById('cdmCourtName');
+        if (nameEl) nameEl.textContent = court.courtName || courtCode;
+        const codeEl = document.getElementById('cdmCourtCode');
+        if (codeEl) codeEl.textContent = court.courtCode;
+        const branchEl = document.getElementById('cdmBranchName');
+        if (branchEl) branchEl.textContent = court.branchName || ('Chi nhánh ' + court.branchCode);
+        const badgeEl = document.getElementById('cdmCourtBadge');
+        if (badgeEl) {
+          const isVip = (court.courtType && court.courtType.toLowerCase().includes('vip')) || (court.hourlyRate >= 110000);
+          badgeEl.textContent = isVip ? 'Sân VIP BWF' : 'Sân Tiêu Chuẩn';
+          badgeEl.className = 'court-thumb-badge ' + (isVip ? 'badge-vip' : 'badge-standard');
+        }
+
+        // Main preview image & tags
+        const mainImg = document.getElementById('cdmMainImage');
+        const imgTag = document.getElementById('cdmImageTag');
+        const coverUrl = court.imageUrl || '/images/badminton-court.jpg';
+        if (mainImg) mainImg.src = coverUrl;
+        if (imgTag) imgTag.textContent = 'Ảnh bìa sân thi đấu';
+
+        // Gallery thumbs strip
+        const strip = document.getElementById('cdmGalleryStrip');
+        const countEl = document.getElementById('cdmGalleryCount');
+        const conditionList = Array.isArray(court.conditionImages) ? court.conditionImages : [];
+        if (countEl) countEl.textContent = `${conditionList.length + 1} ảnh Cloudinary`;
+
+        if (strip) {
+          let stripHtml = `
+            <div class="gallery-thumb-item active" onclick="selectCdmPreviewImage('${coverUrl}', 'Ảnh bìa sân thi đấu', this)" title="Ảnh bìa">
+              <img src="${coverUrl}" alt="Cover">
+            </div>
+          `;
+          conditionList.forEach((cUrl, idx) => {
+            stripHtml += `
+              <div class="gallery-thumb-item" onclick="selectCdmPreviewImage('${cUrl}', 'Ảnh tình trạng thực tế #${idx + 1}', this)" title="Ảnh tình trạng #${idx + 1}">
+                <img src="${cUrl}" alt="Condition #${idx + 1}">
+              </div>
+            `;
+          });
+          strip.innerHTML = stripHtml;
+        }
+
+        // Hardware Specs
+        const floorEl = document.getElementById('cdmFloorSpec');
+        if (floorEl) floorEl.textContent = court.floorCondition || 'Thảm Enlio BWF Certified 5mm chống trượt đàn hồi cao';
+        const lightEl = document.getElementById('cdmLightingSpec');
+        if (lightEl) lightEl.textContent = court.lightingCondition || 'Hệ thống đèn LED chống chói 500 Lux chuyên dụng';
+        const netEl = document.getElementById('cdmNetSpec');
+        if (netEl) netEl.textContent = court.netCondition || 'Lưới chuẩn thi đấu BWF, căng đều không chùng';
+
+        // Price & Likes
+        const priceEl = document.getElementById('cdmHourlyRate');
+        if (priceEl) priceEl.textContent = (court.hourlyRate || 90000).toLocaleString('vi-VN');
+        const likesEl = document.getElementById('cdmLikesCount');
+        if (likesEl) likesEl.textContent = court.likesCount || 0;
+        const likeBtn = document.getElementById('cdmBtnLike');
+        if (likeBtn) likeBtn.classList.remove('liked');
+
+        // Comments & Reviews
+        renderCourtComments(court.comments || []);
+
+        // Show Modal
+        const modal = document.getElementById('courtDetailCustomerModal');
+        if (modal) modal.classList.add('active');
+      } catch (err) {
+        console.error('Lỗi khi mở modal chi tiết sân:', err);
+        if (window.showToast) showToast('Lỗi kết nối khi tải chi tiết sân!', 'error');
+      }
+    }
+
+    function closeCourtDetailModal() {
+      const modal = document.getElementById('courtDetailCustomerModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function selectCdmPreviewImage(url, tag, thumbEl) {
+      const mainImg = document.getElementById('cdmMainImage');
+      const imgTag = document.getElementById('cdmImageTag');
+      if (mainImg) mainImg.src = url;
+      if (imgTag) imgTag.textContent = tag || 'Ảnh sân thi đấu';
+
+      document.querySelectorAll('#cdmGalleryStrip .gallery-thumb-item').forEach(el => el.classList.remove('active'));
+      if (thumbEl) thumbEl.classList.add('active');
+    }
+
+    async function handleCourtLikeClick() {
+      if (!currentDetailCourt || !currentDetailCourt.courtCode) return;
+      try {
+        const res = await fetch(`/api/courts/${encodeURIComponent(currentDetailCourt.courtCode)}/like`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const likesEl = document.getElementById('cdmLikesCount');
+          if (likesEl) likesEl.textContent = data.likesCount;
+          currentDetailCourt.likesCount = data.likesCount;
+          const likeBtn = document.getElementById('cdmBtnLike');
+          if (likeBtn) likeBtn.classList.add('liked');
+
+          if (window.showToast) showToast('Cảm ơn bạn đã yêu thích sân đấu này! ❤️', 'success');
+        }
+      } catch (err) {
+        console.error('Lỗi thả tim sân:', err);
+      }
+    }
+
+    function setCommentRating(stars) {
+      currentCommentRating = stars;
+      const spans = document.querySelectorAll('#cdmStarPicker span');
+      spans.forEach((sp, idx) => {
+        if (idx < stars) sp.classList.add('gold');
+        else sp.classList.remove('gold');
+      });
+    }
+
+    function renderCourtComments(comments) {
+      const listEl = document.getElementById('cdmCommentsList');
+      const avgEl = document.getElementById('cdmAvgRating');
+      if (!listEl) return;
+
+      if (!comments || comments.length === 0) {
+        listEl.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 16px; font-size: 12px;">
+            Chưa có đánh giá nào cho sân này. Hãy là người đầu tiên để lại nhận xét!
+          </div>
+        `;
+        if (avgEl) avgEl.textContent = '⭐ 5.0 (Mới)';
+        return;
+      }
+
+      let totalStars = 0;
+      let html = '';
+      comments.forEach(c => {
+        const rating = c.rating || 5;
+        totalStars += rating;
+        const starsStr = '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+        html += `
+          <div class="comment-card-item">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong style="color: var(--text-dark); font-size: 12.5px;">${escapeHtml(c.author || 'Người chơi UTE')}</strong>
+              <span style="color: #f59e0b; font-size: 12px; letter-spacing: 1px;">${starsStr}</span>
+            </div>
+            <div style="color: var(--text-body); line-height: 1.4;">${escapeHtml(c.content || '')}</div>
+            <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 4px;">${escapeHtml(c.createdAt || 'Gần đây')}</div>
+          </div>
+        `;
+      });
+
+      listEl.innerHTML = html;
+      const avg = (totalStars / comments.length).toFixed(1);
+      if (avgEl) avgEl.textContent = `⭐ ${avg} (${comments.length})`;
+    }
+
+    async function handleCourtCommentSubmit(e) {
+      e.preventDefault();
+      if (!currentDetailCourt || !currentDetailCourt.courtCode) return;
+      const input = document.getElementById('cdmCommentInput');
+      const content = input ? input.value.trim() : '';
+      if (!content) return;
+
+      let author = 'Khách hàng UTE';
+      try {
+        const raw = localStorage.getItem('utesport_user');
+        if (raw) {
+          const u = JSON.parse(raw);
+          if (u.fullName) author = u.fullName;
+        }
+      } catch (err) {}
+
+      const btn = document.getElementById('cdmBtnSubmitComment');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/courts/${encodeURIComponent(currentDetailCourt.courtCode)}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            author: author,
+            rating: currentCommentRating,
+            content: content
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (input) input.value = '';
+          currentDetailCourt.comments = data.comments;
+          renderCourtComments(data.comments);
+          if (window.showToast) showToast('Cảm ơn bạn đã gửi đánh giá tình trạng sân!', 'success');
+        } else {
+          if (window.showToast) showToast(data.message || 'Không thể gửi bình luận!', 'error');
+        }
+      } catch (err) {
+        console.error('Lỗi gửi bình luận:', err);
+        if (window.showToast) showToast('Lỗi kết nối khi gửi đánh giá!', 'error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function bookFromDetailModal() {
+      if (!currentDetailCourt) return;
+      const c = currentDetailCourt;
+      closeCourtDetailModal();
+      const isVip = (c.courtType && c.courtType.toLowerCase().includes('vip')) || (c.hourlyRate >= 110000);
+      onSelectCourt(c.courtCode, c.courtName, c.hourlyRate || 90000, isVip ? 'Sân VIP' : 'Sân Thường');
+      const step3 = document.querySelector('.section-card:nth-of-type(3)');
+      if (step3) step3.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   </script>
+
+  <!-- COURT DETAIL & CONDITION GALLERY MODAL (CLOUDINARY) -->
+  <div id="courtDetailCustomerModal" class="slot-modal-overlay">
+    <div class="court-detail-card">
+      <div class="court-detail-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3 id="cdmCourtName" style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-dark);">Sân Đang Tải...</h3>
+            <span id="cdmCourtBadge" class="court-thumb-badge badge-standard" style="position: static;">Tiêu chuẩn</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
+            <span id="cdmCourtCode" style="font-family: monospace; font-weight: 700;">SAN01</span> • 
+            <span id="cdmBranchName">Chi nhánh UTE</span>
+          </div>
+        </div>
+        <button type="button" class="btn-icon" onclick="closeCourtDetailModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); font-size: 20px; padding: 4px 8px;">✕</button>
+      </div>
+
+      <div class="court-detail-grid">
+        <!-- LEFT: GALLERY & SPECS -->
+        <div>
+          <div class="gallery-preview-frame">
+            <img id="cdmMainImage" src="/images/badminton-court.jpg" alt="Ảnh sân thi đấu">
+            <div class="gallery-preview-badge" id="cdmImageTag">Ảnh bìa sân thi đấu</div>
+          </div>
+          <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Tình Trạng Thực Tế Sân (Cloudinary):</span>
+            <span id="cdmGalleryCount" style="font-size: 11px; color: var(--primary); font-weight: 700;">0 ảnh</span>
+          </div>
+          <div class="gallery-thumbs-strip" id="cdmGalleryStrip">
+            <!-- Dynamic thumbnails -->
+          </div>
+
+          <div class="condition-specs-box">
+            <div style="font-size: 12px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.4px;">Thông Số Kỹ Thuật Đạt Chuẩn BWF</div>
+            <div class="spec-row">
+              <div class="spec-icon">
+                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+              </div>
+              <div>
+                <strong style="color: var(--text-dark);">Mặt thảm sàn:</strong>
+                <span id="cdmFloorSpec" style="color: var(--text-muted); margin-left: 4px;">Thảm Enlio BWF Certified 5mm chống trượt đàn hồi cao</span>
+              </div>
+            </div>
+            <div class="spec-row">
+              <div class="spec-icon">
+                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+              </div>
+              <div>
+                <strong style="color: var(--text-dark);">Hệ thống chiếu sáng:</strong>
+                <span id="cdmLightingSpec" style="color: var(--text-muted); margin-left: 4px;">Hệ thống đèn LED chống chói 500 Lux chuyên dụng</span>
+              </div>
+            </div>
+            <div class="spec-row">
+              <div class="spec-icon">
+                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+              </div>
+              <div>
+                <strong style="color: var(--text-dark);">Lưới & Khung cột:</strong>
+                <span id="cdmNetSpec" style="color: var(--text-muted); margin-left: 4px;">Lưới chuẩn thi đấu BWF, căng đều không chùng</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: PRICING, LIKE BUTTON, COMMENTS & BOOKING ACTION -->
+        <div style="display: flex; flex-direction: column;">
+          <div style="background: var(--surface-subtle); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Đơn Giá Niêm Yết</div>
+              <div style="font-size: 22px; font-weight: 900; color: var(--primary);">
+                <span id="cdmHourlyRate">90.000</span> <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">đ / giờ</span>
+              </div>
+            </div>
+            <!-- LIKE BUTTON WITH HEART ANIMATION -->
+            <button type="button" class="court-like-btn" id="cdmBtnLike" onclick="handleCourtLikeClick()" title="Thả tim yêu thích sân">
+              <span class="heart-anim">❤️</span>
+              <span id="cdmLikesCount">0</span> Tim
+            </button>
+          </div>
+
+          <!-- BOOK COURT CTA BUTTON -->
+          <button type="button" class="btn-book-instant" id="cdmBtnBookNow" onclick="bookFromDetailModal()" style="padding: 13px; font-size: 15px; border-radius: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 17px; height: 17px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>⚡ Chọn Sân Này Để Đặt Lịch</span>
+          </button>
+
+          <!-- COMMENTS & RATINGS -->
+          <div class="court-comments-box">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 13px; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
+                <span>💬 Nhận Xét & Đánh Giá</span>
+              </span>
+              <span id="cdmAvgRating" style="font-size: 12px; font-weight: 800; color: #d97706; background: rgba(245, 158, 11, 0.12); padding: 2px 8px; border-radius: 6px;">⭐ 5.0</span>
+            </div>
+
+            <div class="comment-list-scroll" id="cdmCommentsList">
+              <!-- Dynamically populated comments -->
+            </div>
+
+            <!-- ADD COMMENT FORM -->
+            <form onsubmit="handleCourtCommentSubmit(event)" style="border-top: 1px dashed var(--border-subtle); padding-top: 12px; margin-top: 2px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <label style="font-size: 11.5px; font-weight: 700; color: var(--text-dark);">Gửi nhận xét về tình trạng sân:</label>
+                <div class="star-rating-select" id="cdmStarPicker">
+                  <span data-star="1" class="gold" onclick="setCommentRating(1)">★</span>
+                  <span data-star="2" class="gold" onclick="setCommentRating(2)">★</span>
+                  <span data-star="3" class="gold" onclick="setCommentRating(3)">★</span>
+                  <span data-star="4" class="gold" onclick="setCommentRating(4)">★</span>
+                  <span data-star="5" class="gold" onclick="setCommentRating(5)">★</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="cdmCommentInput" class="form-control" placeholder="Cảm nhận về thảm, ánh sáng, dịch vụ sân..." style="font-size: 12.5px; padding: 7px 12px; border-radius: 8px;" required>
+                <button type="submit" class="btn btn-primary" id="cdmBtnSubmitComment" style="padding: 7px 14px; font-size: 12.5px; font-weight: 700; border-radius: 8px; white-space: nowrap;">
+                  Gửi
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

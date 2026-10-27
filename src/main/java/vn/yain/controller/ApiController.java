@@ -32,10 +32,12 @@ import vn.yain.service.BookingService;
 
 import vn.yain.service.CourtService;
 
+import vn.yain.service.CloudinaryService;
 import vn.yain.service.PricingService;
 
 import vn.yain.service.UserService;
 
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 
 
@@ -232,8 +234,6 @@ public class ApiController {
     @Autowired
 
     private CustomerRepository customerRepository;
-
-
 
     @Autowired
 
@@ -1332,7 +1332,11 @@ public class ApiController {
 
         resp.put("recentBookings", userBookings);
 
-
+        String avatarUrl = u.getAvatarUrl();
+        if ((avatarUrl == null || avatarUrl.isBlank()) && cust != null) {
+            avatarUrl = cust.getAvatarUrl();
+        }
+        resp.put("avatarUrl", avatarUrl != null ? avatarUrl : "");
 
         return ResponseEntity.ok(resp);
 
@@ -1430,13 +1434,18 @@ public class ApiController {
 
                 if (newEmail != null) c.setEmail(newEmail.trim());
 
+                String newAvatar = payload.get("avatarUrl");
+                if (newAvatar != null && !newAvatar.trim().isEmpty()) {
+                    c.setAvatarUrl(newAvatar.trim());
+                    u.setAvatarUrl(newAvatar.trim());
+                    userRepository.save(u);
+                }
+
                 customerRepository.save(c);
 
             }
 
         }
-
-
 
         return ResponseEntity.ok(Map.of(
 
@@ -1447,8 +1456,73 @@ public class ApiController {
                 "fullName", u.getFullName(),
 
                 "phone", u.getPhone() != null ? u.getPhone() : "",
-                "email", u.getEmail() != null ? u.getEmail() : ""
+                "email", u.getEmail() != null ? u.getEmail() : "",
+                "avatarUrl", u.getAvatarUrl() != null ? u.getAvatarUrl() : ""
         ));
+    }
+
+    @PostMapping("/customer/avatar")
+    public ResponseEntity<?> uploadCustomerAvatar(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "phone", required = false) String phoneParam,
+            @RequestParam(value = "customerCode", required = false) String codeParam) {
+        try {
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng chọn tệp ảnh để tải lên!"));
+            }
+
+            String targetUsername = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtTokenProvider.validateToken(token)) {
+                    targetUsername = jwtTokenProvider.getUsernameFromToken(token);
+                }
+            }
+
+            User targetUser = null;
+            if (targetUsername != null) {
+                targetUser = userRepository.findByUsername(targetUsername).orElse(null);
+            }
+
+            Customer targetCust = null;
+            if (phoneParam != null && !phoneParam.isBlank()) {
+                targetCust = customerRepository.findByPhone(phoneParam.trim()).orElse(null);
+            }
+            if (targetCust == null && codeParam != null && !codeParam.isBlank()) {
+                targetCust = customerRepository.findByCustomerCode(codeParam.trim()).orElse(null);
+            }
+            if (targetCust == null && targetUser != null && targetUser.getPhone() != null) {
+                targetCust = customerRepository.findByPhone(targetUser.getPhone().trim()).orElse(null);
+            }
+            if (targetCust == null && targetUser != null) {
+                targetCust = customerRepository.findByCustomerCode(targetUser.getUsername()).orElse(null);
+            }
+
+            if (targetUser == null && targetCust == null) {
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Không tìm thấy thông tin khách hàng để cập nhật ảnh đại diện!"));
+            }
+
+            // Upload lên Cloudinary folder badminton_avatars
+            String avatarUrl = cloudinaryService.uploadImage(file, "badminton_avatars");
+
+            if (targetUser != null) {
+                targetUser.setAvatarUrl(avatarUrl);
+                userRepository.save(targetUser);
+            }
+            if (targetCust != null) {
+                targetCust.setAvatarUrl(avatarUrl);
+                customerRepository.save(targetCust);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "avatarUrl", avatarUrl,
+                    "message", "Cập nhật ảnh đại diện lên Cloudinary thành công!"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tải ảnh đại diện thất bại: " + e.getMessage()));
+        }
     }
 
     private final Map<String, Map<String, Object>> viewPasswordOtpMap = new ConcurrentHashMap<>();
@@ -2681,6 +2755,7 @@ public class ApiController {
                 c.setHourlyRate(isVip ? new BigDecimal("120000") : new BigDecimal("90000"));
                 c.setStatus("Trống");
                 c.setImageUrl("/images/badminton-court.jpg");
+                initCourtWithDefaults(c, isVip, i);
                 toSave.add(c);
             }
         } else if ("CN03".equalsIgnoreCase(targetBranch)) {
@@ -2694,6 +2769,7 @@ public class ApiController {
                 c.setHourlyRate(isVip ? new BigDecimal("120000") : new BigDecimal("90000"));
                 c.setStatus("Trống");
                 c.setImageUrl("/images/badminton-court.jpg");
+                initCourtWithDefaults(c, isVip, i);
                 toSave.add(c);
             }
         } else if ("CN04".equalsIgnoreCase(targetBranch)) {
@@ -2707,6 +2783,7 @@ public class ApiController {
                 c.setHourlyRate(isVip ? new BigDecimal("120000") : new BigDecimal("90000"));
                 c.setStatus("Trống");
                 c.setImageUrl("/images/badminton-court.jpg");
+                initCourtWithDefaults(c, isVip, i);
                 toSave.add(c);
             }
         } else {
@@ -2720,10 +2797,23 @@ public class ApiController {
                 c.setHourlyRate(isVip ? new BigDecimal("120000") : new BigDecimal("90000"));
                 c.setStatus(i == 6 ? "Bảo trì" : "Trống");
                 c.setImageUrl("/images/badminton-court.jpg");
+                initCourtWithDefaults(c, isVip, i);
                 toSave.add(c);
             }
         }
         return courtRepository.saveAll(toSave);
+    }
+
+    private void initCourtWithDefaults(Court c, boolean isVip, int index) {
+        String defConditionImages = "[\"https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&auto=format&fit=crop&q=80\",\"https://images.unsplash.com/photo-1613918431703-aa6321a6e97a?w=800&auto=format&fit=crop&q=80\",\"https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop&q=80\"]";
+        c.setConditionImages(defConditionImages);
+        c.setLikesCount(18 + (index * 7) % 25);
+        c.setLightingCondition(isVip ? "Dàn LED chống chói cao cấp 600 Lux chuẩn BWF" : "Đèn LED chống chói 500 Lux chuẩn BWF");
+        c.setFloorCondition(isVip ? "Thảm PVC Enlio 5.0mm siêu êm chống chấn thương" : "Thảm PVC Enlio 4.5mm chống trơn trượt chuẩn thi đấu");
+        c.setNetCondition("Lưới thi đấu BWF căng mới, cột nhôm chắc chắn");
+        String commentsJson = "[{\"id\":\"" + UUID.randomUUID() + "\",\"author\":\"Nguyễn Văn Tuấn\",\"content\":\"Mặt thảm rất bám giày, ánh sáng tốt không bị chói mắt.\",\"rating\":5,\"createdAt\":\"24/10/2026 18:30\"}," +
+                              "{\"id\":\"" + UUID.randomUUID() + "\",\"author\":\"Trần Minh Đức\",\"content\":\"Sân sạch sẽ, nhân viên hỗ trợ nhanh nhiệt tình!\",\"rating\":5,\"createdAt\":\"25/10/2026 20:15\"}]";
+        c.setComments(commentsJson);
     }
 
 
@@ -2818,6 +2908,243 @@ public class ApiController {
 
         }
 
+    }
+
+    // --- CLOUDINARY & COURT DETAIL / CONDITIONS / INTERACTION API ---
+
+    @GetMapping("/courts/{courtCode}/detail")
+    public ResponseEntity<?> getCourtDetail(@PathVariable String courtCode) {
+        try {
+            Court court = courtRepository.findByCourtCode(courtCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân: " + courtCode));
+
+            List<String> conditionImagesList = parseConditionImagesList(court.getConditionImages());
+            List<Map<String, Object>> commentsList = parseCommentsList(court.getComments());
+
+            Map<String, Object> resp = new LinkedHashMap<>();
+            resp.put("success", true);
+            resp.put("id", court.getId());
+            resp.put("courtCode", court.getCourtCode());
+            resp.put("courtName", court.getCourtName());
+            resp.put("courtType", court.getCourtType());
+            resp.put("branchCode", court.getBranchCode());
+            resp.put("hourlyRate", court.getHourlyRate());
+            resp.put("status", court.getStatus());
+            resp.put("imageUrl", court.getImageUrl() != null && !court.getImageUrl().isBlank() ? court.getImageUrl() : "/images/badminton-court.jpg");
+            resp.put("conditionImages", conditionImagesList);
+            resp.put("likesCount", court.getLikesCount() != null ? court.getLikesCount() : 0);
+            resp.put("comments", commentsList);
+            resp.put("lightingCondition", court.getLightingCondition() != null ? court.getLightingCondition() : "Đèn LED chống chói 500 Lux chuẩn BWF");
+            resp.put("floorCondition", court.getFloorCondition() != null ? court.getFloorCondition() : "Thảm PVC Enlio 4.5mm tiêu chuẩn thi đấu");
+            resp.put("netCondition", court.getNetCondition() != null ? court.getNetCondition() : "Lưới thi đấu BWF căng mới, cột nhôm chắc chắn");
+
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/courts/upload-image")
+    public ResponseEntity<?> uploadCourtImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("courtCode") String courtCode,
+            @RequestParam(value = "imageType", defaultValue = "cover") String imageType) {
+        try {
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng chọn tệp ảnh để tải lên!"));
+            }
+
+            Court court = courtRepository.findByCourtCode(courtCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân với mã: " + courtCode));
+
+            // Upload to Cloudinary under folder 'badminton_courts'
+            String secureUrl = cloudinaryService.uploadImage(file, "badminton_courts");
+
+            boolean isCover = "cover".equalsIgnoreCase(imageType);
+            if (isCover) {
+                court.setImageUrl(secureUrl);
+            } else {
+                List<String> currentList = parseConditionImagesList(court.getConditionImages());
+                if (!currentList.contains(secureUrl)) {
+                    currentList.add(secureUrl);
+                }
+                court.setConditionImages(serializeConditionImages(currentList));
+            }
+
+            Court saved = courtRepository.save(court);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "url", secureUrl,
+                    "imageType", imageType,
+                    "message", isCover ? "Cập nhật ảnh bìa sân thành công!" : "Thêm ảnh tình trạng sân thành công!",
+                    "court", saved
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi tải ảnh sân: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/courts/{courtCode}/condition-image")
+    public ResponseEntity<?> deleteConditionImage(
+            @PathVariable String courtCode,
+            @RequestBody Map<String, String> payload) {
+        try {
+            String imageUrl = payload.get("imageUrl");
+            if (imageUrl == null || imageUrl.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Thiếu tham số imageUrl!"));
+            }
+
+            Court court = courtRepository.findByCourtCode(courtCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân với mã: " + courtCode));
+
+            List<String> list = parseConditionImagesList(court.getConditionImages());
+            list.removeIf(u -> u.trim().equalsIgnoreCase(imageUrl.trim()));
+            court.setConditionImages(serializeConditionImages(list));
+
+            Court saved = courtRepository.save(court);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã xóa ảnh tình trạng khỏi sân!",
+                    "conditionImages", parseConditionImagesList(saved.getConditionImages())
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/courts/{courtCode}/like")
+    public ResponseEntity<?> likeCourt(@PathVariable String courtCode) {
+        try {
+            Court court = courtRepository.findByCourtCode(courtCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân với mã: " + courtCode));
+
+            int currentLikes = court.getLikesCount() != null ? court.getLikesCount() : 0;
+            court.setLikesCount(currentLikes + 1);
+            Court saved = courtRepository.save(court);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "courtCode", courtCode,
+                    "likesCount", saved.getLikesCount(),
+                    "message", "Đã thả tim yêu thích sân đấu!"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/courts/{courtCode}/comments")
+    public ResponseEntity<?> addCourtComment(
+            @PathVariable String courtCode,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            Court court = courtRepository.findByCourtCode(courtCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân với mã: " + courtCode));
+
+            String author = (String) payload.getOrDefault("author", "Hội viên ẩn danh");
+            String content = (String) payload.getOrDefault("content", "");
+            Number ratingNum = (Number) payload.getOrDefault("rating", 5);
+            int rating = ratingNum != null ? ratingNum.intValue() : 5;
+
+            if (content == null || content.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Nội dung nhận xét không được để trống!"));
+            }
+
+            List<Map<String, Object>> comments = parseCommentsList(court.getComments());
+
+            Map<String, Object> newComment = new LinkedHashMap<>();
+            newComment.put("id", UUID.randomUUID().toString());
+            newComment.put("author", author.trim());
+            newComment.put("content", content.trim());
+            newComment.put("rating", Math.max(1, Math.min(5, rating)));
+            newComment.put("createdAt", LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+
+            comments.add(0, newComment); // Mới nhất lên đầu
+
+            // Giới hạn lưu tối đa 50 comments gần nhất
+            if (comments.size() > 50) {
+                comments = comments.subList(0, 50);
+            }
+
+            court.setComments(serializeComments(comments));
+            courtRepository.save(court);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cảm ơn bạn đã gửi đánh giá về chất lượng sân!",
+                    "comments", comments
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    private List<String> parseConditionImagesList(String jsonOrCsv) {
+        List<String> result = new ArrayList<>();
+        if (jsonOrCsv == null || jsonOrCsv.isBlank()) {
+            return result;
+        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            if (jsonOrCsv.trim().startsWith("[")) {
+                List<?> list = mapper.readValue(jsonOrCsv, List.class);
+                for (Object item : list) {
+                    if (item != null && !item.toString().isBlank()) {
+                        result.add(item.toString().trim());
+                    }
+                }
+            } else {
+                for (String s : jsonOrCsv.split(",")) {
+                    if (!s.isBlank()) result.add(s.trim());
+                }
+            }
+        } catch (Exception e) {
+            for (String s : jsonOrCsv.split(",")) {
+                if (!s.isBlank()) result.add(s.trim());
+            }
+        }
+        return result;
+    }
+
+    private String serializeConditionImages(List<String> list) {
+        if (list == null || list.isEmpty()) return "[]";
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.writeValueAsString(list);
+        } catch (Exception e) {
+            return "[" + list.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(",")) + "]";
+        }
+    }
+
+    private List<Map<String, Object>> parseCommentsList(String json) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (json == null || json.isBlank()) {
+            return result;
+        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<?> list = mapper.readValue(json, List.class);
+            for (Object item : list) {
+                if (item instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> map = (Map<String, Object>) item;
+                    result.add(map);
+                }
+            }
+        } catch (Exception ignored) {}
+        return result;
+    }
+
+    private String serializeComments(List<Map<String, Object>> comments) {
+        if (comments == null || comments.isEmpty()) return "[]";
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.writeValueAsString(comments);
+        } catch (Exception e) {
+            return "[]";
+        }
     }
 
 

@@ -64,9 +64,16 @@ IF OBJECT_ID('KhuyenMai', 'V') IS NOT NULL DROP VIEW KhuyenMai;
 IF OBJECT_ID('NhatKyHoatDong', 'V') IS NOT NULL DROP VIEW NhatKyHoatDong;
 IF OBJECT_ID('TranDau', 'V') IS NOT NULL DROP VIEW TranDau;
 IF OBJECT_ID('CauHinhHeThong', 'V') IS NOT NULL DROP VIEW CauHinhHeThong;
+IF OBJECT_ID('DeXuatGia', 'V') IS NOT NULL DROP VIEW DeXuatGia;
+IF OBJECT_ID('NhaCungCap', 'V') IS NOT NULL DROP VIEW NhaCungCap;
+IF OBJECT_ID('PhieuHoTro', 'V') IS NOT NULL DROP VIEW PhieuHoTro;
+IF OBJECT_ID('TinNhanHoTro', 'V') IS NOT NULL DROP VIEW TinNhanHoTro;
 GO
 
 -- 2.2 Xóa các bảng dữ liệu cũ
+IF OBJECT_ID('chat_messages', 'U') IS NOT NULL DROP TABLE chat_messages;
+IF OBJECT_ID('support_tickets', 'U') IS NOT NULL DROP TABLE support_tickets;
+IF OBJECT_ID('suppliers', 'U') IS NOT NULL DROP TABLE suppliers;
 IF OBJECT_ID('tournament_matches', 'U') IS NOT NULL DROP TABLE tournament_matches;
 IF OBJECT_ID('tournament_registrations', 'U') IS NOT NULL DROP TABLE tournament_registrations;
 IF OBJECT_ID('tournaments', 'U') IS NOT NULL DROP TABLE tournaments;
@@ -122,7 +129,13 @@ CREATE TABLE courts (
     court_type NVARCHAR(50) NOT NULL, -- Cầu lông VIP (Thảm Yonex), Cầu lông tiêu chuẩn (BWF), Cầu lông thi đấu
     hourly_rate DECIMAL(18,2) NOT NULL,
     status NVARCHAR(30) DEFAULT N'Trống', -- Trống, Đang sử dụng, Bảo trì, Đặt trước
-    image_url VARCHAR(255) DEFAULT '/images/badminton-court.jpg'
+    image_url NVARCHAR(500) DEFAULT '/images/badminton-court.jpg',
+    condition_images NVARCHAR(MAX) NULL,
+    likes_count INT DEFAULT 0,
+    comments NVARCHAR(MAX) NULL,
+    lighting_condition NVARCHAR(150) DEFAULT N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF',
+    floor_condition NVARCHAR(150) DEFAULT N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu',
+    net_condition NVARCHAR(150) DEFAULT N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn'
 );
 GO
 
@@ -155,10 +168,12 @@ CREATE TABLE customers (
     phone VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(100),
     password VARCHAR(100) NOT NULL DEFAULT '123456',
+    raw_password VARCHAR(100) DEFAULT '123456',
     total_play_hours DECIMAL(10,1) DEFAULT 0,
     reward_points INT DEFAULT 0,
     membership_tier NVARCHAR(30) DEFAULT N'Đồng', -- Đồng, Bạc, Vàng, Kim Cương
     status NVARCHAR(30) DEFAULT N'Hoạt động',
+    avatar_url NVARCHAR(500) NULL,
     created_at DATETIME DEFAULT GETDATE()
 );
 GO
@@ -284,13 +299,15 @@ CREATE TABLE users (
     id INT IDENTITY(1,1) PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
+    raw_password VARCHAR(100) DEFAULT '123456',
     full_name NVARCHAR(100) NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(20),
     role VARCHAR(30) NOT NULL, -- DIRECTOR, MANAGER, POS, CUSTOMER, ADMIN
     staff_code VARCHAR(20) NULL REFERENCES staff(staff_code),
-    branch_code VARCHAR(20) DEFAULT 'ALL',
+    branch_code VARCHAR(100) DEFAULT 'ALL',
     status NVARCHAR(30) DEFAULT N'Hoạt động',
+    avatar_url NVARCHAR(500) NULL,
     created_at DATETIME DEFAULT GETDATE(),
     last_login DATETIME NULL
 );
@@ -412,6 +429,7 @@ GO
 CREATE TABLE audit_logs (
     log_id INT IDENTITY(1,1) PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
+    user_code VARCHAR(20) NULL,
     action_type NVARCHAR(100) NOT NULL,
     action_time DATETIME DEFAULT GETDATE(),
     details NVARCHAR(MAX) NOT NULL,
@@ -461,6 +479,57 @@ CREATE TABLE pricing_proposals (
     created_at DATETIME2 DEFAULT GETDATE(),
     approved_at DATETIME2 NULL,
     note NVARCHAR(255) NULL
+);
+GO
+
+-- BẢNG 26: NHÀ CUNG CẤP VẬT TƯ & DỤNG CỤ (suppliers / NhaCungCap)
+CREATE TABLE suppliers (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    supplier_code VARCHAR(30) NOT NULL UNIQUE,
+    supplier_name NVARCHAR(150) NOT NULL,
+    contact_person NVARCHAR(100),
+    phone VARCHAR(30),
+    email VARCHAR(100),
+    address NVARCHAR(255),
+    category NVARCHAR(100),
+    status NVARCHAR(30) DEFAULT N'Đang hợp tác',
+    notes NVARCHAR(500),
+    created_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+-- BẢNG 27: PHIẾU HỖ TRỢ TRỰC TUYẾN LIVE CHAT (support_tickets / PhieuHoTro)
+CREATE TABLE support_tickets (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    session_id VARCHAR(100) NOT NULL UNIQUE,
+    customer_name NVARCHAR(100),
+    customer_phone VARCHAR(30),
+    branch_code VARCHAR(50),
+    status VARCHAR(30) NOT NULL DEFAULT 'BOT',
+    assigned_staff NVARCHAR(100),
+    last_message NVARCHAR(500),
+    last_message_at DATETIME2,
+    unread_staff_count INT DEFAULT 0,
+    unread_customer_count INT DEFAULT 0,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE()
+);
+GO
+
+-- BẢNG 28: TIN NHẮN TƯ VẤN & LIVE SUPPORT CHAT (chat_messages / TinNhanHoTro)
+CREATE TABLE chat_messages (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    session_id VARCHAR(100) NOT NULL,
+    customer_name NVARCHAR(100),
+    customer_phone VARCHAR(30),
+    sender VARCHAR(30) NOT NULL,
+    staff_name NVARCHAR(100),
+    staff_code VARCHAR(50),
+    branch_code VARCHAR(50),
+    content NVARCHAR(2500) NOT NULL,
+    created_at DATETIME2 DEFAULT GETDATE(),
+    read_by_staff BIT DEFAULT 0,
+    read_by_customer BIT DEFAULT 0
 );
 GO
 
@@ -518,9 +587,15 @@ CREATE VIEW CauHinhHeThong AS SELECT setting_code AS MaCauHinh, setting_name AS 
 GO
 CREATE VIEW DeXuatGia AS SELECT proposal_code AS MaDeXuat, branch_code AS MaCN, proposer_name AS NguoiDeXuat, court_type AS LoaiSan, slot_info AS KhungGio, current_price AS GiaHienTai, proposed_price AS GiaDeXuat, reason AS LyDo, status AS TrangThai, created_at AS NgayDeXuat, approved_at AS NgayPheDuyet, note AS GhiChuPheDuyet FROM pricing_proposals;
 GO
+CREATE VIEW NhaCungCap AS SELECT supplier_code AS MaNCC, supplier_name AS TenNCC, contact_person AS NguoiLienHe, phone AS SoDienThoai, email AS Email, category AS NganhHang, status AS TrangThai FROM suppliers;
+GO
+CREATE VIEW PhieuHoTro AS SELECT session_id AS MaPhien, customer_name AS TenKH, customer_phone AS SDT, branch_code AS MaCN, status AS TrangThai, assigned_staff AS NhanVienPhuTrach, last_message AS TinNhanCuoi, last_message_at AS ThoiGianCuoi FROM support_tickets;
+GO
+CREATE VIEW TinNhanHoTro AS SELECT session_id AS MaPhien, sender AS NguoiGui, staff_name AS TenNV, content AS NoiDung, created_at AS ThoiGianTao FROM chat_messages;
+GO
 
 -- =====================================================================
--- 5. CHÈN DỮ LIỆU MẪU ĐẦY ĐỦ CHO TẤT CẢ 25 BẢNG (SEED DATA)
+-- 5. CHÈN DỮ LIỆU MẪU ĐẦY ĐỦ CHO TẤT CẢ 28 BẢNG (SEED DATA)
 -- =====================================================================
 
 -- 5.1 DỮ LIỆU CHI NHÁNH TOÀN CHUỖI (branches)
@@ -586,13 +661,13 @@ INSERT INTO pricing_rules (pricing_code, branch_code, slot_code, day_type, start
 ('BG11', 'CN04', 'KG03', N'Ngày thường (T2-T6)', '2026-01-01', NULL, 120000);
 
 -- 5.5 DỮ LIỆU KHÁCH HÀNG THÀNH VIÊN (customers)
-INSERT INTO customers (customer_code, full_name, phone, email, password, total_play_hours, reward_points, membership_tier) VALUES
-('KH001', N'Lê Bá Đạt', '0912345678', 'dat.le@gmail.com', '123456', 42.5, 4250, N'Kim Cương'),
-('KH002', N'Nguyễn Hoàng Nam', '0903123456', 'nam.nguyen@gmail.com', '123456', 28.0, 2800, N'Vàng'),
-('KH003', N'Phạm Gia Huy', '0988777666', 'huy.pham@gmail.com', '123456', 15.0, 1500, N'Bạc'),
-('KH004', N'Vũ Thị Mai Anh', '0977555444', 'maianh.vu@gmail.com', '123456', 8.0, 800, N'Bạc'),
-('KH005', N'Trần Thanh Hằng', '0933444555', 'hang.tran@gmail.com', '123456', 4.0, 400, N'Đồng'),
-('KH006', N'Bùi Khánh Linh', '0909111222', 'linh.bui@gmail.com', '123456', 3.5, 350, N'Đồng');
+INSERT INTO customers (customer_code, full_name, phone, email, password, raw_password, total_play_hours, reward_points, membership_tier) VALUES
+('KH001', N'Lê Bá Đạt', '0912345678', 'dat.le@gmail.com', '123456', '123456', 42.5, 4250, N'Kim Cương'),
+('KH002', N'Nguyễn Hoàng Nam', '0903123456', 'nam.nguyen@gmail.com', '123456', '123456', 28.0, 2800, N'Vàng'),
+('KH003', N'Phạm Gia Huy', '0988777666', 'huy.pham@gmail.com', '123456', '123456', 15.0, 1500, N'Bạc'),
+('KH004', N'Vũ Thị Mai Anh', '0977555444', 'maianh.vu@gmail.com', '123456', '123456', 8.0, 800, N'Bạc'),
+('KH005', N'Trần Thanh Hằng', '0933444555', 'hang.tran@gmail.com', '123456', '123456', 4.0, 400, N'Đồng'),
+('KH006', N'Bùi Khánh Linh', '0909111222', 'linh.bui@gmail.com', '123456', '123456', 3.5, 350, N'Đồng');
 
 -- 5.6 DỮ LIỆU ĐƠN ĐẶT SÂN (bookings)
 INSERT INTO bookings (booking_code, customer_code, customer_name, customer_phone, court_code, branch_code, booking_date, time_slot, slot_code, hourly_price, total_price, deposit_amount, payment_method, status, notes) VALUES
@@ -709,22 +784,22 @@ INSERT INTO staff (staff_code, branch_code, full_name, position, phone, email, a
 ('NS12', 'CN01', N'Trịnh Gia Vinh', N'Kỹ thuật & Bảo dưỡng sân', '0977222333', 'vinh.tg@utesport.vn', N'TP. Thủ Đức, TP. Hồ Chí Minh');
 
 -- 5.13 DỮ LIỆU TÀI KHOẢN ĐĂNG NHẬP HỆ THỐNG (users)
-INSERT INTO users (username, password, full_name, email, phone, role, staff_code, branch_code) VALUES
-('director', '123456', N'Nguyễn Phước Thọ', 'director@utesport.vn', '0901111222', 'DIRECTOR', 'NS01', 'ALL'),
-('manager', '123456', N'Trần Phúc Bảo', 'manager@utesport.vn', '0903123456', 'MANAGER', 'NS02', 'CN01'),
-('pos', '123456', N'Nguyễn Thanh Tâm', 'pos@utesport.vn', '0904555666', 'POS', 'NS03', 'CN01'),
-('admin', '123456', N'Trần Biểu Hương', 'admin@utesport.vn', '0908888999', 'ADMIN', NULL, 'ALL'),
-('customer', '123456', N'Lê Bá Đạt', 'khachhang@gmail.com', '0912345678', 'CUSTOMER', NULL, 'CN01'),
-('nam.vh', '123456', N'Võ Hoàng Nam', 'nam.vh@utesport.vn', '0901111222', 'DIRECTOR', 'NS01', 'ALL'),
-('quan.nv', '123456', N'Nguyễn Văn Quản', 'quan.nv@utesport.vn', '0903333444', 'MANAGER', 'NS05', 'CN02'),
-('nam.th', '123456', N'Trần Hữu Nam', 'nam.th@utesport.vn', '0903789012', 'MANAGER', 'NS06', 'CN03'),
-('khang.lh', '123456', N'Lê Hoàng Khang', 'khang.lh@utesport.vn', '0903555777', 'MANAGER', 'NS07', 'CN04'),
-('mai.lt', '123456', N'Lê Thị Mai', 'mai.lt@utesport.vn', '0904777888', 'POS', 'NS04', 'CN01');
+INSERT INTO users (username, password, raw_password, full_name, email, phone, role, staff_code, branch_code) VALUES
+('director', '123456', '123456', N'Nguyễn Phước Thọ', 'director@utesport.vn', '0901111222', 'DIRECTOR', 'NS01', 'ALL'),
+('manager', '123456', '123456', N'Trần Phúc Bảo', 'manager@utesport.vn', '0903123456', 'MANAGER', 'NS02', 'CN01'),
+('pos', '123456', '123456', N'Nguyễn Thanh Tâm', 'pos@utesport.vn', '0904555666', 'POS', 'NS03', 'CN01'),
+('admin', '123456', '123456', N'Trần Biểu Hương', 'admin@utesport.vn', '0908888999', 'ADMIN', NULL, 'ALL'),
+('customer', '123456', '123456', N'Lê Bá Đạt', 'khachhang@gmail.com', '0912345678', 'CUSTOMER', NULL, 'CN01'),
+('nam.vh', '123456', '123456', N'Võ Hoàng Nam', 'nam.vh@utesport.vn', '0901111222', 'DIRECTOR', 'NS01', 'ALL'),
+('quan.nv', '123456', '123456', N'Nguyễn Văn Quản', 'quan.nv@utesport.vn', '0903333444', 'MANAGER', 'NS05', 'CN02'),
+('nam.th', '123456', '123456', N'Trần Hữu Nam', 'nam.th@utesport.vn', '0903789012', 'MANAGER', 'NS06', 'CN03'),
+('khang.lh', '123456', '123456', N'Lê Hoàng Khang', 'khang.lh@utesport.vn', '0903555777', 'MANAGER', 'NS07', 'CN04'),
+('mai.lt', '123456', '123456', N'Lê Thị Mai', 'mai.lt@utesport.vn', '0904777888', 'POS', 'NS04', 'CN01');
 
 -- 5.14 DỮ LIỆU GIẢI ĐẤU VÀ SỰ KIỆN (tournaments)
 INSERT INTO tournaments (tournament_code, branch_code, tournament_name, category, start_date, end_date, rules, max_participants, current_participants, entry_fee, total_prize, status) VALUES
 ('GD01', 'CN01', N'Giải Cầu Lông Đôi Nam Nữ Mùa Thu UTE Open 2026', N'Đôi nam nữ', '2026-10-10 08:00:00', '2026-10-12 18:00:00', N'Thi đấu theo thể thức loại trực tiếp 3 hiệp 21 điểm theo luật BWF. Mỗi VĐV chỉ được đăng ký 1 nội dung.', 32, 24, 300000, 20000000, N'Đã hoàn thành'),
-('GD02', 'CN01', N'Giải Cầu Lông Doanh Nghiệp & Sinh Viên Cúp Thủ Đức 2026', N'Tổng hợp nhiều nội dung', '2026-10-25 08:00:00', '2026-10-26 17:00:00', N'Giải đấu phong trào kết nối các doanh nghiệp và cựu sinh viên đam mê cầu lông.', 24, 0, 250000, 15000000, N'Sắp mở đăng ký'),
+('GD02', 'CN01', N'Giải Cầu Lông Doanh Nghiệp & Sinh Viên Cúp Thủ Đức 2026', N'Tổng hợp nhiều nội dung', '2026-11-25 08:00:00', '2026-11-26 17:00:00', N'Giải đấu phong trào kết nối các doanh nghiệp và cựu sinh viên đam mê cầu lông.', 24, 0, 250000, 15000000, N'Đang mở đăng ký'),
 ('GD03', 'CN02', N'Giải Đơn Nam Bình Thạnh Mở Rộng 2026', N'Đơn nam', '2026-11-05 08:00:00', '2026-11-06 18:00:00', N'Giải đơn nam các CLB phong trào khu vực Bình Thạnh - Phú Nhuận.', 16, 0, 200000, 10000000, N'Sắp mở đăng ký'),
 ('GD04', 'CN03', N'Giải Đôi Nam Nữ Trẻ Quận 9 Mở Rộng 2026', N'Đôi nam nữ', '2026-11-12 08:00:00', '2026-11-13 18:00:00', N'Giải đấu phong trào dành cho thanh niên và sinh viên khu vực TP Thủ Đức - Quận 9.', 24, 4, 250000, 20000000, N'Sắp mở đăng ký'),
 ('GD05', 'CN04', N'Giải Cầu Lông Giao Lưu Các CLB Gò Vấp 2026', N'Đôi nam', '2026-11-20 08:00:00', '2026-11-21 18:00:00', N'Sân chơi kết nối giao lưu giữa các câu lạc bộ cầu lông khu vực Gò Vấp - Tân Bình.', 20, 6, 200000, 18000000, N'Sắp mở đăng ký');
@@ -804,6 +879,30 @@ INSERT INTO system_settings (setting_code, setting_name, setting_value, descript
 ('CFG_TIER_SILVER_POINTS', N'Hạn mức điểm lên Hạng Bạc', '500', N'Tích lũy đủ 500 điểm để thăng hạng Bạc (Giảm 5%)'),
 ('CFG_TIER_GOLD_POINTS', N'Hạn mức điểm lên Hạng Vàng', '2000', N'Tích lũy đủ 2.000 điểm để thăng hạng Vàng (Giảm 10%)'),
 ('CFG_TIER_DIAMOND_POINTS', N'Hạn mức điểm lên Hạng Kim Cương', '4000', N'Tích lũy đủ 4.000 điểm để thăng hạng Kim Cương (Giảm 15%)');
+
+-- 5.25 DỮ LIỆU ĐỀ XUẤT ĐIỀU CHỈNH GIÁ SÂN (pricing_proposals)
+INSERT INTO pricing_proposals (proposal_code, branch_code, proposer_name, court_type, slot_info, current_price, proposed_price, reason, status, created_at, approved_at, note) VALUES
+('DX-G01', 'CN01', N'Trần Phúc Bảo', N'Cầu lông VIP (Thảm Yonex)', N'KG03 (17:00 - 22:00)', 130000, 140000, N'Nhu cầu đặt sân giờ cao điểm tăng cao và nâng cấp hệ thống đèn LED', N'Đã phê duyệt', '2026-10-01 09:30:00', '2026-10-02 14:00:00', N'Đã đồng ý áp dụng từ đầu tháng 10'),
+('DX-G02', 'CN02', N'Nguyễn Văn Quản', N'Cầu lông tiêu chuẩn (BWF)', N'KG02 (09:00 - 17:00)', 90000, 95000, N'Điều chỉnh nhẹ giá thuê ban ngày theo mức trượt giá điện nước', N'Chờ phê duyệt', '2026-10-15 10:15:00', NULL, N'Đang chờ Giám đốc duyệt'),
+('DX-G03', 'CN03', N'Trần Hữu Nam', N'Cầu lông tiêu chuẩn (BWF)', N'KG01 (06:00 - 09:00)', 80000, 85000, N'Bổ sung thêm quạt làm mát công suất lớn', N'Chờ phê duyệt', '2026-10-20 15:45:00', NULL, N'Chờ xem xét hiệu quả');
+
+-- 5.26 DỮ LIỆU NHÀ CUNG CẤP (suppliers)
+INSERT INTO suppliers (supplier_code, supplier_name, contact_person, phone, email, address, category, status, notes) VALUES
+('NCC01', N'Công ty Cổ phần Nước Giải Khát Suntory PepsiCo Việt Nam', N'Nguyễn Thị Thu Hà', '0908112233', 'contact@pepsico.com.vn', N'Cao ốc Sheraton, 88 Đồng Khởi, Bến Nghé, Quận 1, TP.HCM', N'Nước giải khát', N'Đang hợp tác', N'Nhà phân phối chính thức các dòng nước uống thể thao Revive chanh muối, Aquafina 500ml'),
+('NCC02', N'Công ty TNHH Thể Thao Yonex Việt Nam', N'Lê Minh Hoàng', '0918223344', 'contact@yonex.com.vn', N'Số 45 Lê Duẩn, Bến Nghé, Quận 1, TP.HCM', N'Dụng cụ & Trang phục', N'Đang hợp tác', N'Nhà phân phối độc quyền thiết bị cầu lông Yonex, vợt thi đấu, giày và túi'),
+('NCC03', N'Công ty Cầu Lông Thành Công', N'Trần Văn Thành', '0938334455', 'kinhdoanh@thanhcongbadminton.vn', N'Lô 12 KCN Tân Bình, Tây Thạnh, Tân Phú, TP.HCM', N'Cầu lông', N'Đang hợp tác', N'Xưởng sản xuất ống cầu lông thi đấu Thành Công 77, Hải Yến Đỏ'),
+('NCC04', N'Đại lý Phụ Kiện Thể Thao VS', N'Phạm Quốc Việt', '0948556677', 'vssport.distributor@gmail.com', N'Số 88 Nguyễn Oanh, Phường 7, Gò Vấp, TP.HCM', N'Phụ kiện', N'Đang hợp tác', N'Cung cấp sỉ quấn cán vợt VS, cước đan vợt BG65Ti, phấn chống trượt và băng cổ tay thể thao');
+
+-- 5.27 DỮ LIỆU PHIẾU HỖ TRỢ & TIN NHẮN LIVE CHAT (support_tickets, chat_messages)
+INSERT INTO support_tickets (session_id, customer_name, customer_phone, branch_code, status, assigned_staff, last_message, last_message_at, unread_staff_count, unread_customer_count) VALUES
+('SESS-DEMO-001', N'Lê Bá Đạt', '0912345678', 'CN01', 'CLOSED', N'Nguyễn Thanh Tâm', N'Dạ bên em đã giữ sân VIP 1 cho anh rồi ạ!', DATEADD(MINUTE, -30, GETDATE()), 0, 0),
+('SESS-DEMO-002', N'Nguyễn Hoàng Nam', '0903123456', 'CN01', 'BOT', NULL, N'Tư vấn giúp tôi sân trống tối nay lúc 19h', DATEADD(MINUTE, -10, GETDATE()), 0, 0);
+
+INSERT INTO chat_messages (session_id, customer_name, customer_phone, sender, staff_name, staff_code, branch_code, content, created_at, read_by_staff, read_by_customer) VALUES
+('SESS-DEMO-001', N'Lê Bá Đạt', '0912345678', 'customer', NULL, NULL, 'CN01', N'Chào em, anh muốn hỏi chiều nay sân VIP 1 còn trống không?', DATEADD(MINUTE, -35, GETDATE()), 1, 1),
+('SESS-DEMO-001', N'Lê Bá Đạt', '0912345678', 'staff', N'Nguyễn Thanh Tâm', 'NS03', 'CN01', N'Dạ bên em đã giữ sân VIP 1 cho anh rồi ạ!', DATEADD(MINUTE, -30, GETDATE()), 1, 1),
+('SESS-DEMO-002', N'Nguyễn Hoàng Nam', '0903123456', 'customer', NULL, NULL, 'CN01', N'Tư vấn giúp tôi sân trống tối nay lúc 19h', DATEADD(MINUTE, -10, GETDATE()), 1, 1);
+
 -- 6. TẠO CÁC CHỈ MỤC INDEX TỐI ƯU HIỆU NĂNG TRUY VẤN (BUG-MED-25)
 IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_bookings_date_court')
     CREATE INDEX idx_bookings_date_court ON bookings(booking_date, court_code);
@@ -816,9 +915,18 @@ IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_courts_branch_sta
 
 IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_invoices_booking_date')
     CREATE INDEX idx_invoices_booking_date ON invoices(booking_code, invoice_date);
+
+IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_chat_messages_session')
+    CREATE INDEX idx_chat_messages_session ON chat_messages(session_id);
+
+IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_support_tickets_session')
+    CREATE INDEX idx_support_tickets_session ON support_tickets(session_id);
+
+IF NOT EXISTS (SELECT name FROM sys.indexes WHERE name = N'idx_suppliers_code')
+    CREATE INDEX idx_suppliers_code ON suppliers(supplier_code);
 GO
 
-PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 25 BẢNG DỮ LIỆU, 25 VIEW TIẾNG VIỆT VÀ CHÈN SEED DATA HOÀN TẤT THÀNH CÔNG!';
+PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 28 BẢNG DỮ LIỆU, 28 VIEW TIẾNG VIỆT VÀ CHÈN SEED DATA HOÀN TẤT THÀNH CÔNG!';
 GO
 
 -- =====================================================================
@@ -1586,7 +1694,7 @@ END;
 GO
 
 PRINT N'=====================================================================';
-PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 25 BẢNG DỮ LIỆU, 25 VIEW TIẾNG VIỆT,';
+PRINT N'>>> ĐÃ KHỞI TẠO TOÀN DIỆN 28 BẢNG DỮ LIỆU, 28 VIEW TIẾNG VIỆT,';
 PRINT N'>>> 5 FUNCTIONS, 7 STORED PROCEDURES VÀ 6 TRIGGERS HOÀN TẤT THÀNH CÔNG!';
 PRINT N'=====================================================================';
 GO

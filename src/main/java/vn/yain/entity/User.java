@@ -46,6 +46,9 @@ public class User {
     @Column(length = 30)
     private String status = "Hoạt động";
 
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
