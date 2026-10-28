@@ -1233,6 +1233,23 @@
           avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName || 'Khach Hang')}&background=059669&color=fff&size=128`;
         }
       }
+
+      // Tự động đồng bộ ảnh đại diện vào localStorage và cập nhật thanh điều hướng trên cùng
+      if (data.avatarUrl && data.avatarUrl.trim() !== '') {
+        try {
+          const raw = localStorage.getItem('utesport_user');
+          if (raw) {
+            const u = JSON.parse(raw);
+            if (u.avatarUrl !== data.avatarUrl) {
+              u.avatarUrl = data.avatarUrl;
+              localStorage.setItem('utesport_user', JSON.stringify(u));
+              if (typeof syncUserProfileUI === 'function') syncUserProfileUI();
+              else if (window.syncUserProfileUI) window.syncUserProfileUI();
+              if (window.RBAC && window.RBAC.syncNavUserArea) window.RBAC.syncNavUserArea();
+            }
+          }
+        } catch (e) {}
+      }
       const avatarName = document.getElementById('profAvatarName');
       if (avatarName) avatarName.textContent = data.fullName || 'Thành Viên UTE';
       const avatarPhone = document.getElementById('profAvatarPhone');
@@ -1444,6 +1461,9 @@
             syncUserProfileUI();
           } else if (window.syncUserProfileUI) {
             window.syncUserProfileUI();
+          }
+          if (window.RBAC && window.RBAC.syncNavUserArea) {
+            window.RBAC.syncNavUserArea();
           }
 
           if (window.showToast) {

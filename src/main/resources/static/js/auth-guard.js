@@ -269,6 +269,10 @@
         el.textContent = titleLabel;
       });
 
+      // Synchronize both header widget styles (internal and customer nav)
+      if (typeof syncInternalHeaderUser === 'function') syncInternalHeaderUser();
+      if (typeof syncNavUserArea === 'function') syncNavUserArea();
+
       // Update POS branch brand indicators if present
       document.querySelectorAll('#posSidebarBranchText').forEach(el => {
         el.textContent = (currentUser.branchName || ('Chi nhánh ' + branchLabel)).toUpperCase();
@@ -521,12 +525,19 @@
          </a>` 
       : '';
 
+    const hasAvatar = Boolean(user.avatarUrl && user.avatarUrl.trim() !== '');
+
     navUserArea.innerHTML = `
       <div class="cust-user-dropdown-container" style="position: relative; display: inline-block;">
         <button type="button" id="btnUserMenu" onclick="window.RBAC.toggleUserDropdown(event)" style="display: flex; align-items: center; gap: 10px; background: var(--surface-subtle); border: 1px solid var(--border-subtle); border-radius: 9999px; padding: 4px 12px 4px 4px; cursor: pointer; transition: all 0.2s ease;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);">
-            ${initials}
-          </div>
+          ${hasAvatar
+            ? `<div class="user-avatar" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); border: 1.5px solid #10b981;">
+                 <img src="${user.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null; this.parentElement.outerHTML='<div class=\'user-avatar\' style=\'width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); flex-shrink: 0;\'>${initials}</div>'">
+               </div>`
+            : `<div class="user-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); flex-shrink: 0;">
+                 ${initials}
+               </div>`
+          }
           <div style="text-align: left; line-height: 1.25;">
             <div style="font-size: 13px; font-weight: 700; color: var(--text-dark); white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis;">${user.fullName}</div>
             <div style="font-size: 10.5px; color: var(--primary); font-weight: 600;">${tierBadge}</div>
@@ -535,9 +546,17 @@
         </button>
 
         <div id="custUserMenuDropdown" style="display: none; position: absolute; right: 0; top: calc(100% + 8px); width: 230px; background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.12); padding: 8px; z-index: 1000;">
-          <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px;">
-            <div style="font-size: 13px; font-weight: 700; color: var(--text-dark);">${user.fullName}</div>
-            <div style="font-size: 11px; color: var(--text-muted);">${user.phone || user.username || ''}</div>
+          <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px; display: flex; align-items: center; gap: 10px;">
+            ${hasAvatar
+              ? `<div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 1.5px solid #10b981;">
+                   <img src="${user.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.parentElement.outerHTML='<div style=\'width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;\'>${initials}</div>'">
+                 </div>`
+              : `<div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${initials}</div>`
+            }
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-size: 13px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.fullName}</div>
+              <div style="font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.phone || user.username || ''}</div>
+            </div>
           </div>
           <a href="/customer/profile" class="cust-dropdown-link" style="display: flex; align-items: center; gap: 9px; padding: 9px 12px; text-decoration: none; color: var(--text-dark); font-size: 13px; font-weight: 500; border-radius: 8px;">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>

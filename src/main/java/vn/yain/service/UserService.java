@@ -151,6 +151,14 @@ public class UserService {
                 user.getBranchCode()
         );
 
+        String userAvatar = user.getAvatarUrl();
+        if ((userAvatar == null || userAvatar.isBlank()) && user.getPhone() != null && !user.getPhone().isBlank()) {
+            Customer cCust = customerRepository.findByPhone(user.getPhone().trim()).orElse(null);
+            if (cCust != null && cCust.getAvatarUrl() != null && !cCust.getAvatarUrl().isBlank()) {
+                userAvatar = cCust.getAvatarUrl();
+            }
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
         result.put("tokenType", "Bearer");
@@ -160,6 +168,7 @@ public class UserService {
         result.put("branchCode", user.getBranchCode());
         result.put("phone", user.getPhone() != null ? user.getPhone() : "");
         result.put("email", user.getEmail() != null ? user.getEmail() : "");
+        result.put("avatarUrl", userAvatar != null ? userAvatar : "");
         return result;
     }
 
