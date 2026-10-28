@@ -7,8 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -54,6 +58,24 @@ public class GlobalExceptionHandler {
                 ? e.getBindingResult().getFieldError().getDefaultMessage()
                 : "Dữ liệu gửi lên không hợp lệ!";
         return buildResponse(HttpStatus.BAD_REQUEST, msg);
+    }
+
+    @ExceptionHandler({MissingServletRequestPartException.class, MissingServletRequestParameterException.class})
+    public ResponseEntity<Map<String, Object>> handleMissingParams(Exception e) {
+        log.warn("Missing request parameter or part: {}", e.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Thiếu tham số hoặc tệp yêu cầu trong yêu cầu gửi lên hệ thống.");
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("Max upload size exceeded: {}", e.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Dung lượng tệp tải lên vượt quá giới hạn tối đa cho phép (5MB).");
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<Map<String, Object>> handleMultipartException(MultipartException e) {
+        log.warn("Multipart processing error: {}", e.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "Lỗi định dạng tệp tải lên: " + e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

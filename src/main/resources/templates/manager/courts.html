@@ -279,11 +279,16 @@
             </svg>
           </button>
 
-          <div class="branch-select-badge">
+          <div class="branch-select-badge" style="padding: 2px 8px; display: inline-flex; align-items: center; gap: 6px;">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
-            <span>Trung Tâm Thể Thao UTE Sport - Thủ Đức</span>
+            <select id="branchSelectFilter" onchange="loadCourtsFromApi()" style="border: none; background: transparent; font-weight: 700; color: var(--text-dark); cursor: pointer; outline: none; font-size: 13px;">
+              <option value="CN01">Chi nhánh 1 - Thủ Đức (CN01)</option>
+              <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
+              <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
+              <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
+            </select>
           </div>
 
           <div class="search-box-header">
@@ -528,59 +533,109 @@
   </div>
 
   <!-- MODAL FORM THÊM / SỬA SÂN -->
+  <!-- MODAL FORM THÊM / SỬA SÂN -->
   <div class="modal-overlay" id="courtModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 680px; width: 95%;">
       <div class="modal-header">
-        <h3 id="modalTitle">Thêm sân mới</h3>
-        <button class="modal-close-btn" onclick="closeCourtModal()">✕</button>
+        <h3 id="modalTitle" style="margin: 0; font-size: 18px; font-weight: 800;">Thêm sân mới</h3>
+        <button class="modal-close-btn" onclick="closeCourtModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); font-size: 20px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Mã số sân</label>
-          <input type="text" class="form-control" id="inpCourtCode" placeholder="Ví dụ: CL05">
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Mã số sân *</label>
+            <input type="text" class="form-control" id="inpCourtCode" placeholder="Ví dụ: CL05">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Cơ sở chi nhánh *</label>
+            <select class="form-control" id="inpBranchCode">
+              <option value="CN01">Chi nhánh 1 - Thủ Đức (CN01)</option>
+              <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
+              <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
+              <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Tên hiển thị của sân</label>
-          <input type="text" class="form-control" id="inpCourtName" placeholder="Ví dụ: Sân cầu lông 5">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Tên hiển thị sân *</label>
+            <input type="text" class="form-control" id="inpCourtName" placeholder="Ví dụ: Sân cầu lông 5">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Phân loại sân *</label>
+            <select class="form-control" id="inpCourtType">
+              <option value="Cầu lông tiêu chuẩn">Cầu lông tiêu chuẩn</option>
+              <option value="Cầu lông VIP">Cầu lông VIP</option>
+              <option value="Cầu lông Thi Đấu Quốc Tế">Cầu lông Thi Đấu Quốc Tế</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Phân loại sân</label>
-          <select class="form-control" id="inpCourtType">
-            <option value="Cầu lông tiêu chuẩn">Cầu lông tiêu chuẩn</option>
-            <option value="Cầu lông VIP">Cầu lông VIP</option>
-            <option value="Cầu lông Thi Đấu Quốc Tế">Cầu lông Thi Đấu Quốc Tế</option>
-          </select>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Đơn giá thuê (VNĐ/giờ) *</label>
+            <input type="number" class="form-control" id="inpHourlyRate" value="90000" step="10000">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Trạng thái vận hành *</label>
+            <select class="form-control" id="inpStatus">
+              <option value="Trống">Trống (Sẵn sàng đón khách)</option>
+              <option value="Đang sử dụng">Đang sử dụng</option>
+              <option value="Bảo trì">Bảo trì kỹ thuật</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Đơn giá thuê (VNĐ/giờ)</label>
-          <input type="number" class="form-control" id="inpHourlyRate" value="90000" step="10000">
+
+        <!-- THÔNG SỐ KỸ THUẬT TIÊU CHUẨN THI ĐẤU (BWF) -->
+        <div style="background: var(--surface-subtle); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px; margin-top: 4px;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; color: var(--primary);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span>Thông Số Kỹ Thuật Đạt Chuẩn BWF (Hiển thị cho khách hàng)</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label class="form-label" style="font-weight: 700; font-size: 11.5px; margin-bottom: 4px; display: block;">Mặt thảm sàn thi đấu</label>
+            <input type="text" class="form-control" id="inpFloorCondition" placeholder="Ví dụ: Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label class="form-label" style="font-weight: 700; font-size: 11.5px; margin-bottom: 4px; display: block;">Hệ thống chiếu sáng</label>
+            <input type="text" class="form-control" id="inpLightingCondition" placeholder="Ví dụ: Đèn LED chống chói 500 Lux chuẩn BWF">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label class="form-label" style="font-weight: 700; font-size: 11.5px; margin-bottom: 4px; display: block;">Lưới & Khung cột thi đấu</label>
+            <input type="text" class="form-control" id="inpNetCondition" placeholder="Ví dụ: Lưới thi đấu BWF căng mới, cột nhôm chắc chắn">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="font-weight: 700; font-size: 11.5px; margin-bottom: 4px; display: block;">Tiện ích & Ghi chú bổ sung</label>
+            <textarea class="form-control" id="inpCourtDescription" rows="2" placeholder="Ví dụ: Trang bị quạt công nghiệp làm mát, ghế chờ rộng rãi, wifi tốc độ cao miễn phí..."></textarea>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Trạng thái vận hành</label>
-          <select class="form-control" id="inpStatus">
-            <option value="Trống">Trống (Sẵn sàng phục vụ)</option>
-            <option value="Đang sử dụng">Đang sử dụng</option>
-            <option value="Bảo trì">Bảo trì kỹ thuật</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Ảnh bìa sân (Cloudinary)</span>
-            <span class="cloudinary-badge-tag">Cloudinary CDN</span>
+
+        <!-- HÌNH ẢNH SÂN THI ĐẤU -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 12px; margin-bottom: 4px;">
+            <span>Ảnh bìa sân</span>
           </label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" class="form-control" id="inpImageUrl" placeholder="URL ảnh bìa (hoặc bấm tải lên bên dưới)">
-            <label class="btn btn-outline" style="white-space: nowrap; cursor: pointer; padding: 7px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-              <span>📁 Tải ảnh</span>
+            <input type="text" class="form-control" id="inpImageUrl" placeholder="URL ảnh bìa sân (hoặc tải ảnh lên)">
+            <label class="btn btn-outline" style="white-space: nowrap; cursor: pointer; padding: 7px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Tải ảnh</span>
               <input type="file" id="inpModalFileCover" accept="image/*" style="display: none;" onchange="uploadCoverFromCreateModal(this)">
             </label>
           </div>
           <div id="modalCoverPreviewWrap" style="margin-top: 8px; display: none;">
-            <img id="modalCoverPreviewImg" src="" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);">
+            <img id="modalCoverPreviewImg" src="" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);">
           </div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="padding-top: 12px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 8px;">
         <button class="btn btn-outline" onclick="closeCourtModal()">Hủy bỏ</button>
         <button class="btn btn-primary" onclick="saveCourt()">Lưu thông tin sân</button>
       </div>
@@ -594,11 +649,12 @@
         <div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <h3 id="mediaModalTitle" style="margin: 0; font-size: 17px; font-weight: 800;">Quản lý hình ảnh & Tình trạng sân</h3>
-            <span class="cloudinary-badge-tag">Cloudinary</span>
           </div>
           <p id="mediaModalSubtitle" style="margin: 4px 0 0; font-size: 12.5px; color: var(--text-muted);">Sân CL01 • Chi nhánh Thủ Đức</p>
         </div>
-        <button class="modal-close-btn" onclick="closeCourtMediaModal()">✕</button>
+        <button class="modal-close-btn" onclick="closeCourtMediaModal()" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
       <!-- MEDIA MODAL TABS -->
@@ -628,10 +684,11 @@
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark);">Bấm để chọn tệp tải lên Cloudinary</div>
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--text-dark);">Bấm để chọn tệp tải lên</div>
             <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">Hỗ trợ JPG, PNG, WEBP tối đa 10MB</div>
-            <div id="coverUploadLoading" style="display: none; margin-top: 8px; font-size: 12px; color: var(--primary); font-weight: 700;">
-              ⏳ Đang tải ảnh lên Cloudinary...
+            <div id="coverUploadLoading" style="display: none; margin-top: 8px; font-size: 12px; color: var(--primary); font-weight: 700; align-items: center; justify-content: center; gap: 6px;">
+              <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.5; fill: none; animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+              <span>Đang tải ảnh lên...</span>
             </div>
           </div>
         </div>
@@ -649,8 +706,9 @@
             </label>
           </div>
 
-          <div id="conditionUploadLoading" style="display: none; padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 10px; text-align: center;">
-            ⏳ Đang tải ảnh tình trạng lên Cloudinary...
+          <div id="conditionUploadLoading" style="display: none; padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 10px; align-items: center; justify-content: center; gap: 6px;">
+            <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.5; fill: none; animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            <span>Đang tải ảnh tình trạng...</span>
           </div>
 
           <div class="condition-gallery-grid" id="conditionGalleryContainer">
@@ -800,6 +858,13 @@
         const safeType = (c.courtType || 'Cầu lông tiêu chuẩn').replace(/'/g, "\\'");
         const conditionList = parseConditionList(c.conditionImages);
 
+        const photoBtnHtml = `
+          <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh sân và tình trạng thực tế">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <span>Ảnh (${conditionList.length})</span>
+          </button>
+        `;
+
         let actionButtonsHtml = '';
         if (c.status === 'Đang sử dụng') {
           actionButtonsHtml = `
@@ -808,7 +873,7 @@
               Đang có khách thi đấu
             </div>
             <div style="margin-top: 8px; display: flex; gap: 6px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #059669; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, chuyển ngay về trạng thái Trống">Trả sân</button>
             </div>
@@ -816,7 +881,7 @@
         } else if (c.status === 'Đã đặt trước') {
           actionButtonsHtml = `
             <div style="margin-top: 10px; display: flex; gap: 6px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt</button>
             </div>
@@ -824,7 +889,7 @@
         } else if (c.status === 'Bảo trì') {
           actionButtonsHtml = `
             <div style="margin-top: 10px; display: flex; gap: 6px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #10b981; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hoàn tất</button>
             </div>
@@ -832,7 +897,7 @@
         } else if (c.status === 'Đang giữ chỗ') {
           actionButtonsHtml = `
             <div style="margin-top: 10px; display: flex; gap: 6px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #f59e0b; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hủy giữ</button>
             </div>
@@ -840,7 +905,7 @@
         } else {
           actionButtonsHtml = `
             <div style="margin-top: 10px; display: flex; gap: 6px;">
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh bìa và ảnh tình trạng Cloudinary">📷 Ảnh (${conditionList.length})</button>
+              ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <a href="/manager/bookings?court=${c.courtCode}" class="btn btn-primary" style="flex: 1; padding: 6px 6px; font-size: 11px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Đặt sân</a>
             </div>
@@ -852,7 +917,8 @@
             <div style="position: relative;">
               <img src="${imgSrc}" class="court-card-thumb" alt="${c.courtName}" onerror="this.src='/images/badminton-court.jpg'">
               <span class="condition-badge-pill" style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.75); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); cursor: pointer;" onclick="openCourtMediaModal('${c.courtCode}')">
-                📷 ${conditionList.length} ảnh tình trạng
+                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 11px; height: 11px; vertical-align: middle;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span>${conditionList.length} ảnh thực tế</span>
               </span>
             </div>
             <div class="court-card-body">
@@ -917,7 +983,10 @@
             <td><span class="badge ${badgeClass}">${c.status}</span></td>
             <td style="text-align: right;">
               <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
-                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #0284c7; color: #0284c7;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh Cloudinary">📷 Ảnh (${conditionList.length})</button>
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #0284c7; color: #0284c7; display: inline-flex; align-items: center; gap: 4px;" onclick="openCourtMediaModal('${c.courtCode}')" title="Quản lý ảnh sân">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                  <span>Ảnh (${conditionList.length})</span>
+                </button>
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
                 ${c.status === 'Đang sử dụng' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #059669; color: #059669;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, trả về sân trống">Trả sân</button>` : ''}
                 ${c.status === 'Đã đặt trước' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hủy đặt</button>` : ''}
@@ -978,6 +1047,7 @@
       const modal = document.getElementById('courtModal');
       const prevWrap = document.getElementById('modalCoverPreviewWrap');
       const prevImg = document.getElementById('modalCoverPreviewImg');
+      const courtObj = allLoadedCourts.find(c => c.courtCode === code);
 
       if (code) {
         document.getElementById('modalTitle').innerText = 'Cập nhật thông tin sân ' + code;
@@ -987,6 +1057,11 @@
         document.getElementById('inpCourtType').value = type || 'Cầu lông tiêu chuẩn';
         document.getElementById('inpHourlyRate').value = rate || 90000;
         document.getElementById('inpStatus').value = status || 'Trống';
+        document.getElementById('inpBranchCode').value = courtObj?.branchCode || getActiveBranchCode() || 'CN01';
+        document.getElementById('inpFloorCondition').value = courtObj?.floorCondition || 'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu';
+        document.getElementById('inpLightingCondition').value = courtObj?.lightingCondition || 'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF';
+        document.getElementById('inpNetCondition').value = courtObj?.netCondition || 'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn';
+        document.getElementById('inpCourtDescription').value = courtObj?.description || '';
         document.getElementById('inpImageUrl').value = imageUrl || '';
         if (imageUrl) {
           prevImg.src = imageUrl;
@@ -995,7 +1070,7 @@
           prevWrap.style.display = 'none';
         }
       } else {
-        document.getElementById('modalTitle').innerText = 'Thêm sân mới vào chi nhánh';
+        document.getElementById('modalTitle').innerText = 'Thêm sân mới vào hệ thống';
         const nextNum = allLoadedCourts.length + 1;
         document.getElementById('inpCourtCode').value = 'CL0' + (nextNum < 10 ? nextNum : nextNum);
         document.getElementById('inpCourtCode').disabled = false;
@@ -1003,6 +1078,11 @@
         document.getElementById('inpCourtType').value = 'Cầu lông tiêu chuẩn';
         document.getElementById('inpHourlyRate').value = 90000;
         document.getElementById('inpStatus').value = 'Trống';
+        document.getElementById('inpBranchCode').value = getActiveBranchCode() || 'CN01';
+        document.getElementById('inpFloorCondition').value = 'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu';
+        document.getElementById('inpLightingCondition').value = 'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF';
+        document.getElementById('inpNetCondition').value = 'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn';
+        document.getElementById('inpCourtDescription').value = '';
         document.getElementById('inpImageUrl').value = '/images/badminton-court.jpg';
         prevImg.src = '/images/badminton-court.jpg';
         prevWrap.style.display = 'block';
@@ -1029,7 +1109,7 @@
       if (token) headers['Authorization'] = 'Bearer ' + token;
 
       try {
-        showToast('Đang tải ảnh bìa lên Cloudinary...', 'info');
+        showToast('Đang tải ảnh bìa lên...', 'info');
         const res = await fetch('/api/courts/upload-image', {
           method: 'POST',
           headers: headers,
@@ -1040,7 +1120,7 @@
           document.getElementById('inpImageUrl').value = data.url;
           document.getElementById('modalCoverPreviewImg').src = data.url;
           document.getElementById('modalCoverPreviewWrap').style.display = 'block';
-          showToast('Tải ảnh bìa Cloudinary thành công!', 'success');
+          showToast('Tải ảnh bìa thành công!', 'success');
         } else {
           showToast(data.message || 'Lỗi tải ảnh lên Cloudinary', 'error');
         }
@@ -1056,7 +1136,11 @@
       const rate = document.getElementById('inpHourlyRate').value;
       const status = document.getElementById('inpStatus').value;
       const imageUrl = document.getElementById('inpImageUrl').value.trim() || '/images/badminton-court.jpg';
-      const branch = getActiveBranchCode();
+      const branch = document.getElementById('inpBranchCode')?.value || getActiveBranchCode() || 'CN01';
+      const floorCondition = document.getElementById('inpFloorCondition').value.trim();
+      const lightingCondition = document.getElementById('inpLightingCondition').value.trim();
+      const netCondition = document.getElementById('inpNetCondition').value.trim();
+      const description = document.getElementById('inpCourtDescription').value.trim();
 
       if (!code) {
         showToast('Vui lòng nhập mã sân!', 'warning');
@@ -1078,7 +1162,11 @@
             hourlyRate: Number(rate),
             status: status,
             imageUrl: imageUrl,
-            branchCode: branch
+            branchCode: branch,
+            floorCondition: floorCondition,
+            lightingCondition: lightingCondition,
+            netCondition: netCondition,
+            description: description
           })
         });
         const data = await res.json();
@@ -1158,7 +1246,9 @@
       container.innerHTML = images.map((url, idx) => `
         <div class="condition-img-card">
           <img src="${url}" alt="Ảnh tình trạng ${idx + 1}" onerror="this.src='/images/badminton-court.jpg'">
-          <button type="button" class="img-delete-btn" onclick="deleteCourtConditionImage('${courtCode}', '${url}')" title="Xóa ảnh này">✕</button>
+          <button type="button" class="img-delete-btn" onclick="deleteCourtConditionImage('${courtCode}', '${url}')" title="Xóa ảnh này" style="display: inline-flex; align-items: center; justify-content: center;">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: #fff;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
       `).join('');
     }
@@ -1188,7 +1278,7 @@
         const data = await res.json();
         if (res.ok && data.success) {
           document.getElementById('curCoverImageDisplay').src = data.url;
-          showToast('Đã tải ảnh bìa mới lên Cloudinary thành công!', 'success');
+          showToast('Đã tải ảnh bìa mới thành công!', 'success');
         } else {
           showToast(data.message || 'Lỗi tải ảnh bìa', 'error');
         }
@@ -1228,7 +1318,7 @@
             showToast(data.message || `Lỗi tải ảnh ${file.name}`, 'error');
           }
         }
-        showToast('Đã tải bộ ảnh tình trạng sân lên Cloudinary thành công!', 'success');
+        showToast('Đã tải bộ ảnh tình trạng sân thành công!', 'success');
         // Refresh modal data
         const refreshRes = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`);
         if (refreshRes.ok) {
@@ -1300,7 +1390,8 @@
     }
 
     async function loadCourtsFromApi() {
-      const branch = getActiveBranchCode();
+      const branchSel = document.getElementById('branchSelectFilter');
+      const branch = branchSel ? branchSel.value : getActiveBranchCode();
       const token = localStorage.getItem('jwt_token') || '';
       const headers = {};
       if (token) headers['Authorization'] = 'Bearer ' + token;

@@ -360,6 +360,9 @@ public class CourtService {
             if (court.getNetCondition() != null && !court.getNetCondition().isBlank()) {
                 existing.setNetCondition(court.getNetCondition());
             }
+            if (court.getDescription() != null) {
+                existing.setDescription(court.getDescription());
+            }
             if (court.getBranchCode() != null && !court.getBranchCode().isBlank()) {
                 existing.setBranchCode(court.getBranchCode());
             }

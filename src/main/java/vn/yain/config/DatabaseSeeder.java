@@ -152,7 +152,8 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'comments') ALTER TABLE dbo.courts ADD comments NVARCHAR(MAX);",
                 "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'lighting_condition') ALTER TABLE dbo.courts ADD lighting_condition NVARCHAR(150);",
                 "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'floor_condition') ALTER TABLE dbo.courts ADD floor_condition NVARCHAR(150);",
-                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'net_condition') ALTER TABLE dbo.courts ADD net_condition NVARCHAR(150);"
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'net_condition') ALTER TABLE dbo.courts ADD net_condition NVARCHAR(150);",
+                "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'description') ALTER TABLE dbo.courts ADD description NVARCHAR(1000);"
             };
             for (String sql : courtAlters) {
                 try {

@@ -53,3 +53,10 @@ scratch_*/
 # Working notes
 Ke_hoach_GitHub_9_ngay_Triet_Tho_Dat.md
 
+
+# Uploaded User Media
+uploads/
+
+# Python cache
+__pycache__/
+*.pyc

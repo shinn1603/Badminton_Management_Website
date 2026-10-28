@@ -771,6 +771,10 @@ textarea {
 
 .stat-trend-down {
   color: #ef4444;
+}
+
+.stat-trend-neutral {
+  color: #64748b;
 }
 
 /* Quick Action Group next to stats */

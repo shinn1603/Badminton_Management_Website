@@ -76,6 +76,11 @@ public class DashboardController {
         return "director/branches";
     }
 
+    @GetMapping("/director/courts")
+    public String directorCourts() {
+        return "manager/courts";
+    }
+
     @GetMapping("/director/pricing")
     public String directorPricing() {
         return "director/pricing";

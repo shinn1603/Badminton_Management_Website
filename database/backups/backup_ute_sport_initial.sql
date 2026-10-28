@@ -141,7 +141,8 @@ CREATE TABLE courts (
     comments NVARCHAR(MAX) NULL,
     lighting_condition NVARCHAR(150) DEFAULT N'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF',
     floor_condition NVARCHAR(150) DEFAULT N'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu',
-    net_condition NVARCHAR(150) DEFAULT N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn'
+    net_condition NVARCHAR(150) DEFAULT N'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn',
+    description NVARCHAR(1000) NULL
 );
 GO
 

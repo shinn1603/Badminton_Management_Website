@@ -41,6 +41,9 @@ public class Booking {
     @Column(name = "booking_date", nullable = false)
     private LocalDate bookingDate;
 
+    @Column(name = "slot_code", length = 20)
+    private String slotCode;
+
     @Column(name = "time_slot", nullable = false, length = 50)
     private String timeSlot;
 
