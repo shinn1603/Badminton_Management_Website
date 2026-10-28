@@ -246,7 +246,7 @@
             </div>
           </div>
 
-          <!-- STATS KPI CARDS & QUICK ACTIONS (REFERENCE IMAGE 1 & 4) -->
+          <!-- STATS KPI CARDS & QUICK ACTIONS (100% REAL DATABASE DATA) -->
           <div class="stats-header-row">
             <!-- Stat 1 -->
             <div class="stat-card" onclick="window.location.href='/manager/bookings'">
@@ -261,12 +261,8 @@
                 </div>
               </div>
               <div class="stat-value" id="kpiTotalBookings">--</div>
-              <div class="stat-trend stat-trend-up" id="kpiBookingTrend">
-                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                  <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
-                <span>↑ 12% so với tuần trước</span>
+              <div class="stat-trend stat-trend-neutral" id="kpiBookingTrend">
+                <span id="kpiBookingTrendText">Đang tải...</span>
               </div>
             </div>
 
@@ -281,13 +277,9 @@
                   </svg>
                 </div>
               </div>
-              <div class="stat-value" id="kpiTodayRevenue">--</div>
-              <div class="stat-trend stat-trend-up" id="kpiRevenueTrend">
-                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                  <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
-                <span>↑ 18% so với hôm qua</span>
+              <div class="stat-value" id="kpiTodayRevenue">--đ</div>
+              <div class="stat-trend stat-trend-neutral" id="kpiRevenueTrend">
+                <span id="kpiRevenueTrendText">Đang tải...</span>
               </div>
             </div>
 
@@ -303,19 +295,15 @@
                 </div>
               </div>
               <div class="stat-value" id="kpiOccupancyRate">--%</div>
-              <div class="stat-trend stat-trend-up" id="kpiOccupancyTrend">
-                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                  <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
-                <span>↑ 6% so với tuần trước</span>
+              <div class="stat-trend stat-trend-neutral" id="kpiOccupancyTrend">
+                <span id="kpiOccupancyTrendText">Đang tải...</span>
               </div>
             </div>
 
             <!-- Stat 4 -->
             <div class="stat-card" onclick="window.location.href='/manager/staff'">
               <div class="stat-card-top">
-                <span class="stat-label">Khách hàng mới</span>
+                <span class="stat-label">Tổng khách hàng</span>
                 <div class="stat-icon-wrap stat-icon-purple">
                   <svg class="svg-icon" viewBox="0 0 24 24">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -326,12 +314,8 @@
                 </div>
               </div>
               <div class="stat-value" id="kpiNewCustomers">--</div>
-              <div class="stat-trend stat-trend-up" id="kpiCustomerTrend">
-                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-                  <polyline points="17 6 23 6 23 12"></polyline>
-                </svg>
-                <span>↑ 20% so với tuần trước</span>
+              <div class="stat-trend stat-trend-neutral" id="kpiCustomerTrend">
+                <span id="kpiCustomerTrendText">Đang tải...</span>
               </div>
             </div>
 
@@ -1056,7 +1040,7 @@
           
           ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
           ctx.fillStyle = isDark ? '#ffffff' : '#0f172a';
-          ctx.fillText(String(centerTotal || '248'), x, y - 9);
+          ctx.fillText(String(centerTotal !== undefined ? centerTotal : '0'), x, y - 9);
           
           ctx.font = '600 11px "Inter", sans-serif';
           ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
@@ -1165,7 +1149,7 @@
         if (res.ok) {
           const data = await res.json();
           if (data) {
-            // Update KPIs from CSDL
+            // Update KPIs from CSDL (100% Real)
             if (data.totalBookings !== undefined) {
               const el = document.getElementById('kpiTotalBookings');
               if (el) el.innerText = data.totalBookings;
@@ -1178,9 +1162,20 @@
               const el = document.getElementById('kpiOccupancyRate');
               if (el) el.innerText = data.occupancyRate + '%';
             }
-            if (data.newCustomers !== undefined) {
+            if (data.totalCustomers !== undefined) {
+              const el = document.getElementById('kpiNewCustomers');
+              if (el) el.innerText = data.totalCustomers;
+            } else if (data.newCustomers !== undefined) {
               const el = document.getElementById('kpiNewCustomers');
               if (el) el.innerText = data.newCustomers;
+            }
+
+            // Update Dynamic Comparative Trends from CSDL
+            if (data.trends) {
+              updateTrendDisplay('kpiBookingTrend', 'kpiBookingTrendText', data.trends.bookingTrend, data.trends.bookingTrendDir);
+              updateTrendDisplay('kpiRevenueTrend', 'kpiRevenueTrendText', data.trends.revenueTrend, data.trends.revenueTrendDir);
+              updateTrendDisplay('kpiOccupancyTrend', 'kpiOccupancyTrendText', data.trends.occupancyTrend, data.trends.occupancyTrendDir);
+              updateTrendDisplay('kpiCustomerTrend', 'kpiCustomerTrendText', data.trends.customerTrend, data.trends.customerTrendDir);
             }
 
             // Update Charts
@@ -1188,7 +1183,8 @@
               renderComboChart(data.chart.labels, data.chart.bookingCounts, data.chart.revenues);
             }
             if (data.donut) {
-              renderDonutChart(data.donut.labels, data.donut.data, data.donut.totalCenter || data.totalBookings || 248);
+              const donutCenter = (data.donut.totalCenter !== undefined) ? data.donut.totalCenter : (data.totalBookings !== undefined ? data.totalBookings : 0);
+              renderDonutChart(data.donut.labels, data.donut.data, donutCenter);
             }
 
             // Update Timeline
@@ -1213,6 +1209,25 @@
       renderDonutChart();
     }
 
+    
+    function updateTrendDisplay(containerId, textId, text, dir) {
+      const container = document.getElementById(containerId);
+      const textEl = document.getElementById(textId);
+      if (!container || !text) return;
+      if (textEl) {
+        textEl.textContent = text;
+      } else {
+        container.textContent = text;
+      }
+      container.classList.remove('stat-trend-up', 'stat-trend-down', 'stat-trend-neutral');
+      if (dir === 'up') {
+        container.classList.add('stat-trend-up');
+      } else if (dir === 'down') {
+        container.classList.add('stat-trend-down');
+      } else {
+        container.classList.add('stat-trend-neutral');
+      }
+    }
     function updateComboChart(days) {
       loadManagerDashboardData(days);
       showToast(`Đã tải dữ liệu báo cáo trong ${days} ngày qua từ CSDL!`, 'info');

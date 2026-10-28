@@ -74,13 +74,13 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 // Allow static resources
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico").permitAll()
                 // Allow public web routes
                 .requestMatchers("/", "/login", "/logout", "/error").permitAll()
                 .requestMatchers("/customer/**", "/pos/**", "/manager/**", "/director/**", "/admin/**").permitAll()
                 // Allow public auth, webhooks, and websocket endpoints
                 .requestMatchers("/api/auth/**", "/api/health", "/api/user/**", "/ws/**", "/ws-court/**", "/webhook/**", "/api/webhook/**").permitAll()
-                .requestMatchers("/api/chatbot/**", "/api/upload/**").permitAll()
+                .requestMatchers("/api/chatbot/**", "/api/upload/**", "/api/customer/avatar", "/api/customer/profile/**").permitAll()
                 // Public customer booking, courts and catalog lookups
                 .requestMatchers("/api/courts", "/api/courts/**").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").permitAll()

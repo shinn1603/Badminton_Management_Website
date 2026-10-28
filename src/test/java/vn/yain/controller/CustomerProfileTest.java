@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import vn.yain.entity.Customer;
@@ -152,6 +154,64 @@ class CustomerProfileTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
                 .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success", is(false)));
+    }
+    @Test
+    @DisplayName("API Avatar: Upload anh dai dien thanh cong voi tham so file")
+    void testUploadCustomerAvatar_Success_WithFileParam() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar_triet.png",
+                "image/png",
+                "fake image content 12345".getBytes()
+        );
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/customer/avatar")
+                        .file(file)
+                        .header("Authorization", "Bearer " + validToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.avatarUrl", notNullValue()));
+
+        User u = userRepository.findByUsername("cust_profile_test").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertNotNull(u.getAvatarUrl());
+
+        Customer c = customerRepository.findByPhone("0987654321").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertNotNull(c.getAvatarUrl());
+    }
+
+    @Test
+    @DisplayName("API Avatar: Upload anh dai dien thanh cong voi tham so avatarFile (frontend compatibility)")
+    void testUploadCustomerAvatar_Success_WithAvatarFileParam() throws Exception {
+        MockMultipartFile avatarFile = new MockMultipartFile(
+                "avatarFile",
+                "avatar_frontend.jpg",
+                "image/jpeg",
+                "fake avatar file bytes 67890".getBytes()
+        );
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/customer/avatar")
+                        .file(avatarFile)
+                        .header("Authorization", "Bearer " + validToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.avatarUrl", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("API Avatar: Tu choi khi tep rong hoac khong hop le")
+    void testUploadCustomerAvatar_BadRequest_WhenEmpty() throws Exception {
+        MockMultipartFile emptyFile = new MockMultipartFile(
+                "file",
+                "empty.png",
+                "image/png",
+                new byte[0]
+        );
+
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/customer/avatar")
+                        .file(emptyFile)
+                        .header("Authorization", "Bearer " + validToken))
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success", is(false)));
     }
 }

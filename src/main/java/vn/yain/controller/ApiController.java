@@ -1410,6 +1410,11 @@ public class ApiController {
 
         }
 
+        String newAvatar = payload.get("avatarUrl");
+        if (newAvatar != null && !newAvatar.trim().isEmpty()) {
+            u.setAvatarUrl(newAvatar.trim());
+        }
+
         userRepository.save(u);
 
 
@@ -1434,11 +1439,9 @@ public class ApiController {
 
                 if (newEmail != null) c.setEmail(newEmail.trim());
 
-                String newAvatar = payload.get("avatarUrl");
                 if (newAvatar != null && !newAvatar.trim().isEmpty()) {
                     c.setAvatarUrl(newAvatar.trim());
-                    u.setAvatarUrl(newAvatar.trim());
-                    userRepository.save(u);
+                    customerRepository.save(c);
                 }
 
                 customerRepository.save(c);
@@ -1464,11 +1467,20 @@ public class ApiController {
     @PostMapping("/customer/avatar")
     public ResponseEntity<?> uploadCustomerAvatar(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatar,
             @RequestParam(value = "phone", required = false) String phoneParam,
             @RequestParam(value = "customerCode", required = false) String codeParam) {
         try {
-            if (file == null || file.isEmpty()) {
+            MultipartFile uploadFile = file;
+            if (uploadFile == null || uploadFile.isEmpty()) {
+                uploadFile = avatarFile;
+            }
+            if (uploadFile == null || uploadFile.isEmpty()) {
+                uploadFile = avatar;
+            }
+            if (uploadFile == null || uploadFile.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng chọn tệp ảnh để tải lên!"));
             }
 
@@ -1480,9 +1492,19 @@ public class ApiController {
                 }
             }
 
+            if (targetUsername == null) {
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                    targetUsername = auth.getName();
+                }
+            }
+
             User targetUser = null;
-            if (targetUsername != null) {
+            if (targetUsername != null && !targetUsername.isBlank()) {
                 targetUser = userRepository.findByUsername(targetUsername).orElse(null);
+                if (targetUser == null) {
+                    targetUser = userRepository.findByPhone(targetUsername).orElse(null);
+                }
             }
 
             Customer targetCust = null;
@@ -1492,19 +1514,37 @@ public class ApiController {
             if (targetCust == null && codeParam != null && !codeParam.isBlank()) {
                 targetCust = customerRepository.findByCustomerCode(codeParam.trim()).orElse(null);
             }
-            if (targetCust == null && targetUser != null && targetUser.getPhone() != null) {
+            if (targetCust == null && targetUsername != null && !targetUsername.isBlank()) {
+                targetCust = customerRepository.findByPhone(targetUsername.trim()).orElse(null);
+            }
+            if (targetCust == null && targetUsername != null && !targetUsername.isBlank()) {
+                targetCust = customerRepository.findByCustomerCode(targetUsername.trim()).orElse(null);
+            }
+            if (targetCust == null && targetUser != null && targetUser.getPhone() != null && !targetUser.getPhone().isBlank()) {
                 targetCust = customerRepository.findByPhone(targetUser.getPhone().trim()).orElse(null);
             }
-            if (targetCust == null && targetUser != null) {
-                targetCust = customerRepository.findByCustomerCode(targetUser.getUsername()).orElse(null);
+            if (targetCust == null && targetUser != null && targetUser.getUsername() != null) {
+                targetCust = customerRepository.findByCustomerCode(targetUser.getUsername().trim()).orElse(null);
+            }
+            if (targetCust == null && targetUser != null && targetUser.getEmail() != null && !targetUser.getEmail().isBlank()) {
+                targetCust = customerRepository.findByEmail(targetUser.getEmail().trim()).orElse(null);
+            }
+
+            if (targetUser == null && targetCust != null) {
+                if (targetCust.getPhone() != null && !targetCust.getPhone().isBlank()) {
+                    targetUser = userRepository.findByPhone(targetCust.getPhone().trim()).orElse(null);
+                }
+                if (targetUser == null && targetCust.getCustomerCode() != null) {
+                    targetUser = userRepository.findByUsername(targetCust.getCustomerCode().trim()).orElse(null);
+                }
             }
 
             if (targetUser == null && targetCust == null) {
                 return ResponseEntity.status(401).body(Map.of("success", false, "message", "Không tìm thấy thông tin khách hàng để cập nhật ảnh đại diện!"));
             }
 
-            // Upload lên Cloudinary folder badminton_avatars
-            String avatarUrl = cloudinaryService.uploadImage(file, "badminton_avatars");
+            // Upload lên Cloudinary folder badminton_avatars (tự động fallback lưu local)
+            String avatarUrl = cloudinaryService.uploadImage(uploadFile, "badminton_avatars");
 
             if (targetUser != null) {
                 targetUser.setAvatarUrl(avatarUrl);
@@ -1518,7 +1558,7 @@ public class ApiController {
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "avatarUrl", avatarUrl,
-                    "message", "Cập nhật ảnh đại diện lên Cloudinary thành công!"
+                    "message", "Cập nhật ảnh đại diện thành công!"
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tải ảnh đại diện thất bại: " + e.getMessage()));
@@ -9010,277 +9050,264 @@ public class ApiController {
 
 
 
-        // 1. KPI: Total bookings
-
+        // 1. KPI: Total bookings (100% database)
         int totalBookings = branchBookings.size();
 
+        // Weekly comparison for bookings: This week [today - 6 .. today] vs Previous week [today - 13 .. today - 7]
+        LocalDate thisWeekStart = today.minusDays(6);
+        LocalDate prevWeekStart = today.minusDays(13);
+        LocalDate prevWeekEnd = today.minusDays(7);
 
-
-        // 2. KPI: Today revenue
-
-        List<Booking> todayBookings = branchBookings.stream()
-
-                .filter(b -> today.equals(b.getBookingDate()))
-
-                .collect(Collectors.toList());
-
-
-
-        long todayRevenue = todayBookings.stream()
-
-                .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
-
-                .mapToLong(b -> b.getTotalPrice() != null ? b.getTotalPrice().longValue() : 0)
-
-                .sum();
-
-        if (todayRevenue == 0) {
-
-            todayRevenue = branchBookings.stream()
-
-                    .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
-
-                    .limit(5)
-
-                    .mapToLong(b -> b.getTotalPrice() != null ? b.getTotalPrice().longValue() : 0)
-
-                    .sum();
-
-            if (todayRevenue == 0) todayRevenue = 12450000;
-
-        }
-
-
-
-        // 3. KPI: Occupancy rate (%)
-
-        int activeCourtsCount = branchCourts.size();
-
-        int occupiedToday = (int) todayBookings.stream()
-
-                .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
-
+        long thisWeekBookings = branchBookings.stream()
+                .filter(b -> b.getBookingDate() != null && !b.getBookingDate().isBefore(thisWeekStart) && !b.getBookingDate().isAfter(today))
+                .count();
+        long prevWeekBookings = branchBookings.stream()
+                .filter(b -> b.getBookingDate() != null && !b.getBookingDate().isBefore(prevWeekStart) && !b.getBookingDate().isAfter(prevWeekEnd))
                 .count();
 
-        int occupancyRate = 78;
-
-        if (activeCourtsCount > 0) {
-
-            occupancyRate = Math.min(95, Math.max(35, Math.round((float) (occupiedToday * 100) / (activeCourtsCount * 4))));
-
+        String bookingTrendText;
+        String bookingTrendDir;
+        if (prevWeekBookings > 0) {
+            long delta = thisWeekBookings - prevWeekBookings;
+            long pct = Math.round((delta * 100.0) / prevWeekBookings);
+            if (pct > 0) {
+                bookingTrendText = "↑ " + pct + "% so với tuần trước";
+                bookingTrendDir = "up";
+            } else if (pct < 0) {
+                bookingTrendText = "↓ " + Math.abs(pct) + "% so với tuần trước";
+                bookingTrendDir = "down";
+            } else {
+                bookingTrendText = "0% so với tuần trước";
+                bookingTrendDir = "neutral";
+            }
+        } else {
+            if (thisWeekBookings > 0) {
+                bookingTrendText = "↑ +" + thisWeekBookings + " lượt tuần này";
+                bookingTrendDir = "up";
+            } else {
+                long todayCount = branchBookings.stream().filter(b -> today.equals(b.getBookingDate())).count();
+                bookingTrendText = "Hôm nay: " + todayCount + " lượt đặt";
+                bookingTrendDir = todayCount > 0 ? "up" : "neutral";
+            }
         }
 
+        // 2. KPI: Today revenue (100% database, no mock fallback)
+        List<Booking> todayBookings = branchBookings.stream()
+                .filter(b -> today.equals(b.getBookingDate()))
+                .collect(Collectors.toList());
 
+        long todayRevenue = todayBookings.stream()
+                .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
+                .mapToLong(b -> b.getTotalPrice() != null ? b.getTotalPrice().longValue() : 0)
+                .sum();
 
-        // 4. KPI: New customers
+        LocalDate yesterday = today.minusDays(1);
+        long yesterdayRevenue = branchBookings.stream()
+                .filter(b -> yesterday.equals(b.getBookingDate()) && !"Đã hủy".equalsIgnoreCase(b.getStatus()))
+                .mapToLong(b -> b.getTotalPrice() != null ? b.getTotalPrice().longValue() : 0)
+                .sum();
 
-        long newCustomers = allCustomers.size();
+        String revenueTrendText;
+        String revenueTrendDir;
+        if (yesterdayRevenue > 0) {
+            long diff = todayRevenue - yesterdayRevenue;
+            long pct = Math.round((diff * 100.0) / yesterdayRevenue);
+            if (pct > 0) {
+                revenueTrendText = "↑ " + pct + "% so với hôm qua";
+                revenueTrendDir = "up";
+            } else if (pct < 0) {
+                revenueTrendText = "↓ " + Math.abs(pct) + "% so với hôm qua";
+                revenueTrendDir = "down";
+            } else {
+                revenueTrendText = "Ngang bằng hôm qua";
+                revenueTrendDir = "neutral";
+            }
+        } else {
+            if (todayRevenue > 0) {
+                revenueTrendText = "↑ +" + String.format(java.util.Locale.GERMANY, "%,d", todayRevenue) + "đ hôm nay";
+                revenueTrendDir = "up";
+            } else {
+                revenueTrendText = "Chưa phát sinh doanh thu hôm nay";
+                revenueTrendDir = "neutral";
+            }
+        }
 
-        if (newCustomers == 0) newCustomers = 36;
+        // 3. KPI: Occupancy rate (%) (100% real math, no Math.max(35))
+        int activeCourtsCount = branchCourts.size();
+        int totalCapacityHours = (activeCourtsCount > 0 ? activeCourtsCount : 1) * 16;
 
+        double bookedHoursToday = todayBookings.stream()
+                .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
+                .mapToDouble(this::parseBookingHours)
+                .sum();
 
+        int occupancyRate = totalCapacityHours > 0
+                ? (int) Math.min(100, Math.round((bookedHoursToday * 100.0) / totalCapacityHours))
+                : 0;
+
+        double yesterdayBookedHours = branchBookings.stream()
+                .filter(b -> yesterday.equals(b.getBookingDate()) && !"Đã hủy".equalsIgnoreCase(b.getStatus()))
+                .mapToDouble(this::parseBookingHours)
+                .sum();
+
+        String occupancyTrendText;
+        String occupancyTrendDir;
+        if (yesterdayBookedHours > 0) {
+            double diff = bookedHoursToday - yesterdayBookedHours;
+            long pct = Math.round((diff * 100.0) / yesterdayBookedHours);
+            if (pct > 0) {
+                occupancyTrendText = "↑ " + pct + "% so với hôm qua";
+                occupancyTrendDir = "up";
+            } else if (pct < 0) {
+                occupancyTrendText = "↓ " + Math.abs(pct) + "% so với hôm qua";
+                occupancyTrendDir = "down";
+            } else {
+                occupancyTrendText = "Ngang bằng hôm qua";
+                occupancyTrendDir = "neutral";
+            }
+        } else {
+            if (bookedHoursToday > 0) {
+                occupancyTrendText = "↑ " + (Math.round(bookedHoursToday * 10.0) / 10.0) + "/" + totalCapacityHours + "h hôm nay";
+                occupancyTrendDir = "up";
+            } else {
+                occupancyTrendText = "0/" + totalCapacityHours + " giờ sân hôm nay";
+                occupancyTrendDir = "neutral";
+            }
+        }
+
+        // 4. KPI: Customers (100% database)
+        int totalCustomers = allCustomers.size();
+        LocalDateTime weekAgo = today.minusDays(6).atStartOfDay();
+        LocalDateTime prevWeekStartDt = today.minusDays(13).atStartOfDay();
+
+        long newCustomersThisWeek = allCustomers.stream()
+                .filter(c -> c.getCreatedAt() != null && !c.getCreatedAt().isBefore(weekAgo))
+                .count();
+        long newCustomersPrevWeek = allCustomers.stream()
+                .filter(c -> c.getCreatedAt() != null && !c.getCreatedAt().isBefore(prevWeekStartDt) && c.getCreatedAt().isBefore(weekAgo))
+                .count();
+
+        String customerTrendText;
+        String customerTrendDir;
+        if (newCustomersPrevWeek > 0) {
+            long diff = newCustomersThisWeek - newCustomersPrevWeek;
+            long pct = Math.round((diff * 100.0) / newCustomersPrevWeek);
+            if (pct > 0) {
+                customerTrendText = "↑ " + pct + "% so với tuần trước";
+                customerTrendDir = "up";
+            } else if (pct < 0) {
+                customerTrendText = "↓ " + Math.abs(pct) + "% so với tuần trước";
+                customerTrendDir = "down";
+            } else {
+                customerTrendText = "0% so với tuần trước";
+                customerTrendDir = "neutral";
+            }
+        } else {
+            if (newCustomersThisWeek > 0) {
+                customerTrendText = "↑ +" + newCustomersThisWeek + " mới tuần này";
+                customerTrendDir = "up";
+            } else {
+                customerTrendText = "+0 mới tuần này (Tổng " + totalCustomers + " hội viên)";
+                customerTrendDir = "neutral";
+            }
+        }
 
         // 5. Daily Combo Chart (Last N days)
-
         List<String> chartLabels = new ArrayList<>();
-
         List<Integer> chartBookingCounts = new ArrayList<>();
-
         List<Double> chartRevenues = new ArrayList<>();
 
-
-
         int numDays = Math.min(30, Math.max(7, days));
-
         for (int i = numDays - 1; i >= 0; i--) {
-
             LocalDate targetDate = today.minusDays(i);
-
             String label;
-
             if (numDays <= 7) {
-
                 java.time.DayOfWeek dow = targetDate.getDayOfWeek();
-
                 label = switch (dow) {
-
                     case MONDAY -> "T2";
-
                     case TUESDAY -> "T3";
-
                     case WEDNESDAY -> "T4";
-
                     case THURSDAY -> "T5";
-
                     case FRIDAY -> "T6";
-
                     case SATURDAY -> "T7";
-
                     case SUNDAY -> "CN";
-
                 };
-
             } else {
-
                 label = targetDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"));
-
             }
-
             chartLabels.add(label);
 
-
-
             List<Booking> dayList = branchBookings.stream()
-
                     .filter(b -> targetDate.equals(b.getBookingDate()))
-
                     .collect(Collectors.toList());
 
-
-
             int count = dayList.size();
-
             long dayRev = dayList.stream()
-
                     .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
-
                     .mapToLong(b -> b.getTotalPrice() != null ? b.getTotalPrice().longValue() : 0)
-
                     .sum();
 
-
-
             chartBookingCounts.add(count);
-
             chartRevenues.add(Math.round((dayRev / 1_000_000.0) * 10.0) / 10.0);
-
         }
 
-
-
-        boolean allZeros = chartBookingCounts.stream().allMatch(c -> c == 0);
-
-        if (allZeros) {
-
-            int[] defaultCounts = {32, 45, 52, 58, 48, 72, 65};
-
-            double[] defaultRevs = {4.2, 5.8, 7.1, 7.5, 6.8, 10.5, 9.2};
-
-            chartBookingCounts.clear();
-
-            chartRevenues.clear();
-
-            for (int i = 0; i < chartLabels.size(); i++) {
-
-                chartBookingCounts.add(defaultCounts[i % defaultCounts.length]);
-
-                chartRevenues.add(defaultRevs[i % defaultRevs.length]);
-
-            }
-
-        }
-
-
-
-        // 6. Carpet Type Breakdown (Donut chart)
-
+        // 6. Carpet Type Breakdown (Donut chart from real courts)
         Map<String, Long> carpetCounts = branchCourts.stream()
-
                 .collect(Collectors.groupingBy(
-
                         c -> {
-
                             String type = c.getCourtType() != null ? c.getCourtType() : "";
-
                             if (type.contains("VIP") || type.contains("Yonex")) return "Sân VIP";
-
                             if (type.contains("Quốc Tế") || type.contains("Taraflex")) return "Thảm Quốc Tế";
-
                             return "Sân Thường";
-
                         },
-
                         Collectors.counting()
-
                 ));
 
-
-
-        long yonex = carpetCounts.getOrDefault("Sân VIP", 2L);
-
-        long enlio = carpetCounts.getOrDefault("Sân Thường", 3L);
-
-        long intl = carpetCounts.getOrDefault("Thảm Quốc Tế", 1L);
-
-        long totalCarpets = Math.max(1, yonex + enlio + intl);
-
-        int pYonex = Math.round((float) yonex * 100 / totalCarpets);
-
-        int pEnlio = Math.round((float) enlio * 100 / totalCarpets);
-
-        int pIntl = Math.max(0, 100 - pYonex - pEnlio);
-
-
+        long yonex = carpetCounts.getOrDefault("Sân VIP", 0L);
+        long enlio = carpetCounts.getOrDefault("Sân Thường", 0L);
+        long intl = carpetCounts.getOrDefault("Thảm Quốc Tế", 0L);
+        long totalCarpets = yonex + enlio + intl;
+        int pYonex = totalCarpets > 0 ? Math.round((float) yonex * 100 / totalCarpets) : 0;
+        int pEnlio = totalCarpets > 0 ? Math.round((float) enlio * 100 / totalCarpets) : 0;
+        int pIntl = totalCarpets > 0 ? Math.max(0, 100 - pYonex - pEnlio) : 0;
 
         // 7. Today Timeline Slots from Database
-
         List<Map<String, Object>> timeline = new ArrayList<>();
-
-        List<Booking> timelineSource = !todayBookings.isEmpty() ? todayBookings : branchBookings.stream().limit(5).collect(Collectors.toList());
-
+        List<Booking> timelineSource = todayBookings;
         for (Booking b : timelineSource) {
-
             Map<String, Object> tItem = new HashMap<>();
-
             String slot = b.getTimeSlot() != null ? b.getTimeSlot() : "08:00 - 10:00";
-
             String startHour = slot.split("-")[0].trim();
-
             tItem.put("hour", startHour);
-
             tItem.put("courtCode", b.getCourtCode());
-
             tItem.put("courtName", "Sân " + b.getCourtCode());
-
             tItem.put("customerName", b.getCustomerName());
-
             tItem.put("subText", (b.getNotes() != null && !b.getNotes().isEmpty()) ? b.getNotes() : "Đã đặt chỗ");
-
             tItem.put("status", b.getStatus());
-
             tItem.put("badgeClass", "Đang sử dụng".equals(b.getStatus()) ? "badge-in-use" :
-
                                     "Hoàn thành".equals(b.getStatus()) ? "badge-completed" :
-
                                     "Đã cọc 30%".equals(b.getStatus()) ? "badge-pending" : "badge-available");
-
             timeline.add(tItem);
-
         }
 
-
+        Map<String, Object> trends = new HashMap<>();
+        trends.put("bookingTrend", bookingTrendText);
+        trends.put("bookingTrendDir", bookingTrendDir);
+        trends.put("revenueTrend", revenueTrendText);
+        trends.put("revenueTrendDir", revenueTrendDir);
+        trends.put("occupancyTrend", occupancyTrendText);
+        trends.put("occupancyTrendDir", occupancyTrendDir);
+        trends.put("customerTrend", customerTrendText);
+        trends.put("customerTrendDir", customerTrendDir);
 
         Map<String, Object> res = new HashMap<>();
-
         res.put("totalBookings", totalBookings);
-
         res.put("todayRevenue", todayRevenue);
-
         res.put("occupancyRate", occupancyRate);
-
-        res.put("newCustomers", newCustomers);
-
-        res.put("trends", Map.of(
-
-                "bookingTrend", "↑ 12% so với tuần trước",
-
-                "revenueTrend", "↑ 18% so với hôm qua",
-
-                "occupancyTrend", "↑ 6% so với tuần trước",
-
-                "customerTrend", "↑ 20% so với tuần trước"
-
-        ));
+        res.put("totalCustomers", totalCustomers);
+        res.put("newCustomers", totalCustomers);
+        res.put("newCustomersThisWeek", newCustomersThisWeek);
+        res.put("trends", trends);
 
         res.put("chart", Map.of(
 

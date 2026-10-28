@@ -31,6 +31,9 @@ public class Branch {
     @Column(name = "total_courts")
     private Integer totalCourts = 6;
 
+    @Column(name = "operating_hours", length = 100)
+    private String operatingHours = "06:00 - 23:00 (Hàng ngày)";
+
     @Column(length = 30)
     private String status = "Hoạt động";
 }

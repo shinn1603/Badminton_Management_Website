@@ -3233,17 +3233,10 @@
           badgeEl.className = 'court-thumb-badge ' + (isVip ? 'badge-vip' : 'badge-standard');
         }
 
-        // Main preview image & tags
+        // Main preview image
         const mainImg = document.getElementById('cdmMainImage');
-        const imgTag = document.getElementById('cdmImageTag');
         const coverUrl = court.imageUrl || '/images/badminton-court.jpg';
         if (mainImg) mainImg.src = coverUrl;
-        if (imgTag) {
-          imgTag.innerHTML = `
-            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-            <span>Ảnh bìa sân thi đấu</span>
-          `;
-        }
 
         // Gallery thumbs strip
         const strip = document.getElementById('cdmGalleryStrip');
@@ -3311,15 +3304,7 @@
 
     function selectCdmPreviewImage(url, tag, thumbEl) {
       const mainImg = document.getElementById('cdmMainImage');
-      const imgTag = document.getElementById('cdmImageTag');
       if (mainImg) mainImg.src = url;
-      if (imgTag) {
-        imgTag.innerHTML = `
-          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-          <span>${tag || 'Ảnh sân thi đấu'}</span>
-        `;
-      }
-
       document.querySelectorAll('#cdmGalleryStrip .gallery-thumb-item').forEach(el => el.classList.remove('active'));
       if (thumbEl) thumbEl.classList.add('active');
     }
@@ -3484,10 +3469,6 @@
         <div>
           <div class="gallery-preview-frame">
             <img id="cdmMainImage" src="/images/badminton-court.jpg" alt="Ảnh sân thi đấu">
-            <div class="gallery-preview-badge" id="cdmImageTag">
-              <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-              <span>Ảnh bìa sân thi đấu</span>
-            </div>
           </div>
           <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
             <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Hình ảnh thực tế từ sân:</span>

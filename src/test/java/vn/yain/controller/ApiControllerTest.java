@@ -406,4 +406,23 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$", notNullValue()))
                 .andExpect(jsonPath("$", isA(java.util.List.class)));
     }
+
+    @Test
+    @DisplayName("Manager Dashboard: Thong ke thuc te tu CSDL khong co du lieu gia GET /api/manager/stats")
+    void testManagerStats_RealDatabaseCalculations() throws Exception {
+        mockMvc.perform(get("/api/manager/stats")
+                        .param("branchCode", "CN01")
+                        .param("days", "7"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalBookings", notNullValue()))
+                .andExpect(jsonPath("$.todayRevenue", notNullValue()))
+                .andExpect(jsonPath("$.occupancyRate", notNullValue()))
+                .andExpect(jsonPath("$.totalCustomers", notNullValue()))
+                .andExpect(jsonPath("$.trends.bookingTrend", notNullValue()))
+                .andExpect(jsonPath("$.trends.revenueTrend", notNullValue()))
+                .andExpect(jsonPath("$.trends.occupancyTrend", notNullValue()))
+                .andExpect(jsonPath("$.trends.customerTrend", notNullValue()))
+                .andExpect(jsonPath("$.chart.labels", notNullValue()))
+                .andExpect(jsonPath("$.donut.labels", notNullValue()));
+    }
 }

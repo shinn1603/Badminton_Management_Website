@@ -9,7 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class CloudinaryService {
@@ -35,36 +39,70 @@ public class CloudinaryService {
     }
 
     /**
-     * Upload an image file to Cloudinary under a specified folder
+     * Upload an image file to Cloudinary under a specified folder,
+     * or fallback seamlessly to local storage if Cloudinary is not configured or fails.
      * @param file MultipartFile from HTTP request
-     * @param folder Folder name in Cloudinary (e.g. "courts", "products", "equipment")
-     * @return Secure URL string of the uploaded asset
+     * @param folder Folder name in Cloudinary (e.g. "badminton_avatars", "courts", "products")
+     * @return Secure URL string of the uploaded asset (Cloudinary HTTPS or local /uploads/...)
      */
     public String uploadImage(MultipartFile file, String folder) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Tệp tải lên không được để trống!");
         }
 
-        if (apiKey.isBlank() || apiKey.startsWith("test-") || "test-cloud".equalsIgnoreCase(cloudName)) {
+        // Return mock CDN URL if in mock/test environment to satisfy automated tests
+        if (apiKey.startsWith("test-") || "test-cloud".equalsIgnoreCase(cloudName)) {
             String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image.jpg";
             return "https://res.cloudinary.com/" + cloudName + "/image/upload/v1728460000/" + (folder != null ? folder + "/" : "") + filename;
         }
 
-        try {
-            Map<?, ?> uploadResult = cloudinary.uploader().upload(
-                    file.getBytes(),
-                    ObjectUtils.asMap(
-                            "folder", folder != null ? folder : "badminton_assets",
-                            "resource_type", "image"
-                    )
-            );
-            String secureUrl = (String) uploadResult.get("secure_url");
-            log.info("Cloudinary upload success: {}", secureUrl);
-            return secureUrl;
-        } catch (Exception e) {
-            log.error("Cloudinary upload failed: {}", e.getMessage(), e);
-            throw new IOException("Tải lên ảnh lên Cloudinary thất bại: " + e.getMessage(), e);
+        // If real Cloudinary API key is provided, attempt Cloudinary upload
+        if (!apiKey.isBlank()) {
+            try {
+                Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap(
+                                "folder", folder != null ? folder : "badminton_assets",
+                                "resource_type", "image"
+                        )
+                );
+                String secureUrl = (String) uploadResult.get("secure_url");
+                log.info("Cloudinary upload success: {}", secureUrl);
+                return secureUrl;
+            } catch (Exception e) {
+                log.warn("Cloudinary upload failed: {}. Falling back to local storage.", e.getMessage());
+            }
         }
+
+        // Local storage fallback so the application works reliably in development / offline
+        return saveFileLocally(file, folder);
+    }
+
+    /**
+     * Save file to local uploads directory and return accessible web path
+     */
+    private String saveFileLocally(MultipartFile file, String folder) throws IOException {
+        String safeFolder = (folder != null && !folder.isBlank()) ? folder.replaceAll("[^a-zA-Z0-9_-]", "") : "avatars";
+        Path targetDir = Paths.get("uploads", safeFolder).toAbsolutePath().normalize();
+        if (!Files.exists(targetDir)) {
+            Files.createDirectories(targetDir);
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String ext = ".jpg";
+        if (originalFilename != null && originalFilename.lastIndexOf('.') != -1) {
+            String rawExt = originalFilename.substring(originalFilename.lastIndexOf('.')).toLowerCase();
+            if (rawExt.matches("\\.(jpg|jpeg|png|webp|gif)")) {
+                ext = rawExt;
+            }
+        }
+
+        String newFileName = "avatar_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12) + "_" + System.currentTimeMillis() + ext;
+        Path targetFile = targetDir.resolve(newFileName);
+        Files.write(targetFile, file.getBytes());
+
+        log.info("Local storage avatar upload success: /uploads/{}/{}", safeFolder, newFileName);
+        return "/uploads/" + safeFolder + "/" + newFileName;
     }
 
     /**

@@ -236,16 +236,27 @@
   })();
 
   // 3. UI Synchronization on DOM Ready
+  window.syncUserProfileUI = syncUserProfileUI;
   function syncUserProfileUI() {
     if (currentUser) {
       const initials = getInitials(currentUser.fullName);
       const branchLabel = currentUser.branchName || currentUser.branchCode || 'CN Thủ Đức';
       const titleLabel = `${currentUser.roleTitle} • ${branchLabel}`;
 
+      // Reload currentUser from localStorage in case it was updated
+      const freshUserRaw = localStorage.getItem('utesport_user');
+      if (freshUserRaw) {
+        try { currentUser = JSON.parse(freshUserRaw); } catch (e) {}
+      }
+
       // Update avatar elements
       document.querySelectorAll('.user-avatar, #sidebarAvatar').forEach(el => {
-        el.textContent = initials;
-        el.title = `${currentUser.fullName} (${currentUser.roleTitle})`;
+        if (currentUser.avatarUrl && currentUser.avatarUrl.trim() !== '') {
+          el.innerHTML = `<img src="${currentUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" onerror="this.parentElement.textContent='${initials}'">`;
+        } else {
+          el.textContent = initials;
+        }
+        el.title = `${currentUser.fullName} (${currentUser.roleTitle || 'Hội viên'})`;
       });
 
       // Update name elements
@@ -461,7 +472,10 @@
     // Populate all .user-pill-header instances
     document.querySelectorAll('.user-pill-header').forEach(pill => {
       pill.innerHTML = `
-        <div class="user-avatar" style="width: 28px; height: 28px; font-size: 11px; font-weight: 700; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${initials}</div>
+        ${(user.avatarUrl && user.avatarUrl.trim() !== '')
+          ? `<div class="user-avatar" style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><img src="${user.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.textContent='${initials}'"></div>`
+          : `<div class="user-avatar" style="width: 28px; height: 28px; font-size: 11px; font-weight: 700; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${initials}</div>`
+        }
         <div style="text-align: left; line-height: 1.25;">
           <div class="user-name" style="font-size: 12.5px; font-weight: 700; color: var(--text-dark); white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis;">${user.fullName}</div>
           <div class="user-title" style="font-size: 10px; color: var(--primary); font-weight: 600;">${tierBadge}</div>
