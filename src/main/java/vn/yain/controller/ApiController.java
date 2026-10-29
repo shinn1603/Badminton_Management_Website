@@ -138,53 +138,27 @@ public class ApiController {
      */
 
     private String resolveEffectiveBranchCode(String requestedBranchCode) {
-
+        if (requestedBranchCode != null && !requestedBranchCode.isBlank()) {
+            return requestedBranchCode.trim();
+        }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-
             boolean isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
-
                     a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
-
             boolean isCustomer = auth.getAuthorities().stream().anyMatch(a ->
-
                     a.getAuthority().equals("ROLE_CUSTOMER") || a.getAuthority().equals("CUSTOMER"));
 
-
-
             if (!isDirectorOrAdmin && !isCustomer) {
-
                 String username = auth.getName();
-
                 Optional<User> userOpt = userRepository.findByUsername(username);
-
                 if (userOpt.isPresent()) {
-
-                    String role = userOpt.get().getRole();
-
-                    if ("CUSTOMER".equalsIgnoreCase(role) || "ROLE_CUSTOMER".equalsIgnoreCase(role)) {
-
-                        return (requestedBranchCode != null && !requestedBranchCode.isBlank()) ? requestedBranchCode.trim() : "CN01";
-
-                    }
-
                     if (userOpt.get().getBranchCode() != null && !userOpt.get().getBranchCode().isBlank()) {
-
                         return userOpt.get().getBranchCode().trim();
-
                     }
-
                 }
-
-                return "CN01"; // Default branch for manager Bảo
-
             }
-
         }
-
-        return (requestedBranchCode != null && !requestedBranchCode.isBlank()) ? requestedBranchCode.trim() : "CN01";
-
+        return "CN01";
     }
 
 
@@ -3823,7 +3797,16 @@ public class ApiController {
 
         LocalDate targetDate = date != null ? date : LocalDate.now();
         List<Booking> bookings;
+        Court targetCourt = null;
         if (courtCode != null && !courtCode.trim().isEmpty()) {
+            targetCourt = bookingService.resolveCanonicalCourt(courtCode, effectiveBCode);
+        }
+        if (targetCourt != null) {
+            final Court cFinal = targetCourt;
+            bookings = bookingRepository.findByBranchCodeAndBookingDate(cFinal.getBranchCode(), targetDate).stream()
+                    .filter(b -> bookingService.isSamePhysicalCourt(b, cFinal, cFinal.getCourtCode()))
+                    .toList();
+        } else if (courtCode != null && !courtCode.trim().isEmpty()) {
             bookings = bookingRepository.findByCourtCodeAndBookingDate(courtCode.trim(), targetDate);
         } else {
             bookings = bookingRepository.findByBranchCodeAndBookingDate(effectiveBCode, targetDate);

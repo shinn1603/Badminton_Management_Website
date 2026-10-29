@@ -132,6 +132,100 @@ public class BookingService {
         return "HD" + (System.currentTimeMillis() % 900000 + 100000);
     }
 
+    public Court resolveCanonicalCourt(String courtCodeOrName, String branchCode) {
+        if (courtCodeOrName == null || courtCodeOrName.trim().isEmpty()) return null;
+        String raw = courtCodeOrName.trim();
+
+        // 1. Direct match by courtCode
+        Optional<Court> opt = courtRepository.findByCourtCode(raw);
+        if (opt.isPresent()) return opt.get();
+
+        // 2. Search in branch courts if branchCode provided
+        List<Court> branchCourts = (branchCode != null && !branchCode.trim().isEmpty() && !"ALL".equalsIgnoreCase(branchCode.trim()))
+                ? courtRepository.findByBranchCode(branchCode.trim())
+                : courtRepository.findAll();
+
+        for (Court c : branchCourts) {
+            if (c.getCourtCode().equalsIgnoreCase(raw)) return c;
+        }
+        for (Court c : branchCourts) {
+            if (c.getCourtName().equalsIgnoreCase(raw)) return c;
+        }
+        for (Court c : branchCourts) {
+            if (c.getCourtName().toLowerCase().contains(raw.toLowerCase()) || raw.toLowerCase().contains(c.getCourtName().toLowerCase())) {
+                return c;
+            }
+        }
+
+        // 3. Search in all courts
+        List<Court> allCourts = courtRepository.findAll();
+        for (Court c : allCourts) {
+            if (c.getCourtCode().equalsIgnoreCase(raw) || c.getCourtName().equalsIgnoreCase(raw)) return c;
+        }
+        for (Court c : allCourts) {
+            if (c.getCourtName().toLowerCase().contains(raw.toLowerCase()) || raw.toLowerCase().contains(c.getCourtName().toLowerCase())) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public boolean isSamePhysicalCourt(Booking b, Court canonicalCourt, String targetCourtCode) {
+        if (b == null) return false;
+        String bCourtCode = b.getCourtCode() != null ? b.getCourtCode().trim() : "";
+        if (bCourtCode.isEmpty()) return false;
+
+        if (canonicalCourt != null) {
+            if (b.getBranchCode() != null && !b.getBranchCode().isBlank()
+                    && canonicalCourt.getBranchCode() != null && !canonicalCourt.getBranchCode().isBlank()) {
+                if (!b.getBranchCode().equalsIgnoreCase(canonicalCourt.getBranchCode())) {
+                    return false;
+                }
+            }
+            if (bCourtCode.equalsIgnoreCase(canonicalCourt.getCourtCode())) return true;
+            if (canonicalCourt.getCourtName() != null) {
+                if (bCourtCode.equalsIgnoreCase(canonicalCourt.getCourtName())) return true;
+                if (canonicalCourt.getCourtName().toLowerCase().contains(bCourtCode.toLowerCase())
+                        || bCourtCode.toLowerCase().contains(canonicalCourt.getCourtName().toLowerCase())) {
+                    return true;
+                }
+            }
+        }
+
+        if (targetCourtCode != null && !targetCourtCode.trim().isEmpty()) {
+            return bCourtCode.equalsIgnoreCase(targetCourtCode.trim());
+        }
+        return false;
+    }
+
+    public boolean hasBookingConflict(Court canonicalCourt, String courtCode, LocalDate date, String timeSlot, String excludeBookingCode) {
+        List<Booking> candidates;
+        if (canonicalCourt != null && canonicalCourt.getBranchCode() != null && !canonicalCourt.getBranchCode().isBlank()) {
+            candidates = bookingRepository.findByBranchCodeAndBookingDate(canonicalCourt.getBranchCode(), date);
+        } else {
+            candidates = bookingRepository.findByCourtCodeAndBookingDate(courtCode, date);
+        }
+
+        if (candidates == null || candidates.isEmpty()) {
+            candidates = bookingRepository.findAll().stream()
+                    .filter(b -> b.getBookingDate() != null && b.getBookingDate().isEqual(date))
+                    .toList();
+        }
+
+        return candidates.stream().anyMatch(b -> {
+            if (excludeBookingCode != null && excludeBookingCode.equalsIgnoreCase(b.getBookingCode())) {
+                return false;
+            }
+            if (b.getStatus() == null || "Đã hủy".equalsIgnoreCase(b.getStatus())) {
+                return false;
+            }
+            if (!isSamePhysicalCourt(b, canonicalCourt, courtCode)) {
+                return false;
+            }
+            return isSlotOverlapping(timeSlot, b.getTimeSlot());
+        });
+    }
+
     public synchronized Booking createBooking(Booking booking) {
         if (booking.getBookingCode() != null && !booking.getBookingCode().trim().isEmpty()) {
             Optional<Booking> opt = bookingRepository.findByBookingCode(booking.getBookingCode().trim());
@@ -159,20 +253,28 @@ public class BookingService {
         }
         booking.setBookingDate(date);
 
-        courtRepository.findByCourtCode(booking.getCourtCode().trim()).ifPresent(court -> {
-            if ("Bảo trì".equalsIgnoreCase(court.getStatus())) {
-                throw new IllegalStateException("Sân " + booking.getCourtCode() + " đang bảo trì, không thể đặt!");
+        Court canonicalCourt = resolveCanonicalCourt(booking.getCourtCode(), booking.getBranchCode());
+        if (canonicalCourt != null) {
+            booking.setCourtCode(canonicalCourt.getCourtCode());
+            if (booking.getBranchCode() == null || booking.getBranchCode().isBlank()) {
+                booking.setBranchCode(canonicalCourt.getBranchCode());
             }
-        });
+            if ("Bảo trì".equalsIgnoreCase(canonicalCourt.getStatus())) {
+                throw new IllegalStateException("Sân " + canonicalCourt.getCourtName() + " đang bảo trì, không thể đặt!");
+            }
+        } else {
+            courtRepository.findByCourtCode(booking.getCourtCode().trim()).ifPresent(court -> {
+                if ("Bảo trì".equalsIgnoreCase(court.getStatus())) {
+                    throw new IllegalStateException("Sân " + booking.getCourtCode() + " đang bảo trì, không thể đặt!");
+                }
+            });
+        }
 
         // Atomic conflict check to prevent race condition double-booking
-        List<Booking> existing = bookingRepository.findByCourtCodeAndBookingDate(booking.getCourtCode(), date);
-        boolean conflict = existing.stream().anyMatch(b ->
-                b.getStatus() != null && !"Đã hủy".equalsIgnoreCase(b.getStatus())
-                && isSlotOverlapping(booking.getTimeSlot(), b.getTimeSlot())
-        );
+        boolean conflict = hasBookingConflict(canonicalCourt, booking.getCourtCode(), date, booking.getTimeSlot(), null);
         if (conflict) {
-            throw new IllegalStateException("Khung giờ " + booking.getTimeSlot() + " của sân " + booking.getCourtCode() + " đã có người đặt trước!");
+            String cName = (canonicalCourt != null) ? canonicalCourt.getCourtName() : booking.getCourtCode();
+            throw new IllegalStateException("Khung giờ " + booking.getTimeSlot() + " của sân " + cName + " đã có người đặt trước!");
         }
 
         if (booking.getBookingCode() == null || booking.getBookingCode().trim().isEmpty()) {
@@ -224,15 +326,16 @@ public class BookingService {
                 ? booking.getTimeSlot().trim() : existing.getTimeSlot();
         LocalDate date = booking.getBookingDate() != null ? booking.getBookingDate() : existing.getBookingDate();
 
+        Court canonicalCourt = resolveCanonicalCourt(courtCode, booking.getBranchCode() != null ? booking.getBranchCode() : existing.getBranchCode());
+        if (canonicalCourt != null) {
+            courtCode = canonicalCourt.getCourtCode();
+        }
+
         // Conflict check excluding current booking
-        List<Booking> sameCourtBookings = bookingRepository.findByCourtCodeAndBookingDate(courtCode, date);
-        boolean conflict = sameCourtBookings.stream().anyMatch(b ->
-                !b.getBookingCode().equalsIgnoreCase(existing.getBookingCode())
-                && b.getStatus() != null && !"Đã hủy".equalsIgnoreCase(b.getStatus())
-                && isSlotOverlapping(timeSlot, b.getTimeSlot())
-        );
+        boolean conflict = hasBookingConflict(canonicalCourt, courtCode, date, timeSlot, existing.getBookingCode());
         if (conflict) {
-            throw new IllegalStateException("Khung giờ " + timeSlot + " của sân " + courtCode + " đã có người đặt trước!");
+            String cName = (canonicalCourt != null) ? canonicalCourt.getCourtName() : courtCode;
+            throw new IllegalStateException("Khung giờ " + timeSlot + " của sân " + cName + " đã có người đặt trước!");
         }
 
         if (booking.getCustomerName() != null && !booking.getCustomerName().trim().isEmpty()) {
@@ -299,17 +402,22 @@ public class BookingService {
             throw new IllegalArgumentException("Ngày đặt sân không thể ở trong quá khứ!");
         }
 
-        Court court = courtRepository.findByCourtCode(courtCode.trim()).orElse(null);
-        if (court != null && "Bảo trì".equalsIgnoreCase(court.getStatus())) {
-            throw new IllegalStateException("Sân " + courtCode + " đang bảo trì, vui lòng chọn sân khác!");
+        Court court = resolveCanonicalCourt(courtCode, branchCode);
+        if (court != null) {
+            courtCode = court.getCourtCode();
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = court.getBranchCode();
+            }
+            if ("Bảo trì".equalsIgnoreCase(court.getStatus())) {
+                throw new IllegalStateException("Sân " + court.getCourtName() + " đang bảo trì, vui lòng chọn sân khác!");
+            }
         }
 
         // Validate that the slot is not already booked (including multi-hour overlaps)
-        List<Booking> existing = bookingRepository.findByCourtCodeAndBookingDate(courtCode.trim(), bookingDate);
-        boolean alreadyBooked = existing.stream()
-                .anyMatch(b -> b.getStatus() != null && !"Đã hủy".equalsIgnoreCase(b.getStatus()) && isSlotOverlapping(timeSlot, b.getTimeSlot()));
+        boolean alreadyBooked = hasBookingConflict(court, courtCode, bookingDate, timeSlot, null);
         if (alreadyBooked) {
-            throw new IllegalStateException("Khung giờ " + timeSlot + " của sân này đã có người đặt trước!");
+            String cName = (court != null) ? court.getCourtName() : courtCode;
+            throw new IllegalStateException("Khung giờ " + timeSlot + " của sân " + cName + " đã có người đặt trước!");
         }
 
         // Duration and pricing

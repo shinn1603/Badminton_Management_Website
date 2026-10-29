@@ -498,10 +498,6 @@
                 <input type="text" id="directorReceiptSearch" onkeyup="filterDirectorReceipts()" class="filter-ctrl" placeholder="Tìm mã phiếu, NCC, ghi chú..." style="width: 220px;">
                 <select id="directorReceiptBranchFilter" onchange="filterDirectorReceipts()" class="filter-ctrl">
                   <option value="ALL">-- Tất cả chi nhánh --</option>
-                  <option value="CN01">Cơ sở 1 (CN01)</option>
-                  <option value="CN02">Cơ sở 2 (CN02)</option>
-                  <option value="CN03">Cơ sở 3 (CN03)</option>
-                  <option value="CN04">Cơ sở 4 (CN04)</option>
                 </select>
                 <select id="directorReceiptSort" onchange="filterDirectorReceipts()" class="filter-ctrl">
                   <option value="NEWEST">Mới nhất trước</option>
@@ -636,10 +632,6 @@
                 <input type="text" id="directorProductSearch" onkeyup="filterDirectorProducts()" class="filter-ctrl" placeholder="Tìm tên hàng, mã SP..." style="width: 220px;">
                 <select id="directorProductBranchFilter" onchange="filterDirectorProducts()" class="filter-ctrl">
                   <option value="ALL">-- Tất cả chi nhánh --</option>
-                  <option value="CN01">Cơ sở 1 (CN01)</option>
-                  <option value="CN02">Cơ sở 2 (CN02)</option>
-                  <option value="CN03">Cơ sở 3 (CN03)</option>
-                  <option value="CN04">Cơ sở 4 (CN04)</option>
                 </select>
                 <select id="directorProductCategoryFilter" onchange="filterDirectorProducts()" class="filter-ctrl">
                   <option value="ALL">-- Tất cả danh mục --</option>
@@ -819,11 +811,7 @@
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px;">Phân bổ chi nhánh <span style="color: var(--danger);">*</span></label>
             <select class="form-control" id="dirNewProductBranch">
-              <option value="ALL">Tất cả 4 chi nhánh (Chuẩn chuỗi)</option>
-              <option value="CN01">Chi nhánh 1 - Thủ Đức (CN01)</option>
-              <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
-              <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
-              <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
+              <option value="ALL">Đang tải danh sách chi nhánh từ CSDL...</option>
             </select>
           </div>
         </div>
@@ -895,10 +883,7 @@
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px;">Cơ sở chi nhánh nhập *</label>
             <select class="form-control" id="dirReceiptBranch" onchange="updateDirReceiptProductDropdowns()">
-              <option value="CN01">Chi nhánh 1 - Thủ Đức (CN01)</option>
-              <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
-              <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
-              <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
+              <option value="">Đang tải chi nhánh từ CSDL...</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom: 0;">
@@ -1099,7 +1084,7 @@
           <td><strong style="color: var(--primary); font-size: 13.5px;">${escapeHtml(r.receiptCode)}</strong></td>
           <td style="text-align: center;">
             <span class="badge ${r.branchCode === 'CN01' ? 'badge-primary' : 'badge-outline'}" style="font-size: 11px; padding: 2.5px 8px; font-weight: 700;">
-              ${escapeHtml(r.branchCode || 'CN01')}
+              ${escapeHtml(branchNameMap[r.branchCode] || r.branchCode || 'CN01')}
             </span>
           </td>
           <td style="font-size: 12.5px; color: var(--text-body);">${escapeHtml(r.receiptDate ? (r.receiptDate.split('T')[0] || r.receiptDate) : 'Hôm nay')}</td>
@@ -1372,7 +1357,7 @@
             </td>
             <td style="text-align: center;">
               <span class="badge ${p.branchCode === 'CN01' ? 'badge-primary' : 'badge-outline'}" style="font-size: 11px; padding: 2.5px 8px; font-weight: 700;">
-                ${escapeHtml(p.branchCode || 'CN01')}
+                ${escapeHtml(branchNameMap[p.branchCode] || p.branchCode || 'CN01')}
               </span>
             </td>
             <td>
@@ -1487,7 +1472,81 @@
         .replace(/'/g, '&#39;');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    let dbBranches = [];
+    let branchNameMap = {};
+
+    async function loadDirectorBranchesFromDb() {
+      try {
+        const res = await fetch('/api/branches');
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list) && list.length > 0) {
+            dbBranches = list.filter(b => b.branchCode && b.branchCode.toUpperCase() !== 'ALL');
+            branchNameMap = {};
+            dbBranches.forEach(b => {
+              branchNameMap[b.branchCode] = b.branchName;
+            });
+
+            // 1. Populate Filter dropdowns
+            let filterHtml = '<option value="ALL">-- Tất cả chi nhánh --</option>';
+            dbBranches.forEach(b => {
+              filterHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
+            });
+
+            const rFilter = document.getElementById('directorReceiptBranchFilter');
+            if (rFilter) {
+              const cur = rFilter.value || 'ALL';
+              rFilter.innerHTML = filterHtml;
+              if (Array.from(rFilter.options).some(o => o.value === cur)) {
+                rFilter.value = cur;
+              }
+            }
+
+            const pFilter = document.getElementById('directorProductBranchFilter');
+            if (pFilter) {
+              const cur = pFilter.value || 'ALL';
+              pFilter.innerHTML = filterHtml;
+              if (Array.from(pFilter.options).some(o => o.value === cur)) {
+                pFilter.value = cur;
+              }
+            }
+
+            // 2. Populate Add Product modal dropdown (dirNewProductBranch)
+            const prodBranchSel = document.getElementById('dirNewProductBranch');
+            if (prodBranchSel) {
+              const cur = prodBranchSel.value || 'ALL';
+              let prodBranchHtml = `<option value="ALL">Tất cả ${dbBranches.length} chi nhánh (Chuẩn chuỗi)</option>`;
+              dbBranches.forEach(b => {
+                prodBranchHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
+              });
+              prodBranchSel.innerHTML = prodBranchHtml;
+              if (Array.from(prodBranchSel.options).some(o => o.value === cur)) {
+                prodBranchSel.value = cur;
+              }
+            }
+
+            // 3. Populate Create Receipt modal dropdown (dirReceiptBranch)
+            const recBranchSel = document.getElementById('dirReceiptBranch');
+            if (recBranchSel) {
+              const cur = recBranchSel.value;
+              let recBranchHtml = '';
+              dbBranches.forEach(b => {
+                recBranchHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
+              });
+              recBranchSel.innerHTML = recBranchHtml;
+              if (cur && Array.from(recBranchSel.options).some(o => o.value === cur)) {
+                recBranchSel.value = cur;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi tải danh sách chi nhánh từ CSDL:', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadDirectorBranchesFromDb();
       const urlTab = new URLSearchParams(window.location.search).get('tab');
       const initialTab = (urlTab === '2') ? 2 : (urlTab === '3') ? 3 : 1;
       switchReceiptsTab(initialTab);
@@ -1539,6 +1598,9 @@
 
     // --- DIRECTOR CREATE PRODUCT FUNCTIONS ---
     function openDirectorCreateProductModal() {
+      if (!dbBranches || dbBranches.length === 0) {
+        loadDirectorBranchesFromDb();
+      }
       document.getElementById('dirNewProductCode').value = '';
       document.getElementById('dirNewProductName').value = '';
       document.getElementById('dirNewProductCategory').value = 'Nước uống';
@@ -1584,7 +1646,7 @@
       if (token) headers['Authorization'] = 'Bearer ' + token;
 
       try {
-        const branchesToCreate = (branchVal === 'ALL') ? ['CN01', 'CN02', 'CN03', 'CN04'] : [branchVal];
+        const branchesToCreate = (branchVal === 'ALL') ? (dbBranches.length > 0 ? dbBranches.map(b => b.branchCode) : ['CN01']) : [branchVal];
         let successCount = 0;
 
         for (let b of branchesToCreate) {
@@ -1645,6 +1707,9 @@
 
     // --- DIRECTOR CREATE RECEIPT FUNCTIONS ---
     function openDirectorCreateReceiptModal() {
+      if (!dbBranches || dbBranches.length === 0) {
+        loadDirectorBranchesFromDb();
+      }
       const selSup = document.getElementById('dirReceiptSupplier');
       if (selSup) {
         if (allDirectorSuppliers && allDirectorSuppliers.length > 0) {

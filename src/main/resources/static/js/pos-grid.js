@@ -19,6 +19,8 @@ let bookingServicesStore = {};
 let currentSessionKey = null;
 let currentSessionSlots = [];
 let currentDisplayTimeRange = '';
+let isRenderingGrid = false;
+let pendingRenderDate = null;
 
 function getSessionKey(courtCode, code, customer, phone) {
   if (code && code.trim() !== '') return `code_${code.trim()}`;
@@ -182,14 +184,12 @@ async function loadCourtsForBranch(branchCode) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         realCourts = data;
-      } else {
-        realCourts = fallbackCourts.map(c => ({ ...c, branchCode: branchCode }));
       }
-    } else {
-      realCourts = fallbackCourts.map(c => ({ ...c, branchCode: branchCode }));
     }
   } catch (e) {
     console.warn('Lỗi kết nối tải sân:', e);
+  }
+  if (!realCourts || realCourts.length === 0 || realCourts[0].branchCode !== branchCode) {
     realCourts = fallbackCourts.map(c => ({ ...c, branchCode: branchCode }));
   }
   updateCourtSelectDropdowns();
@@ -197,32 +197,39 @@ async function loadCourtsForBranch(branchCode) {
 
 // Render POS timetable grid completely from live backend database
 async function renderGridForDate(dateStr) {
-  const branchFilterEl = document.getElementById('branchFilter');
-  currentBranch = branchFilterEl ? branchFilterEl.value : 'CN01';
-  currentDateStr = dateStr;
-
-  const tbody = document.getElementById('matrixGridBody');
-  if (!tbody) return;
-
-  if (!realCourts || realCourts.length === 0 || realCourts[0].branchCode !== currentBranch) {
-    await loadCourtsForBranch(currentBranch);
+  if (isRenderingGrid) {
+    pendingRenderDate = dateStr;
+    return;
   }
+  isRenderingGrid = true;
 
-  let bookings = [];
   try {
-    const res = await fetch(`/api/bookings?branchCode=${encodeURIComponent(currentBranch)}&date=${encodeURIComponent(dateStr)}`);
-    if (res.ok) {
-      bookings = await res.json() || [];
+    const branchFilterEl = document.getElementById('branchFilter');
+    currentBranch = branchFilterEl ? branchFilterEl.value : 'CN01';
+    currentDateStr = dateStr;
+
+    const tbody = document.getElementById('matrixGridBody');
+    if (!tbody) return;
+
+    if (!realCourts || realCourts.length === 0 || realCourts[0].branchCode !== currentBranch) {
+      await loadCourtsForBranch(currentBranch);
     }
-  } catch (err) {
-    console.warn('Lỗi tải dữ liệu đặt sân:', err);
-  }
 
-  if (!appData[currentBranch]) appData[currentBranch] = {};
-  appData[currentBranch][dateStr] = {};
+    let bookings = [];
+    try {
+      const res = await fetch(`/api/bookings?branchCode=${encodeURIComponent(currentBranch)}&date=${encodeURIComponent(dateStr)}`);
+      if (res.ok) {
+        bookings = await res.json() || [];
+      }
+    } catch (err) {
+      console.warn('Lỗi tải dữ liệu đặt sân:', err);
+    }
 
-  tbody.innerHTML = '';
-  const todayStr = formatDate(new Date());
+    if (!appData[currentBranch]) appData[currentBranch] = {};
+    appData[currentBranch][dateStr] = {};
+
+    const todayStr = formatDate(new Date());
+    let fullGridHtml = '';
 
   realCourts.forEach(court => {
     const isVip = (court.courtType && court.courtType.toLowerCase().includes('vip')) || (court.hourlyRate >= 110000);
@@ -376,10 +383,19 @@ async function renderGridForDate(dateStr) {
       rowHtml += `</td>`;
     });
     rowHtml += `</tr>`;
-    tbody.innerHTML += rowHtml;
+    fullGridHtml += rowHtml;
   });
 
+  tbody.innerHTML = fullGridHtml;
   handleSearch();
+  } finally {
+    isRenderingGrid = false;
+    if (pendingRenderDate) {
+      const nextDate = pendingRenderDate;
+      pendingRenderDate = null;
+      renderGridForDate(nextDate);
+    }
+  }
 }
 
 function updateDataStore(courtCode, time, updateObj) {
@@ -774,6 +790,7 @@ async function submitBookingForm() {
       const errData = await res.json().catch(() => ({}));
       if (typeof showToast === 'function') showToast(errData.message || 'Lỗi đặt sân từ máy chủ', 'error');
       else alert(errData.message || 'Lỗi đặt sân');
+      await renderGridForDate(currentDateStr);
     }
   } catch (err) {
     if (typeof showToast === 'function') showToast('Lỗi kết nối đặt sân: ' + err.message, 'error');
@@ -1743,12 +1760,18 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // React to realtime booking and court events from WebSocket
   window.addEventListener('badminton:booking-event', function(e) {
+    if (e && e.detail && e.detail.branchCode && e.detail.branchCode !== currentBranch && e.detail.branchCode !== 'ALL') {
+      return;
+    }
     if (currentDateStr) {
       renderGridForDate(currentDateStr);
     }
   });
 
   window.addEventListener('badminton:court-event', function(e) {
+    if (e && e.detail && e.detail.branchCode && e.detail.branchCode !== currentBranch && e.detail.branchCode !== 'ALL') {
+      return;
+    }
     if (currentDateStr) {
       renderGridForDate(currentDateStr);
     }
