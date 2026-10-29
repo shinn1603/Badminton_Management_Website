@@ -159,6 +159,31 @@
       letter-spacing: 0.5px;
       box-shadow: 0 2px 6px rgba(3, 105, 161, 0.3);
     }
+
+    .filter-pills-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .filter-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface);
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-pill:hover, .filter-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
   </style>
 </head>
 <body>
@@ -283,11 +308,8 @@
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
-            <select id="branchSelectFilter" onchange="loadCourtsFromApi()" style="border: none; background: transparent; font-weight: 700; color: var(--text-dark); cursor: pointer; outline: none; font-size: 13px;">
-              <option value="CN01">Chi nhánh 1 - Thủ Đức (CN01)</option>
-              <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
-              <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
-              <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
+            <select id="branchSelectFilter" onchange="onCourtBranchFilterChange(this.value)" style="border: none; background: transparent; font-weight: 700; color: var(--text-dark); cursor: pointer; outline: none; font-size: 13px;">
+              <option value="CN01">Đang tải chi nhánh từ CSDL...</option>
             </select>
           </div>
 
@@ -389,11 +411,33 @@
           </div>
         </div>
 
+        <!-- QUICK FILTER PILLS & DYNAMIC BRANCH FILTER (CHỖ XEM SÂN) -->
+        <div class="filter-pills-row" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px;">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+            <button class="filter-pill active" onclick="setStatusFilter('ALL', this)">Tất cả sân (<span id="countAll">0</span>)</button>
+            <button class="filter-pill" onclick="setStatusFilter('Trống', this)">Sẵn sàng đón khách (<span id="countAvailable">0</span>)</button>
+            <button class="filter-pill" onclick="setStatusFilter('Đang sử dụng', this)">Đang thi đấu (<span id="countInUse">0</span>)</button>
+            <button class="filter-pill" onclick="setStatusFilter('Bảo trì', this)">Đang bảo trì (<span id="countMaintenance">0</span>)</button>
+            <button class="filter-pill" onclick="setStatusFilter('VIP', this)">Sân VIP (<span id="countVip">0</span>)</button>
+          </div>
+
+          <!-- BỘ LỌC CHI NHÁNH TỪ CSDL -->
+          <div class="branch-filter-box" style="display: inline-flex; align-items: center; gap: 8px; background: var(--surface); padding: 6px 14px; border-radius: 10px; border: 1px solid var(--border-subtle); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0;">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <label for="courtBranchFilter" style="font-size: 13px; font-weight: 700; color: var(--text-dark); margin: 0; white-space: nowrap; cursor: pointer;">Lọc chi nhánh:</label>
+            <select id="courtBranchFilter" onchange="onCourtBranchFilterChange(this.value)" style="border: 1px solid var(--border-subtle); background: var(--surface-subtle); font-weight: 700; color: var(--primary); cursor: pointer; outline: none; font-size: 13px; padding: 4px 10px; border-radius: 6px; max-width: 280px;">
+              <option value="CN01">Đang tải chi nhánh từ CSDL...</option>
+            </select>
+          </div>
+        </div>
+
         <!-- VISUAL COURTS GRID -->
         <div class="section-card" style="margin-bottom: 24px;">
           <div class="section-title-wrap" style="margin-bottom: 16px;">
             <h3>Sơ đồ trực quan danh mục sân chi nhánh</h3>
-            <p id="courtsVisualSubtitle">Hệ thống sân thảm thi đấu chuẩn BWF tại chi nhánh Thủ Đức</p>
+            <p id="courtsVisualSubtitle">Hệ thống sân thảm thi đấu chuẩn BWF toàn chuỗi UTE Sport</p>
           </div>
 
           <div class="courts-grid-wrap" id="courtsVisualGrid">
@@ -429,100 +473,7 @@
               </thead>
               <tbody id="courtTableBody">
                 <tr>
-                  <td style="text-align: center;">1</td>
-                  <td><strong>CL01</strong></td>
-                  <td>Sân cầu lông 1 (VIP)</td>
-                  <td>Cầu lông VIP</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">120.000 đ/h</b></td>
-                  <td><span class="badge badge-green">Trống</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL01', 'Sân cầu lông 1 (VIP)', 'Cầu lông VIP', 120000, 'Trống')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">2</td>
-                  <td><strong>CL02</strong></td>
-                  <td>Sân cầu lông 2</td>
-                  <td>Cầu lông tiêu chuẩn</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">90.000 đ/h</b></td>
-                  <td><span class="badge badge-amber">Đang sử dụng</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL02', 'Sân cầu lông 2', 'Cầu lông tiêu chuẩn', 90000, 'Đang sử dụng')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">3</td>
-                  <td><strong>CL03</strong></td>
-                  <td>Sân cầu lông 3</td>
-                  <td>Cầu lông tiêu chuẩn</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">90.000 đ/h</b></td>
-                  <td><span class="badge badge-green">Trống</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL03', 'Sân cầu lông 3', 'Cầu lông tiêu chuẩn', 90000, 'Trống')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">4</td>
-                  <td><strong>CL04</strong></td>
-                  <td>Sân cầu lông 4</td>
-                  <td>Cầu lông tiêu chuẩn</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">90.000 đ/h</b></td>
-                  <td><span class="badge badge-green">Trống</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL04', 'Sân cầu lông 4', 'Cầu lông tiêu chuẩn', 90000, 'Trống')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">5</td>
-                  <td><strong>CL05</strong></td>
-                  <td>Sân cầu lông 5</td>
-                  <td>Cầu lông tiêu chuẩn</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">90.000 đ/h</b></td>
-                  <td><span class="badge badge-green">Trống</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL05', 'Sân cầu lông 5', 'Cầu lông tiêu chuẩn', 90000, 'Trống')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">6</td>
-                  <td><strong>CL06</strong></td>
-                  <td>Sân cầu lông 6 (VIP)</td>
-                  <td>Cầu lông VIP</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">120.000 đ/h</b></td>
-                  <td><span class="badge badge-red">Bảo trì</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL06', 'Sân cầu lông 6 (VIP)', 'Cầu lông VIP', 120000, 'Bảo trì')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">7</td>
-                  <td><strong>CL07</strong></td>
-                  <td>Sân cầu lông 7</td>
-                  <td>Cầu lông tiêu chuẩn</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">90.000 đ/h</b></td>
-                  <td><span class="badge badge-green">Trống</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL07', 'Sân cầu lông 7', 'Cầu lông tiêu chuẩn', 90000, 'Trống')">Sửa</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="text-align: center;">8</td>
-                  <td><strong>CL08</strong></td>
-                  <td>Sân cầu lông 8</td>
-                  <td>Cầu lông tiêu chuẩn</td>
-                  <td>Thủ Đức (CN01)</td>
-                  <td><b style="color: var(--primary);">90.000 đ/h</b></td>
-                  <td><span class="badge badge-green">Trống</span></td>
-                  <td style="text-align: right;">
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('CL08', 'Sân cầu lông 8', 'Cầu lông tiêu chuẩn', 90000, 'Trống')">Sửa</button>
-                  </td>
+                  <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">Đang tải dữ liệu sân từ CSDL...</td>
                 </tr>
               </tbody>
             </table>
@@ -551,10 +502,7 @@
           <div class="form-group">
             <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Cơ sở chi nhánh *</label>
             <select class="form-control" id="inpBranchCode">
-              <option value="CN01">Chi nhánh 1 - Thủ Đức (CN01)</option>
-              <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
-              <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
-              <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
+              <!-- Load động từ CSDL branches -->
             </select>
           </div>
         </div>
@@ -745,6 +693,99 @@
   <script src="/js/global-hub.js"></script>
   <script>
     let allLoadedCourts = [];
+    let currentStatusFilter = 'ALL';
+    let dbBranches = [];
+    let branchNameMap = {};
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    async function loadBranchesFromDb() {
+      try {
+        const res = await fetch('/api/branches');
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list) && list.length > 0) {
+            dbBranches = list.filter(b => b.branchCode && b.branchCode.toUpperCase() !== 'ALL');
+            branchNameMap = {};
+            dbBranches.forEach(b => {
+              branchNameMap[b.branchCode] = b.branchName;
+            });
+
+            // Populate filter dropdowns
+            let filterHtml = '<option value="ALL">🏢 Tất cả chi nhánh (Toàn chuỗi)</option>';
+            dbBranches.forEach(b => {
+              filterHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
+            });
+
+            const headerSel = document.getElementById('branchSelectFilter');
+            const courtSel = document.getElementById('courtBranchFilter');
+            const savedBranch = localStorage.getItem('utesport_active_branch') || getActiveBranchCode() || 'CN01';
+
+            if (headerSel) {
+              headerSel.innerHTML = filterHtml;
+              if (Array.from(headerSel.options).some(o => o.value === savedBranch)) {
+                headerSel.value = savedBranch;
+              }
+            }
+            if (courtSel) {
+              courtSel.innerHTML = filterHtml;
+              if (Array.from(courtSel.options).some(o => o.value === savedBranch)) {
+                courtSel.value = savedBranch;
+              }
+            }
+
+            // Populate modal select
+            const modalSel = document.getElementById('inpBranchCode');
+            if (modalSel) {
+              let modalHtml = '';
+              dbBranches.forEach(b => {
+                modalHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
+              });
+              modalSel.innerHTML = modalHtml;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi tải chi nhánh từ CSDL:', err);
+      }
+    }
+
+    function onCourtBranchFilterChange(val) {
+      localStorage.setItem('utesport_active_branch', val);
+      const headerSel = document.getElementById('branchSelectFilter');
+      if (headerSel && headerSel.value !== val) headerSel.value = val;
+      const courtSel = document.getElementById('courtBranchFilter');
+      if (courtSel && courtSel.value !== val) courtSel.value = val;
+
+      const subTitle = document.getElementById('courtsVisualSubtitle');
+      if (subTitle) {
+        subTitle.textContent = val === 'ALL'
+          ? 'Hệ thống sân thảm thi đấu chuẩn BWF toàn chuỗi UTE Sport'
+          : `Hệ thống sân thảm thi đấu chuẩn BWF tại ${getBranchName(val)}`;
+      }
+
+      loadCourtsFromApi();
+    }
+
+    function setStatusFilter(status, btn) {
+      currentStatusFilter = status;
+      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      filterCourts();
+    }
+
+    function getBranchName(branchCode) {
+      if (!branchCode || branchCode === 'ALL') return 'Toàn chuỗi hệ thống';
+      return branchNameMap[branchCode] || branchCode;
+    }
 
     function getActiveBranchCode() {
       const user = (window.AuthGuard && window.AuthGuard.getCurrentUser && window.AuthGuard.getCurrentUser())
@@ -798,8 +839,11 @@
       const kpiMaint = document.getElementById('kpiMaintenanceCourts');
       const kpiMaintDesc = document.getElementById('kpiMaintenanceCourtsDesc');
 
+      const branchVal = (document.getElementById('courtBranchFilter') || document.getElementById('branchSelectFilter'))?.value || 'ALL';
+      const branchLabel = branchVal === 'ALL' ? 'Toàn chuỗi hệ thống' : getBranchName(branchVal);
+
       if (kpiTotal) kpiTotal.textContent = `${total} sân`;
-      if (kpiTotalDesc) kpiTotalDesc.textContent = `Chi nhánh Thủ Đức (${vipCount} sân VIP, ${stdCount} sân thường)`;
+      if (kpiTotalDesc) kpiTotalDesc.textContent = `${branchLabel} (${vipCount} sân VIP, ${stdCount} sân thường)`;
 
       if (kpiAvailable) kpiAvailable.textContent = `${available} sân`;
       if (kpiAvailableDesc) {
@@ -816,6 +860,17 @@
       if (kpiMaintDesc) {
         kpiMaintDesc.textContent = maint > 0 ? `Bảo trì định kỳ (${maint} sân)` : 'Tất cả sân hoạt động tốt';
       }
+
+      const cAll = document.getElementById('countAll');
+      const cAvail = document.getElementById('countAvailable');
+      const cInUse = document.getElementById('countInUse');
+      const cMaint = document.getElementById('countMaintenance');
+      const cVip = document.getElementById('countVip');
+      if (cAll) cAll.innerText = total;
+      if (cAvail) cAvail.innerText = available;
+      if (cInUse) cInUse.innerText = inUse;
+      if (cMaint) cMaint.innerText = maint;
+      if (cVip) cVip.innerText = vipCount;
     }
 
     function parseConditionList(raw) {
@@ -1390,8 +1445,8 @@
     }
 
     async function loadCourtsFromApi() {
-      const branchSel = document.getElementById('branchSelectFilter');
-      const branch = branchSel ? branchSel.value : getActiveBranchCode();
+      const branchSel = document.getElementById('courtBranchFilter') || document.getElementById('branchSelectFilter');
+      const branch = branchSel ? branchSel.value : (localStorage.getItem('utesport_active_branch') || getActiveBranchCode());
       const token = localStorage.getItem('jwt_token') || '';
       const headers = {};
       if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -1418,10 +1473,11 @@
       renderTable(allLoadedCourts);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const savedTheme = localStorage.getItem('utesport_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
-      loadCourtsFromApi();
+      await loadBranchesFromDb();
+      await loadCourtsFromApi();
 
       // Realtime auto-refresh polling every 3.5 seconds
       setInterval(() => {
