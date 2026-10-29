@@ -422,12 +422,9 @@
           </div>
 
           <!-- BỘ LỌC CHI NHÁNH TỪ CSDL -->
-          <div class="branch-filter-box" style="display: inline-flex; align-items: center; gap: 8px; background: var(--surface); padding: 6px 14px; border-radius: 10px; border: 1px solid var(--border-subtle); box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
-            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0;">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            </svg>
-            <label for="courtBranchFilter" style="font-size: 13px; font-weight: 700; color: var(--text-dark); margin: 0; white-space: nowrap; cursor: pointer;">Lọc chi nhánh:</label>
-            <select id="courtBranchFilter" onchange="onCourtBranchFilterChange(this.value)" style="border: 1px solid var(--border-subtle); background: var(--surface-subtle); font-weight: 700; color: var(--primary); cursor: pointer; outline: none; font-size: 13px; padding: 4px 10px; border-radius: 6px; max-width: 280px;">
+          <div class="branch-filter-box" style="display: inline-flex; align-items: center; gap: 8px;">
+            <label for="courtBranchFilter" style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0; white-space: nowrap;">Chi nhánh:</label>
+            <select id="courtBranchFilter" class="form-control" onchange="onCourtBranchFilterChange(this.value)" style="width: auto; min-width: 230px; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer;">
               <option value="CN01">Đang tải chi nhánh từ CSDL...</option>
             </select>
           </div>
@@ -720,7 +717,7 @@
             });
 
             // Populate filter dropdowns
-            let filterHtml = '<option value="ALL">🏢 Tất cả chi nhánh (Toàn chuỗi)</option>';
+            let filterHtml = '<option value="ALL">Tất cả chi nhánh (Toàn chuỗi)</option>';
             dbBranches.forEach(b => {
               filterHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
             });
