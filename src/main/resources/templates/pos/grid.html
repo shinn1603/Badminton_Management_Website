@@ -272,12 +272,7 @@
         <div class="form-group" style="margin-bottom: 12px;">
           <label class="form-label">Chọn Sân</label>
           <select id="bookingCourtSelect" class="form-control" onchange="recalculatePrice()">
-            <option value="Sân 01 (VIP)" data-price="120000">Sân 01 (VIP) - 120.000 đ/h</option>
-            <option value="Sân 02 (VIP)" data-price="120000">Sân 02 (VIP) - 120.000 đ/h</option>
-            <option value="Sân 03 (Thường)" data-price="90000">Sân 03 (Thường) - 90.000 đ/h</option>
-            <option value="Sân 04 (Thường)" data-price="90000">Sân 04 (Thường) - 90.000 đ/h</option>
-            <option value="Sân 05 (Tiêu chuẩn)" data-price="90000">Sân 05 (Tiêu chuẩn) - 90.000 đ/h</option>
-            <option value="Sân 06 (Tiêu chuẩn)" data-price="90000">Sân 06 (Tiêu chuẩn) - 90.000 đ/h</option>
+            <option value="">Đang tải danh sách sân từ CSDL...</option>
           </select>
         </div>
         <div class="form-row">
@@ -1007,29 +1002,7 @@
       }
     }
 
-    async function loadPosBranchesFromDb() {
-      try {
-        const res = await fetch('/api/branches');
-        if (res.ok) {
-          const list = await res.json();
-          if (Array.isArray(list) && list.length > 0) {
-            const bFilter = document.getElementById('branchFilter');
-            if (bFilter) {
-              const curVal = bFilter.value || 'CN01';
-              bFilter.innerHTML = list.filter(b => b.branchCode && b.branchCode !== 'ALL').map(b => 
-                `<option value="${b.branchCode}">${b.branchCode} - ${b.branchName}</option>`
-              ).join('');
-              if (Array.from(bFilter.options).some(o => o.value === curVal)) {
-                bFilter.value = curVal;
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Lỗi tải chi nhánh cho POS grid:', e);
-      }
-    }
-    document.addEventListener('DOMContentLoaded', loadPosBranchesFromDb);
+
   </script>
   <script src="/js/staff-support-chat.js"></script>
 </body>

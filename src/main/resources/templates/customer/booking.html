@@ -3198,6 +3198,19 @@
     let currentDetailCourt = null;
     let currentCommentRating = 5;
 
+    // Real-time synchronization for slot availability
+    window.addEventListener('badminton:booking-event', function(e) {
+      if (typeof loadSlotsForCourt === 'function' && selectedCourt) {
+        loadSlotsForCourt();
+      }
+    });
+
+    window.addEventListener('badminton:court-event', function(e) {
+      if (typeof loadSlotsForCourt === 'function' && selectedCourt) {
+        loadSlotsForCourt();
+      }
+    });
+
     async function openCourtDetailModal(courtCode) {
       if (!courtCode) return;
       try {
