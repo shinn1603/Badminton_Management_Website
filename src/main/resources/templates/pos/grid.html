@@ -1006,6 +1006,30 @@
         showToast('Lỗi kết nối chuyển sân: ' + err.message, 'error');
       }
     }
+
+    async function loadPosBranchesFromDb() {
+      try {
+        const res = await fetch('/api/branches');
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list) && list.length > 0) {
+            const bFilter = document.getElementById('branchFilter');
+            if (bFilter) {
+              const curVal = bFilter.value || 'CN01';
+              bFilter.innerHTML = list.filter(b => b.branchCode && b.branchCode !== 'ALL').map(b => 
+                `<option value="${b.branchCode}">${b.branchCode} - ${b.branchName}</option>`
+              ).join('');
+              if (Array.from(bFilter.options).some(o => o.value === curVal)) {
+                bFilter.value = curVal;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi tải chi nhánh cho POS grid:', e);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadPosBranchesFromDb);
   </script>
   <script src="/js/staff-support-chat.js"></script>
 </body>
