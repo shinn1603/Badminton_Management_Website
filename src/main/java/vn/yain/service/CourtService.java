@@ -201,7 +201,8 @@ public class CourtService {
     }
 
     public List<Court> getCourts(String branchCode) {
-        List<Court> courts = (branchCode != null && !branchCode.isEmpty())
+        boolean isAllOrEmpty = branchCode == null || branchCode.isBlank() || "ALL".equalsIgnoreCase(branchCode.trim());
+        List<Court> courts = !isAllOrEmpty
                 ? courtRepository.findByBranchCode(branchCode)
                 : courtRepository.findAll();
         if (courts != null && !courts.isEmpty()) {

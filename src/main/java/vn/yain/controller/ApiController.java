@@ -2770,6 +2770,13 @@ public class ApiController {
                                  @RequestParam(required = false) String branch) {
         String code = (branchCode != null && !branchCode.isBlank()) ? branchCode : branch;
         String effectiveBranch = resolveEffectiveBranchCode(code);
+        if ("ALL".equalsIgnoreCase(effectiveBranch)) {
+            ensureCourtsSeededForBranch("CN01");
+            ensureCourtsSeededForBranch("CN02");
+            ensureCourtsSeededForBranch("CN03");
+            ensureCourtsSeededForBranch("CN04");
+            return courtService.getCourts(null);
+        }
         List<Court> courts = courtService.getCourts(effectiveBranch);
         if (courts == null || courts.isEmpty()) {
             courts = ensureCourtsSeededForBranch(effectiveBranch);
