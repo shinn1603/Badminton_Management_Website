@@ -59,7 +59,6 @@ public class DataSourceConfig {
     private String clean(String val) {
         if (val == null) return null;
         String trimmed = val.trim();
-        // Remove surrounding double quotes or single quotes if present
         if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
             (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
             if (trimmed.length() >= 2) {
@@ -76,7 +75,6 @@ public class DataSourceConfig {
         String finalUsername = clean(datasourceUsername);
         String finalPassword = clean(datasourcePassword);
 
-        // Check if any Railway standard MySQL URL is available
         String candidateUrl = null;
         if (clean(mysqlUrl) != null && !clean(mysqlUrl).isBlank()) {
             candidateUrl = clean(mysqlUrl);
@@ -90,7 +88,6 @@ public class DataSourceConfig {
             candidateUrl = clean(mysqlPublicUrl);
         }
 
-        // If datasourceUrl was passed directly as a raw "mysql://" format
         if (finalUrl != null && finalUrl.startsWith("mysql://")) {
             candidateUrl = finalUrl;
             finalUrl = null;

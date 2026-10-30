@@ -1,7 +1,5 @@
 package vn.yain.controller;
 
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -40,8 +38,6 @@ import vn.yain.service.UserService;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 
-
-
 import java.math.BigDecimal;
 
 import java.math.RoundingMode;
@@ -67,8 +63,6 @@ import vn.yain.service.CloudinaryService;
 
 import lombok.extern.slf4j.Slf4j;
 
-
-
 @Slf4j
 
 @RestController
@@ -77,37 +71,25 @@ import lombok.extern.slf4j.Slf4j;
 
 public class ApiController {
 
-
-
     @Value("${vietqr.webhook.token:UTE_VIETQR_SECRET_TOKEN_2026}")
 
     private String webhookToken;
-
-
 
     @Value("${vietqr.bank.bin:970418}")
 
     private String vietqrBankBin;
 
-
-
     @Value("${vietqr.bank.name:BIDV (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)}")
 
     private String vietqrBankName;
-
-
 
     @Value("${vietqr.account.no:8800410051}")
 
     private String vietqrAccountNo;
 
-
-
     @Value("${vietqr.account.name:NGUYEN PHUOC THO}")
 
     private String vietqrAccountName;
-
-
 
     private String sanitizeErrorMessage(Exception e) {
 
@@ -122,8 +104,6 @@ public class ApiController {
         return "Đã xảy ra lỗi trong quá trình xử lý hệ thống. Vui lòng liên hệ ban quản trị.";
 
     }
-
-
 
     /**
 
@@ -176,7 +156,6 @@ public class ApiController {
                 return isDirectorOrAdmin ? "ALL" : "CN01";
             }
 
-            // Quản lý chi nhánh (ROLE_MANAGER) hoặc nhân viên: Khóa chặt vào các chi nhánh được phân công
             String username = auth.getName();
             Optional<User> userOpt = userRepository.findByUsername(username);
             if (userOpt.isPresent()) {
@@ -193,7 +172,6 @@ public class ApiController {
                         return req;
                     }
                 }
-                // Nếu yêu cầu "ALL" hoặc chi nhánh không được phép quản lý -> ép buộc về chi nhánh chính
                 return allowedBranches.isEmpty() || allowedBranches.contains("ALL") ? "CN01" : allowedBranches.get(0);
             }
         }
@@ -204,49 +182,33 @@ public class ApiController {
         return "CN01";
     }
 
-
-
     @Autowired
 
     private UserService userService;
-
-
 
     @Autowired
 
     private CourtService courtService;
 
-
-
     @Autowired
 
     private BookingService bookingService;
-
-
 
     @Autowired
 
     private PricingService pricingService;
 
-
-
     @Autowired
 
     private ProductRepository productRepository;
-
-
 
     @Autowired
 
     private SupplierRepository supplierRepository;
 
-
-
     @Autowired
 
     private UserRepository userRepository;
-
-
 
     @Autowired
 
@@ -256,43 +218,29 @@ public class ApiController {
 
     private BranchRepository branchRepository;
 
-
-
     @Autowired
 
     private InvoiceRepository invoiceRepository;
-
-
 
     @Autowired
 
     private TournamentRepository tournamentRepository;
 
-
-
     @Autowired
 
     private EquipmentRepository equipmentRepository;
-
-
 
     @Autowired
 
     private BookingRepository bookingRepository;
 
-
-
     @Autowired
 
     private CourtRepository courtRepository;
 
-
-
     @Autowired
 
     private JwtTokenProvider jwtTokenProvider;
-
-
 
     @Autowired
 
@@ -301,95 +249,59 @@ public class ApiController {
     @Autowired(required = false)
     private vn.yain.service.SupportChatService supportChatService;
 
-
-
     @Autowired
 
     private vn.yain.service.WarehouseService warehouseService;
-
-
 
     @Autowired
 
     private vn.yain.service.ShiftService shiftService;
 
-
-
     @Autowired
 
     private StaffRepository staffRepository;
-
-
 
     @Autowired
 
     private PricingRuleRepository pricingRuleRepository;
 
-
-
     @Autowired
 
     private PricingProposalRepository pricingProposalRepository;
-
-
 
     @Autowired
 
     private TimeSlotRepository timeSlotRepository;
 
-
-
     @Autowired
 
     private PromotionRepository promotionRepository;
-
-
 
     @Autowired
 
     private TournamentRegistrationRepository tournamentRegistrationRepository;
 
-
-
     @Autowired
 
     private CloudinaryService cloudinaryService;
-
-
 
     @Autowired
 
     private AuditLogRepository auditLogRepository;
 
-
-
     @Autowired
 
     private SystemSettingRepository systemSettingRepository;
-
-
 
     @Autowired
 
     private vn.yain.service.DatabaseManagementService databaseManagementService;
 
-
-
     @Autowired(required = false)
 
     private vn.yain.service.EmailService emailService;
 
-
-
     private static final Map<String, Map<String, Object>> forgotPasswordOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
-
-
-
-    // ==========================================
-
-    // 0. HEALTH CHECK ENDPOINT (Render / Railway / Cloud Uptime)
-
-    // ==========================================
 
     @GetMapping("/health")
 
@@ -409,16 +321,6 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
-    // 1. AUTHENTICATION & JWT ENDPOINTS
-
-    // ==========================================
-
-
-
     private String getClientIp(HttpServletRequest request) {
 
         if (request == null) return "127.0.0.1";
@@ -435,8 +337,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/auth/login")
 
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials, HttpServletRequest request) {
@@ -450,10 +350,6 @@ public class ApiController {
             Map<String, Object> authResult = userService.authenticate(username, password);
 
             authResult.put("success", true);
-
-
-
-            // Ghi nhật ký Audit Log đăng nhập thành công
 
             if (auditLogRepository != null && username != null) {
 
@@ -480,8 +376,6 @@ public class ApiController {
                 } catch (Exception ignored) {}
 
             }
-
-
 
             return ResponseEntity.ok(authResult);
 
@@ -523,8 +417,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/auth/register")
 
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
@@ -541,15 +433,11 @@ public class ApiController {
 
             String email = payload.get("email");
 
-
-
             if ((username == null || username.trim().isEmpty()) && phone != null) {
 
                 username = phone.trim();
 
             }
-
-
 
             Map<String, Object> registerResult = userService.registerCustomer(username, password, fullName, phone, email);
 
@@ -571,8 +459,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/auth/forgot-password")
 
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> payload) {
@@ -587,15 +473,11 @@ public class ApiController {
 
             if (identifier == null || identifier.trim().isEmpty()) identifier = payload.get("email");
 
-
-
             if (identifier == null || identifier.trim().isEmpty()) {
 
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập tên tài khoản, số điện thoại hoặc email!"));
 
             }
-
-
 
             String cleanId = identifier.trim();
 
@@ -606,8 +488,6 @@ public class ApiController {
                     .or(() -> cleanId.contains("@") ? userRepository.findByEmail(cleanId) : Optional.empty())
 
                     .orElse(null);
-
-
 
             Customer cust = null;
 
@@ -622,8 +502,6 @@ public class ApiController {
                         .orElse(null);
 
             }
-
-
 
             String email = null;
 
@@ -643,8 +521,6 @@ public class ApiController {
 
             }
 
-
-
             if (email == null || email.isBlank() || !email.contains("@")) {
 
                 return ResponseEntity.badRequest().body(Map.of(
@@ -657,10 +533,6 @@ public class ApiController {
 
             }
 
-
-
-            // Tạo mã xác nhận OTP 6 chữ số ngẫu nhiên
-
             String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 
             Map<String, Object> otpInfo = new HashMap<>();
@@ -671,11 +543,7 @@ public class ApiController {
 
             otpInfo.put("identifier", cleanId);
 
-            otpInfo.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000); // 10 phút hiệu lực
-
-
-
-            // Lưu đa khóa để người dùng nhập bất kỳ định danh nào (username, phone, email, customerCode) đều khớp OTP
+            otpInfo.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000);
 
             forgotPasswordOtpMap.put(cleanId.toLowerCase(), otpInfo);
 
@@ -699,15 +567,11 @@ public class ApiController {
 
             }
 
-
-
             if (emailService != null) {
 
                 emailService.sendPasswordResetOtp(email, fullName, otp);
 
             }
-
-
 
             String masked = maskEmail(email);
 
@@ -731,8 +595,6 @@ public class ApiController {
 
     }
 
-
-
     private String maskEmail(String email) {
 
         if (email == null || !email.contains("@")) return email;
@@ -749,8 +611,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/auth/verify-otp")
 
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> payload) {
@@ -765,8 +625,6 @@ public class ApiController {
 
             if (identifier == null || identifier.trim().isEmpty()) identifier = payload.get("email");
 
-
-
             String otp = payload.get("otp");
 
             if (identifier == null || identifier.trim().isEmpty()) {
@@ -780,8 +638,6 @@ public class ApiController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập mã OTP 6 chữ số!"));
 
             }
-
-
 
             String cleanId = identifier.trim();
 
@@ -829,13 +685,7 @@ public class ApiController {
 
             }
 
-
-
-            // Đánh dấu mã OTP đã được xác thực thành công
-
             otpInfo.put("verified", true);
-
-
 
             return ResponseEntity.ok(Map.of(
 
@@ -854,8 +704,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/auth/reset-password")
 
@@ -883,8 +731,6 @@ public class ApiController {
 
             }
 
-
-
             String newPassword = payload.get("newPassword");
 
             if (newPassword == null) {
@@ -893,19 +739,13 @@ public class ApiController {
 
             }
 
-
-
             if (identifier == null || identifier.trim().isEmpty()) {
 
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập định danh tài khoản!"));
 
             }
 
-
-
             String cleanId = identifier.trim();
-
-
 
             Map<String, Object> otpInfo = forgotPasswordOtpMap.get(cleanId.toLowerCase());
 
@@ -936,8 +776,6 @@ public class ApiController {
                 ));
 
             }
-
-
 
             String otp = payload.get("otp");
 
@@ -977,13 +815,7 @@ public class ApiController {
 
             forgotPasswordOtpMap.remove(cleanId.toLowerCase());
 
-
-
             userService.resetPassword(cleanId, newPassword);
-
-
-
-            // Gửi email thông báo thay đổi mật khẩu thành công
 
             User u = userRepository.findByUsername(cleanId)
 
@@ -996,8 +828,6 @@ public class ApiController {
             String userEmail = (u != null && u.getEmail() != null) ? u.getEmail() : null;
 
             String fullName = (u != null && u.getFullName() != null) ? u.getFullName() : cleanId;
-
-
 
             if (userEmail == null || userEmail.isBlank()) {
 
@@ -1013,15 +843,11 @@ public class ApiController {
 
             }
 
-
-
             if (userEmail != null && userEmail.contains("@") && emailService != null) {
 
                 emailService.sendPasswordChangedNotification(userEmail, fullName, newPassword);
 
             }
-
-
 
             return ResponseEntity.ok(Map.of(
 
@@ -1043,8 +869,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/auth/me")
 
     public ResponseEntity<?> getCurrentUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -1055,8 +879,6 @@ public class ApiController {
 
         }
 
-
-
         String token = authHeader.substring(7);
 
         if (!jwtTokenProvider.validateToken(token)) {
@@ -1064,8 +886,6 @@ public class ApiController {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "JWT token đã hết hạn hoặc không hợp lệ!"));
 
         }
-
-
 
         String username = jwtTokenProvider.getUsernameFromToken(token);
 
@@ -1078,8 +898,6 @@ public class ApiController {
         String phone = u != null && u.getPhone() != null ? u.getPhone() : "";
 
         String email = u != null && u.getEmail() != null ? u.getEmail() : "";
-
-
 
         Map<String, Object> resp = new HashMap<>();
 
@@ -1109,8 +927,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/customer/profile")
 
     public ResponseEntity<?> getCustomerProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
@@ -1121,8 +937,6 @@ public class ApiController {
 
         }
 
-
-
         String token = authHeader.substring(7);
 
         if (!jwtTokenProvider.validateToken(token)) {
@@ -1130,8 +944,6 @@ public class ApiController {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!"));
 
         }
-
-
 
         String username = jwtTokenProvider.getUsernameFromToken(token);
 
@@ -1142,8 +954,6 @@ public class ApiController {
             return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy thông tin tài khoản!"));
 
         }
-
-
 
         Customer cust = null;
 
@@ -1159,8 +969,6 @@ public class ApiController {
 
         }
 
-
-
         List<Booking> userBookings = new ArrayList<>();
 
         if (u.getPhone() != null && !u.getPhone().trim().isEmpty()) {
@@ -1174,8 +982,6 @@ public class ApiController {
             userBookings = bookingRepository.findByCustomerNameContainingIgnoreCase(u.getFullName().trim());
 
         }
-
-
 
         BigDecimal totalSpent = BigDecimal.ZERO;
 
@@ -1207,8 +1013,6 @@ public class ApiController {
 
         }
 
-
-
         int ptsMultiplier = 1;
 
         int silverPts = 500;
@@ -1237,8 +1041,6 @@ public class ApiController {
 
         }
 
-
-
         int points = cust != null && cust.getRewardPoints() != null ? cust.getRewardPoints() : 0;
 
         if (points == 0 && totalSpent.compareTo(BigDecimal.ZERO) > 0) {
@@ -1246,8 +1048,6 @@ public class ApiController {
             points = totalSpent.divide(BigDecimal.valueOf(1000), 0, java.math.RoundingMode.FLOOR).intValue() * ptsMultiplier;
 
         }
-
-
 
         String tier = "Đồng";
 
@@ -1261,23 +1061,17 @@ public class ApiController {
 
         else tier = "Đồng";
 
-
-
         if (cust != null && cust.getMembershipTier() != null && !cust.getMembershipTier().isBlank()) {
 
             tier = cust.getMembershipTier();
 
         }
 
-
-
         String customerCode = cust != null && cust.getCustomerCode() != null 
 
             ? cust.getCustomerCode() 
 
             : ("KH" + String.format("%04d", u.getId()));
-
-
 
         String cardNumber = "MB • 8892 • " + String.format("%04d", u.getId()) + " • 9988";
 
@@ -1286,8 +1080,6 @@ public class ApiController {
             ? u.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) 
 
             : "15/01/2025";
-
-
 
         Map<String, Object> resp = new HashMap<>();
 
@@ -1313,8 +1105,6 @@ public class ApiController {
 
         BigDecimal savings = totalSpent.multiply(discountRate);
 
-
-
         int tournCount = 0;
 
         if (cust != null && cust.getCustomerCode() != null) {
@@ -1328,8 +1118,6 @@ public class ApiController {
             tournCount = tournamentRegistrationRepository.findByCustomerCode(u.getPhone().trim()).size();
 
         }
-
-
 
         resp.put("membershipTier", tier);
 
@@ -1359,8 +1147,6 @@ public class ApiController {
 
     }
 
-
-
     @PutMapping("/customer/profile")
 
     public ResponseEntity<?> updateCustomerProfile(
@@ -1375,8 +1161,6 @@ public class ApiController {
 
         }
 
-
-
         String token = authHeader.substring(7);
 
         if (!jwtTokenProvider.validateToken(token)) {
@@ -1384,8 +1168,6 @@ public class ApiController {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "Token không hợp lệ!"));
 
         }
-
-
 
         String username = jwtTokenProvider.getUsernameFromToken(token);
 
@@ -1397,8 +1179,6 @@ public class ApiController {
 
         }
 
-
-
         String newName = payload.get("fullName");
 
         String newPhone = payload.get("phone");
@@ -1406,8 +1186,6 @@ public class ApiController {
         String newEmail = payload.get("email");
 
         String newPassword = payload.get("newPassword");
-
-
 
         if (newName != null && !newName.trim().isEmpty()) {
 
@@ -1434,15 +1212,11 @@ public class ApiController {
 
         userRepository.save(u);
 
-
-
         if (newPassword != null && newPassword.trim().length() >= 6) {
 
             userService.resetPassword(u.getUsername(), newPassword.trim());
 
         }
-
-
 
         if (u.getPhone() != null && !u.getPhone().trim().isEmpty()) {
 
@@ -1560,7 +1334,6 @@ public class ApiController {
                 return ResponseEntity.status(401).body(Map.of("success", false, "message", "Không tìm thấy thông tin khách hàng để cập nhật ảnh đại diện!"));
             }
 
-            // Upload lên Cloudinary folder badminton_avatars (tự động fallback lưu local)
             String avatarUrl = cloudinaryService.uploadImage(uploadFile, "badminton_avatars");
 
             if (targetUser != null) {
@@ -1713,8 +1486,6 @@ public class ApiController {
 
         }
 
-
-
         String token = authHeader.substring(7);
 
         if (!jwtTokenProvider.validateToken(token)) {
@@ -1722,8 +1493,6 @@ public class ApiController {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "Token không hợp lệ!"));
 
         }
-
-
 
         String username = jwtTokenProvider.getUsernameFromToken(token);
 
@@ -1735,23 +1504,13 @@ public class ApiController {
 
         }
 
-
-
         Set<Booking> resultSet = new LinkedHashSet<>();
-
-
-
-        // 1. Tìm theo số điện thoại người dùng
 
         if (u.getPhone() != null && !u.getPhone().trim().isEmpty()) {
 
             resultSet.addAll(bookingRepository.findByCustomerPhoneOrderByBookingDateDesc(u.getPhone().trim()));
 
         }
-
-
-
-        // 2. Tìm theo mã khách hàng (Customer profile)
 
         if (u.getPhone() != null && !u.getPhone().trim().isEmpty()) {
 
@@ -1767,27 +1526,17 @@ public class ApiController {
 
         }
 
-
-
-        // 3. Tìm theo họ và tên đầy đủ
-
         if (u.getFullName() != null && !u.getFullName().trim().isEmpty()) {
 
             resultSet.addAll(bookingRepository.findByCustomerNameContainingIgnoreCase(u.getFullName().trim()));
 
         }
 
-
-
-        // 4. Tìm theo username nếu username khớp mã khách hàng
-
         if (u.getUsername() != null && !u.getUsername().trim().isEmpty()) {
 
             resultSet.addAll(bookingRepository.findByCustomerCodeOrderByBookingDateDesc(u.getUsername().trim().toUpperCase()));
 
         }
-
-
 
         List<Booking> list = new ArrayList<>(resultSet);
 
@@ -1801,13 +1550,9 @@ public class ApiController {
 
         });
 
-
-
         return ResponseEntity.ok(list);
 
     }
-
-
 
     @GetMapping("/admin/users")
 
@@ -1816,8 +1561,6 @@ public class ApiController {
         return userService.getAllUsers();
 
     }
-
-
 
     @PostMapping("/admin/users")
 
@@ -1863,8 +1606,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/admin/users/{username}/toggle-status")
 
     public ResponseEntity<?> toggleAdminUserStatus(@PathVariable String username, HttpServletRequest request) {
@@ -1909,8 +1650,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/admin/permissions")
 
     public ResponseEntity<?> getAdminPermissions() {
@@ -1930,8 +1669,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/permissions")
 
@@ -1971,8 +1708,6 @@ public class ApiController {
 
             }
 
-
-
             if (auditLogRepository != null) {
 
                 try {
@@ -2001,8 +1736,6 @@ public class ApiController {
 
             }
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "updatedCount", count));
 
         } catch (Exception e) {
@@ -2016,8 +1749,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/policy/settings")
 
@@ -2043,11 +1774,7 @@ public class ApiController {
 
             map.putIfAbsent("CFG_ADVANCE_DAYS", "30");
 
-
-
             List<Branch> branches = branchRepository.findAll();
-
-
 
             return ResponseEntity.ok(Map.of(
 
@@ -2066,8 +1793,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/admin/settings")
 
@@ -2121,8 +1846,6 @@ public class ApiController {
 
             map.putIfAbsent("CFG_MAIL_FROM_NAME", "UTE Sport Badminton Arena");
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "list", list, "settings", map));
 
         } catch (Exception e) {
@@ -2132,8 +1855,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/settings")
 
@@ -2181,8 +1902,6 @@ public class ApiController {
 
             }
 
-
-
             AuditLog auditLog = new AuditLog();
 
             auditLog.setUsername("admin");
@@ -2199,8 +1918,6 @@ public class ApiController {
 
             auditLogRepository.save(auditLog);
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã lưu cài đặt hệ thống thành công"));
 
         } catch (Exception e) {
@@ -2210,8 +1927,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/settings/reset")
 
@@ -2291,8 +2006,6 @@ public class ApiController {
 
             }
 
-
-
             AuditLog auditLog = new AuditLog();
 
             auditLog.setUsername("admin");
@@ -2309,8 +2022,6 @@ public class ApiController {
 
             auditLogRepository.save(auditLog);
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã khôi phục cài đặt mặc định thành công"));
 
         } catch (Exception e) {
@@ -2320,8 +2031,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/mail/test")
     public ResponseEntity<?> testMailConnection(@RequestBody(required = false) Map<String, String> payload) {
@@ -2343,8 +2052,6 @@ public class ApiController {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi kiểm tra email: " + e.getMessage()));
         }
     }
-
-
 
     @GetMapping("/admin/logs")
 
@@ -2402,8 +2109,6 @@ public class ApiController {
 
     }
 
-
-
     private AuditLog createFallbackLog(String username, String userCode, String actionType, String details, String module, String ip, String status, LocalDateTime time) {
 
         AuditLog l = new AuditLog();
@@ -2428,16 +2133,6 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
-    // 1.9 QUẢN LÝ CƠ SỞ DỮ LIỆU & SAO LƯU (DATABASE MANAGEMENT, BASE SYNC & BACKUP)
-
-    // ==========================================
-
-
-
     @GetMapping("/admin/database/status")
 
     public ResponseEntity<?> getDatabaseStatus() {
@@ -2455,8 +2150,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/database/sync-base")
 
@@ -2485,8 +2178,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/database/backup")
 
@@ -2518,8 +2209,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/admin/database/backups")
 
     public ResponseEntity<?> listDatabaseBackups() {
@@ -2537,8 +2226,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/database/upload")
 
@@ -2567,8 +2254,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/admin/database/download")
 
@@ -2604,8 +2289,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/admin/database/download-base")
 
     public ResponseEntity<?> downloadBaseScript() {
@@ -2639,8 +2322,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/admin/database/restore")
 
@@ -2678,8 +2359,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/admin/database/reset-base")
 
     public ResponseEntity<?> resetToBaseDatabase() {
@@ -2707,8 +2386,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/admin/logs/backups")
 
@@ -2740,8 +2417,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/admin/logs/backup")
 
     public ResponseEntity<?> createBackupLog(@RequestBody(required = false) Map<String, String> payload) {
@@ -2772,15 +2447,7 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
     // 2. COURTS & REALTIME STATUS (XL-02)
-
-    // ==========================================
-
-
 
     @GetMapping("/courts")
     public List<Court> getCourts(@RequestParam(required = false) String branchCode,
@@ -2880,8 +2547,6 @@ public class ApiController {
         c.setComments(commentsJson);
     }
 
-
-
     @PostMapping("/courts/hold")
 
     public ResponseEntity<?> holdCourt(@RequestBody Map<String, String> payload) {
@@ -2896,8 +2561,6 @@ public class ApiController {
 
             String customerName = payload.get("customerName");
 
-
-
             CourtEventDto event = courtService.holdCourtForBooking(courtCode, branchCode, timeSlot, customerName);
 
             return ResponseEntity.ok(Map.of("success", true, "data", event));
@@ -2909,8 +2572,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/courts/status")
     public ResponseEntity<?> updateCourtStatus(@RequestBody Map<String, String> payload) {
@@ -2962,7 +2623,6 @@ public class ApiController {
                         a.getAuthority().equals("ROLE_MANAGER") || a.getAuthority().equals("ROLE_POS") || a.getAuthority().equals("ROLE_STAFF"));
             }
 
-            // Phân quyền 1: Thêm sân mới hoàn toàn (Chỉ Giám Đốc / Admin)
             if (existingOpt.isEmpty()) {
                 if (!isDirectorOrAdmin) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
@@ -2971,11 +2631,9 @@ public class ApiController {
                     ));
                 }
             } else {
-                // Phân quyền 2: Sửa sân đã tồn tại
                 Court existing = existingOpt.get();
 
                 if (isManagerOrStaff && !isDirectorOrAdmin) {
-                    // Kiểm tra chi nhánh phụ trách
                     if (!isUserAuthorizedForBranch(existing.getBranchCode())) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                                 "success", false,
@@ -2983,7 +2641,6 @@ public class ApiController {
                         ));
                     }
 
-                    // QUYỀN ĐIỀU CHỈNH GIÁ: Quản lý chi nhánh tuyệt đối KHÔNG ĐƯỢC điều chỉnh giá thuê!
                     if (court.getHourlyRate() != null && existing.getHourlyRate() != null &&
                             court.getHourlyRate().compareTo(existing.getHourlyRate()) != 0) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
@@ -2992,7 +2649,6 @@ public class ApiController {
                         ));
                     }
 
-                    // Khóa giữ nguyên đơn giá và chi nhánh gốc cho quản lý
                     court.setBranchCode(existing.getBranchCode());
                     court.setHourlyRate(existing.getHourlyRate());
                 }
@@ -3027,8 +2683,6 @@ public class ApiController {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
-
-    // --- CLOUDINARY & COURT DETAIL / CONDITIONS / INTERACTION API ---
 
     @GetMapping("/courts/{courtCode}/detail")
     public ResponseEntity<?> getCourtDetail(@PathVariable String courtCode) {
@@ -3104,7 +2758,6 @@ public class ApiController {
                 }
             }
 
-            // Upload to Cloudinary under folder 'badminton_courts'
             String secureUrl = cloudinaryService.uploadImage(file, "badminton_courts");
 
             boolean isCover = "cover".equalsIgnoreCase(imageType);
@@ -3220,9 +2873,8 @@ public class ApiController {
             newComment.put("rating", Math.max(1, Math.min(5, rating)));
             newComment.put("createdAt", LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
 
-            comments.add(0, newComment); // Mới nhất lên đầu
+            comments.add(0, newComment);
 
-            // Giới hạn lưu tối đa 50 comments gần nhất
             if (comments.size() > 50) {
                 comments = comments.subList(0, 50);
             }
@@ -3306,15 +2958,7 @@ public class ApiController {
         }
     }
 
-
-
-    // ==========================================
-
     // 3. BOOKINGS & WORKFLOW (XL-03, XL-04, XL-07)
-
-    // ==========================================
-
-
 
     @GetMapping("/bookings")
 
@@ -3341,8 +2985,6 @@ public class ApiController {
         return bookingService.getAllBookings();
 
     }
-
-
 
     @GetMapping("/bookings/{code}")
 
@@ -3392,8 +3034,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/bookings/{code}/send-ticket-email")
 
     public ResponseEntity<?> sendTicketEmail(@PathVariable String code, @RequestBody(required = false) Map<String, String> payload) {
@@ -3411,8 +3051,6 @@ public class ApiController {
                 ? payload.get("email").trim()
 
                 : b.getCustomerEmail();
-
-
 
         if ((targetEmail == null || targetEmail.isBlank()) && b.getCustomerCode() != null) {
 
@@ -3432,8 +3070,6 @@ public class ApiController {
 
         }
 
-
-
         if ((targetEmail == null || targetEmail.isBlank()) && b.getCustomerPhone() != null) {
 
             userRepository.findByPhone(b.getCustomerPhone())
@@ -3452,8 +3088,6 @@ public class ApiController {
 
         }
 
-
-
         if (targetEmail == null || targetEmail.isBlank() || !targetEmail.contains("@")) {
 
             return ResponseEntity.badRequest().body(Map.of(
@@ -3466,13 +3100,9 @@ public class ApiController {
 
         }
 
-
-
         b.setCustomerEmail(targetEmail);
 
         bookingRepository.save(b);
-
-
 
         if (emailService != null) {
 
@@ -3493,8 +3123,6 @@ public class ApiController {
         return ResponseEntity.ok(Map.of("success", true, "message", "Hệ thống đã ghi nhận yêu cầu gửi vé tới: " + targetEmail));
 
     }
-
-
 
     @PostMapping("/bookings")
 
@@ -3524,8 +3152,6 @@ public class ApiController {
 
     }
 
-
-
     @PutMapping("/bookings/{code}")
 
     public ResponseEntity<?> updateBooking(@PathVariable String code, @RequestBody Booking booking) {
@@ -3546,8 +3172,6 @@ public class ApiController {
 
     }
 
-
-
     @DeleteMapping("/bookings/{code}")
 
     public ResponseEntity<?> deleteBooking(@PathVariable String code) {
@@ -3565,8 +3189,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/bookings/{code}/deposit")
 
@@ -3586,17 +3208,11 @@ public class ApiController {
 
             String txRef = (String) payload.getOrDefault("txRef", "VQR-" + System.currentTimeMillis() % 1000000);
 
-
-
-            // Gán thông tin người dùng nếu đơn trước đó tạo tự động qua AI chưa có SĐT chính thức
-
             String customerPhone = (String) payload.get("customerPhone");
 
             String customerName = (String) payload.get("customerName");
 
             String customerCode = (String) payload.get("customerCode");
-
-
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
@@ -3688,8 +3304,6 @@ public class ApiController {
 
             }
 
-
-
             Booking updated = bookingService.confirmDeposit(code, amount, method, txRef);
 
             return ResponseEntity.ok(Map.of("success", true, "booking", updated));
@@ -3701,8 +3315,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/bookings/{code}/checkin")
 
@@ -3722,8 +3334,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/bookings/{code}/checkout")
 
     public ResponseEntity<?> checkOut(@PathVariable String code, @RequestBody Map<String, Object> payload) {
@@ -3738,8 +3348,6 @@ public class ApiController {
 
             String staffCode = (String) payload.getOrDefault("staffCode", "NVQ01");
 
-
-
             Invoice invoice = bookingService.checkOut(code, eqFee, prodFee, paymentMethod, staffCode);
 
             return ResponseEntity.ok(Map.of("success", true, "invoice", invoice));
@@ -3751,8 +3359,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/bookings/{code}/cancel")
 
@@ -3837,13 +3443,7 @@ public class ApiController {
         }
     }
 
-
-
-    // ==========================================
-
     // 3.1. COURT TRANSFER (XL-06)
-
-    // ==========================================
 
     @PostMapping("/bookings/{code}/transfer")
 
@@ -3871,13 +3471,7 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
     // 3.2. EXTRA SERVICES & POS ORDER (XL-05)
-
-    // ==========================================
 
     @PostMapping("/bookings/{code}/order-service")
 
@@ -3905,8 +3499,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/bookings/{code}/cancel-service")
 
     public ResponseEntity<?> cancelService(@PathVariable String code, @RequestBody Map<String, Object> payload) {
@@ -3932,8 +3524,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/bookings/slots")
     public ResponseEntity<?> getBookedSlots(
@@ -4003,8 +3593,6 @@ public class ApiController {
         return ResponseEntity.ok(resp);
     }
 
-
-
     @PostMapping("/bookings/slot-lock")
 
     public ResponseEntity<?> lockSlotBooking(@RequestBody Map<String, Object> payload) {
@@ -4027,16 +3615,6 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
-    // 3.5. WEBHOOK VIETQR / SEPAY / CASSO
-
-    // ==========================================
-
-
-
     @RequestMapping(value = {"/webhook/vietqr", "/webhook/vietqr/", "/webhook/sepay", "/webhook/sepay/"}, method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> handleVietQRWebhook(
             HttpServletRequest request,
@@ -4054,7 +3632,6 @@ public class ApiController {
             }
 
             boolean authorized = true;
-            // Neu webhookToken duoc cau hinh, bat buoc webhook caller phai gui secret hop le
             if (webhookToken != null && !webhookToken.isBlank()) {
                 authorized = (secretHeader != null && secretHeader.trim().equals(webhookToken)) ||
                              (authHeader != null && authHeader.contains(webhookToken)) ||
@@ -4065,8 +3642,6 @@ public class ApiController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "error", "Unauthorized webhook caller"));
             }
 
-
-
             String content = (String) webhookData.getOrDefault("content", "");
 
             if (content == null || content.isEmpty()) {
@@ -4076,8 +3651,6 @@ public class ApiController {
             }
 
             if (content == null) content = "";
-
-
 
             Pattern p = Pattern.compile("DS\\d{6}", Pattern.CASE_INSENSITIVE);
 
@@ -4109,8 +3682,6 @@ public class ApiController {
 
     }
 
-
-
     private boolean isSlotOverlapping(String s1, String s2) {
 
         if (bookingService != null) {
@@ -4139,8 +3710,6 @@ public class ApiController {
 
     }
 
-
-
     private int[] parseSlotHours(String slot) {
 
         if (bookingService != null) {
@@ -4162,18 +3731,6 @@ public class ApiController {
         return new int[]{0, 0};
 
     }
-
-
-
-
-
-    // ==========================================
-
-    // 4. PRODUCTS, BRANCHES, INVOICES, TOURNAMENTS
-
-    // ==========================================
-
-
 
     @GetMapping("/products")
 
@@ -4198,8 +3755,6 @@ public class ApiController {
         return productRepository.findAll();
 
     }
-
-
 
     @PostMapping("/products")
 
@@ -4243,23 +3798,17 @@ public class ApiController {
 
         }
 
-
-
         if (productRepository.findByProductCode(product.getProductCode().trim()).isPresent()) {
 
             product.setProductCode(product.getProductCode().trim() + "_" + UUID.randomUUID().toString().substring(0, 6).toUpperCase());
 
         }
 
-
-
         Product saved = productRepository.save(product);
 
         return ResponseEntity.ok(Map.of("success", true, "product", saved, "message", "Đã lưu mặt hàng vào cơ sở dữ liệu thành công!"));
 
     }
-
-
 
     private boolean isDirectorOrAdmin() {
 
@@ -4305,8 +3854,6 @@ public class ApiController {
 
     }
 
-
-
     @PutMapping("/products/{id}")
 
     public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product payload) {
@@ -4331,19 +3878,13 @@ public class ApiController {
 
         if (payload.getUnit() != null) p.setUnit(payload.getUnit());
 
-
-
         // QUY ĐỊNH NGHIỆP VỤ PHÂN QUYỀN GIÁ:
-
-        // - Giá bán (unitPrice): Cả Quản lý chi nhánh lẫn Giám đốc đều có quyền điều chỉnh
 
         if (payload.getUnitPrice() != null) {
 
             p.setUnitPrice(payload.getUnitPrice());
 
         }
-
-        // - Giá nhập (costPrice / Giá vốn): Khóa cứng theo Giám đốc, Quản lý chi nhánh không được phép sửa
 
         if (payload.getCostPrice() != null) {
 
@@ -4365,15 +3906,11 @@ public class ApiController {
 
         if (payload.getBranchCode() != null) p.setBranchCode(payload.getBranchCode());
 
-
-
         Product updated = productRepository.save(p);
 
         return ResponseEntity.ok(Map.of("success", true, "product", updated, "message", "Đã cập nhật sản phẩm thành công!"));
 
     }
-
-
 
     @PatchMapping("/products/{id}/retail-price")
 
@@ -4428,16 +3965,6 @@ public class ApiController {
         }
 
     }
-
-
-
-    // ==========================================
-
-    // QUẢN LÝ NHÀ CUNG CẤP & ĐỐI TÁC (SUPPLIERS)
-
-    // ==========================================
-
-
 
     @GetMapping("/suppliers")
     public List<Supplier> getSuppliers() {
@@ -4526,8 +4053,6 @@ public class ApiController {
         }
     }
 
-
-
     @PostMapping("/suppliers")
 
     public ResponseEntity<?> createSupplier(@RequestBody Supplier supplier) {
@@ -4598,8 +4123,6 @@ public class ApiController {
 
     }
 
-
-
     @PutMapping("/suppliers/{id}")
 
     public ResponseEntity<?> updateSupplier(@PathVariable Long id, @RequestBody Supplier payload) {
@@ -4640,8 +4163,6 @@ public class ApiController {
 
     }
 
-
-
     @DeleteMapping("/suppliers/{id}")
 
     public ResponseEntity<?> deleteSupplier(@PathVariable Long id) {
@@ -4657,8 +4178,6 @@ public class ApiController {
         return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa nhà cung cấp thành công!"));
 
     }
-
-
 
     @DeleteMapping("/products/{id}")
 
@@ -4685,8 +4204,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/user/my-branches")
     public ResponseEntity<?> getMyBranches(
@@ -4766,8 +4283,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/invoices")
 
     public List<Invoice> getInvoices() {
@@ -4775,8 +4290,6 @@ public class ApiController {
         return invoiceRepository.findAllByOrderByInvoiceDateDesc();
 
     }
-
-
 
     @PostMapping("/invoices/retail")
 
@@ -4798,7 +4311,6 @@ public class ApiController {
 
             String staffCode = (String) payload.getOrDefault("staffCode", "NS03");
 
-            // Kiểm tra số lượng tồn kho và tự động trừ kho nếu có danh sách mặt hàng bán lẻ
             if (payload.get("items") instanceof List<?> itemList) {
                 for (Object itemObj : itemList) {
                     if (itemObj instanceof Map<?, ?> itemMap) {
@@ -4823,8 +4335,6 @@ public class ApiController {
                     }
                 }
             }
-
-
 
             Invoice invoice = new Invoice();
 
@@ -4852,8 +4362,6 @@ public class ApiController {
 
             invoice.setStatus("Đã thanh toán");
 
-
-
             Invoice saved = invoiceRepository.save(invoice);
 
             return ResponseEntity.ok(Map.of("success", true, "invoice", saved));
@@ -4865,8 +4373,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/tournaments")
 
@@ -4900,8 +4406,6 @@ public class ApiController {
 
             t1.setStatus("Đang mở đăng ký");
 
-
-
             Tournament t2 = new Tournament();
 
             t2.setTournamentCode("GD02");
@@ -4926,8 +4430,6 @@ public class ApiController {
 
             t2.setStatus("Sắp mở đăng ký");
 
-
-
             try {
 
                 tournamentRepository.save(t1);
@@ -4944,21 +4446,15 @@ public class ApiController {
 
         }
 
-
-
         Map<String, String> branchMap = branchRepository.findAll().stream()
 
                 .collect(Collectors.toMap(Branch::getBranchCode, Branch::getBranchName, (a, b) -> a));
-
-
 
         List<TournamentRegistration> allRegs = tournamentRegistrationRepository.findAll();
 
         Map<String, Long> regCountMap = allRegs.stream()
 
                 .collect(Collectors.groupingBy(TournamentRegistration::getTournamentCode, Collectors.counting()));
-
-
 
         List<Map<String, Object>> result = new ArrayList<>();
 
@@ -4989,8 +4485,6 @@ public class ApiController {
             map.put("rules", t.getRules() != null ? t.getRules() : "");
 
             map.put("maxParticipants", t.getMaxParticipants() != null ? t.getMaxParticipants() : 32);
-
-
 
             long regCount = regCountMap.getOrDefault(t.getTournamentCode(), 0L);
 
@@ -5031,7 +4525,6 @@ public class ApiController {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. If branchCode specified and not empty/ALL, filter by branch first
         List<Map<String, Object>> candidateList = all;
         if (branchCode != null && !branchCode.isBlank() && !"ALL".equalsIgnoreCase(branchCode)) {
             List<Map<String, Object>> branchFiltered = all.stream()
@@ -5042,7 +4535,6 @@ public class ApiController {
             }
         }
 
-        // 2. Active or upcoming tournaments (excluding rejected or ended)
         List<Map<String, Object>> activeUpcoming = candidateList.stream()
                 .filter(t -> !"Đã kết thúc".equalsIgnoreCase((String) t.get("status")) &&
                              !"Từ chối".equalsIgnoreCase((String) t.get("status")))
@@ -5061,7 +4553,6 @@ public class ApiController {
         if (!activeUpcoming.isEmpty()) {
             selected = new LinkedHashMap<>(activeUpcoming.get(0));
         } else {
-            // Fallback: pick the latest ended tournament if all tournaments have passed
             selected = new LinkedHashMap<>(candidateList.stream()
                     .sorted((a, b) -> {
                         String sDateA = (String) a.get("endDate");
@@ -5074,7 +4565,6 @@ public class ApiController {
                     .orElse(candidateList.get(0)));
         }
 
-        // 3. Format and enrich data
         BigDecimal prize = BigDecimal.ZERO;
         Object pObj = selected.get("totalPrize");
         if (pObj instanceof BigDecimal) {
@@ -5095,7 +4585,6 @@ public class ApiController {
                 ? String.format("%,d đ", fee.longValue()).replace(',', '.')
                 : "Miễn phí");
 
-        // Format dates: "dd/MM/yyyy"
         String sDate = (String) selected.get("startDate");
         if (sDate != null && sDate.contains("T")) {
             String[] parts = sDate.split("T")[0].split("-");
@@ -5111,7 +4600,6 @@ public class ApiController {
             }
         }
 
-        // Extract a clean badge text / short title
         String name = (String) selected.getOrDefault("tournamentName", "");
         String badgeText = (String) selected.getOrDefault("tournamentCode", "UTE Cup");
         if (name.contains("Cúp")) {
@@ -5128,7 +4616,6 @@ public class ApiController {
         }
         selected.put("badgeText", badgeText);
 
-        // Compute dynamic label
         String status = (String) selected.getOrDefault("status", "Đang mở đăng ký");
         String label = "GIẢI ĐẤU SẮP TỚI";
         if ("Đang diễn ra".equalsIgnoreCase(status)) {
@@ -5167,8 +4654,6 @@ public class ApiController {
 
         }
 
-
-
         if (opt.isEmpty()) {
 
             return ResponseEntity.badRequest().body(Map.of(
@@ -5180,8 +4665,6 @@ public class ApiController {
             ));
 
         }
-
-
 
         Tournament t = opt.get();
 
@@ -5197,13 +4680,9 @@ public class ApiController {
 
         }
 
-
-
         int max = t.getMaxParticipants() != null ? t.getMaxParticipants() : 32;
 
         int current = t.getCurrentParticipants() != null ? t.getCurrentParticipants() : 0;
-
-
 
         if ("Đã đóng đăng ký".equalsIgnoreCase(t.getStatus()) || "Hết chỗ".equalsIgnoreCase(t.getStatus()) || current >= max) {
 
@@ -5223,8 +4702,6 @@ public class ApiController {
 
         }
 
-
-
         String teamName = (String) payload.getOrDefault("teamName", "Đội VĐV");
 
         String phone = (String) payload.getOrDefault("phone", "");
@@ -5234,8 +4711,6 @@ public class ApiController {
         String category = (String) payload.getOrDefault("category", "Đôi Nam Nữ");
 
         String customerCode = (String) payload.getOrDefault("customerCode", "");
-
-
 
         if (customerCode == null || customerCode.isBlank()) {
 
@@ -5277,8 +4752,6 @@ public class ApiController {
 
         }
 
-
-
         String email = (String) payload.get("email");
 
         if ((email == null || email.isBlank()) && !phone.isBlank()) {
@@ -5297,8 +4770,6 @@ public class ApiController {
 
         }
 
-
-
         if (customerCode == null || customerCode.isBlank() || customerRepository.findByCustomerCode(customerCode.trim()).isEmpty()) {
 
             if (!phone.isBlank()) {
@@ -5310,8 +4781,6 @@ public class ApiController {
                     customerCode = c.getCustomerCode();
 
                 } else {
-
-                    // Create customer record to satisfy Foreign Key constraint
 
                     Customer newC = new Customer();
 
@@ -5343,8 +4812,6 @@ public class ApiController {
 
         }
 
-
-
         TournamentRegistration reg = new TournamentRegistration();
 
         reg.setTournamentCode(t.getTournamentCode());
@@ -5365,8 +4832,6 @@ public class ApiController {
 
         tournamentRegistrationRepository.save(reg);
 
-
-
         current++;
 
         t.setCurrentParticipants(current);
@@ -5379,8 +4844,6 @@ public class ApiController {
 
         tournamentRepository.save(t);
 
-
-
         if (emailService != null) {
 
             try {
@@ -5390,8 +4853,6 @@ public class ApiController {
             } catch (Exception ignored) {}
 
         }
-
-
 
         int remaining = max - current;
 
@@ -5417,8 +4878,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/equipment")
 
     public List<Equipment> getEquipment(@RequestParam(required = false) String branchCode) {
@@ -5433,16 +4892,6 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
-    // 5. CHATBOT CONSULTATION ENDPOINT
-
-    // ==========================================
-
-
-
     @PostMapping("/chatbot/message")
 
     public ResponseEntity<?> sendChatMessage(
@@ -5455,8 +4904,6 @@ public class ApiController {
 
         String sessionId = (String) payload.get("sessionId");
 
-
-
         String customerName = (String) payload.get("fullName");
 
         if (customerName == null) customerName = (String) payload.get("customerName");
@@ -5466,8 +4913,6 @@ public class ApiController {
         if (customerPhone == null) customerPhone = (String) payload.get("customerPhone");
 
         String customerCode = (String) payload.get("customerCode");
-
-
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
@@ -5501,8 +4946,6 @@ public class ApiController {
 
         }
 
-
-
         if (customerCode == null && customerPhone != null && !customerPhone.isBlank()) {
 
             Optional<Customer> cOpt = customerRepository.findByPhone(customerPhone.trim());
@@ -5521,15 +4964,11 @@ public class ApiController {
 
         }
 
-
-
         vn.yain.dto.ChatMessageDto reply = chatbotService.processMessage(message, sessionId, customerName, customerPhone, customerCode);
 
         return ResponseEntity.ok(reply);
 
     }
-
-
 
     @PostMapping("/chatbot/reset")
 
@@ -5542,10 +4981,6 @@ public class ApiController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Session reset"));
 
     }
-
-    // ==========================================
-    // 5.1 LIVE HUMAN SUPPORT CHAT ENDPOINTS
-    // ==========================================
 
     @PostMapping("/support/request")
     public ResponseEntity<?> requestHumanSupport(@RequestBody Map<String, String> payload) {
@@ -5607,15 +5042,7 @@ public class ApiController {
         return ResponseEntity.ok(Map.of("success", true, "ticket", ticket != null ? ticket : Map.of()));
     }
 
-
-
-    // ==========================================
-
     // 6. INVENTORY INTAKE & WAREHOUSE (XL-10)
-
-    // ==========================================
-
-
 
     @PostMapping({"/inventory/intake", "/inventory/receipts"})
 
@@ -5651,8 +5078,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/inventory/receipts")
 
     public ResponseEntity<?> getStockReceipts(@RequestParam(required = false) String branchCode) {
@@ -5661,15 +5086,7 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
     // 7. CASHIER SHIFT HANDOVER (XL-08)
-
-    // ==========================================
-
-
 
     @GetMapping("/shifts/summary")
 
@@ -5680,8 +5097,6 @@ public class ApiController {
         return ResponseEntity.ok(shiftService.getShiftSummary(staffCode, branchCode));
 
     }
-
-
 
     @PostMapping("/shifts/close")
 
@@ -5713,15 +5128,7 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
     // 7.1 STAFF & WEEKLY SHIFT SCHEDULE (XL-08)
-
-    // ==========================================
-
-
 
     @GetMapping("/staff")
 
@@ -5732,8 +5139,6 @@ public class ApiController {
         return shiftService.getAllStaff(effectiveBranch);
 
     }
-
-
 
     @PostMapping("/staff")
 
@@ -5753,8 +5158,6 @@ public class ApiController {
 
     }
 
-
-
     @DeleteMapping("/staff/{staffCode}")
 
     public ResponseEntity<?> deleteStaff(@PathVariable String staffCode) {
@@ -5773,8 +5176,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/shifts/week")
 
     public ResponseEntity<?> getWeeklySchedule(@RequestParam(required = false) String branchCode) {
@@ -5784,8 +5185,6 @@ public class ApiController {
         return ResponseEntity.ok(shiftService.getWeeklySchedule(effectiveBranch));
 
     }
-
-
 
     @PostMapping("/shifts/assign")
 
@@ -5817,8 +5216,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/shifts/remove")
 
     public ResponseEntity<?> removeShift(@RequestBody Map<String, String> payload) {
@@ -5842,8 +5239,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/shifts/week/save")
 
@@ -5875,8 +5270,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/shifts/week/reset")
 
     public ResponseEntity<?> resetWeeklySchedule(@RequestBody(required = false) Map<String, String> payload) {
@@ -5896,14 +5289,6 @@ public class ApiController {
         }
 
     }
-
-
-
-    // ==========================================
-
-    // 8. CLOUDINARY IMAGE UPLOAD (WEEK 2 GOAL)
-
-    // ==========================================
 
     @PostMapping("/upload/image")
 
@@ -5929,14 +5314,6 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
-    // 9. DIRECTOR DASHBOARD METRICS & STATS - TRUY VẤN DỮ LIỆU THẬT TỪ DATABASE
-
-    // ==========================================
-
     @GetMapping("/director/stats")
 
     public ResponseEntity<?> getDirectorStats(
@@ -5944,8 +5321,6 @@ public class ApiController {
             @RequestParam(required = false, defaultValue = "month") String period,
 
             @RequestParam(required = false, defaultValue = "ALL") String branchCode) {
-
-
 
         List<Branch> branches = branchRepository.findAll();
 
@@ -5959,15 +5334,11 @@ public class ApiController {
 
         List<Tournament> allTournaments = tournamentRepository.findAll();
 
-
-
         LocalDate today = LocalDate.now();
 
         LocalDate startDate;
 
         LocalDate endDate;
-
-
 
         switch (period.toLowerCase()) {
 
@@ -6011,8 +5382,6 @@ public class ApiController {
 
         }
 
-
-
         List<Booking> periodBookings = allBookings.stream()
 
                 .filter(b -> {
@@ -6024,8 +5393,6 @@ public class ApiController {
                 })
 
                 .collect(Collectors.toList());
-
-
 
         List<Invoice> periodInvoices = allInvoices.stream()
 
@@ -6043,25 +5410,17 @@ public class ApiController {
 
                 .collect(Collectors.toList());
 
-
-
         Map<String, String> bookingBranchMap = allBookings.stream()
 
                 .filter(b -> b.getBookingCode() != null && b.getBranchCode() != null)
 
                 .collect(Collectors.toMap(Booking::getBookingCode, Booking::getBranchCode, (v1, v2) -> v1));
 
-
-
         Map<String, Map<String, Object>> branchStats = new LinkedHashMap<>();
-
-
 
         for (Branch br : branches) {
 
             String bCode = br.getBranchCode();
-
-
 
             List<Court> branchCourts = courts.stream()
 
@@ -6073,15 +5432,11 @@ public class ApiController {
 
             long activeCourts = branchCourts.stream().filter(c -> !"Bảo trì".equalsIgnoreCase(c.getStatus())).count();
 
-
-
             List<Booking> bList = periodBookings.stream()
 
                     .filter(b -> bCode != null && bCode.equalsIgnoreCase(b.getBranchCode()))
 
                     .collect(Collectors.toList());
-
-
 
             int bCount = bList.size();
 
@@ -6093,15 +5448,11 @@ public class ApiController {
 
                     .sum();
 
-
-
             List<Invoice> branchInvoices = periodInvoices.stream()
 
                     .filter(inv -> bCode != null && bCode.equalsIgnoreCase(bookingBranchMap.get(inv.getBookingCode())))
 
                     .collect(Collectors.toList());
-
-
 
             long courtRevFromInv = branchInvoices.stream()
 
@@ -6121,8 +5472,6 @@ public class ApiController {
 
                     .sum();
 
-
-
             long branchTourRev = allTournaments.stream()
 
                     .filter(t -> bCode != null && bCode.equalsIgnoreCase(t.getBranchCode()))
@@ -6139,8 +5488,6 @@ public class ApiController {
 
                     .sum();
 
-
-
             long finalCourtRev = bRevenue;
 
             long finalDrinkRev = drinkRevFromInv;
@@ -6148,8 +5495,6 @@ public class ApiController {
             long finalEquipRev = equipRevFromInv;
 
             long totalBranchRev = finalCourtRev + finalDrinkRev + finalEquipRev + branchTourRev;
-
-
 
             long daysInPeriod = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
@@ -6169,8 +5514,6 @@ public class ApiController {
 
             double occRate = courtCount > 0 ? Math.min(100.0, Math.round((bookedHours / totalCapacityHours) * 1000.0) / 10.0) : 0.0;
 
-
-
             String statusStr = activeCourts + "/" + courtCount + " sân đang hoạt động";
 
             if (activeCourts < courtCount) {
@@ -6179,11 +5522,7 @@ public class ApiController {
 
             }
 
-
-
             String rating = occRate >= 50.0 ? "Xuất sắc" : (occRate >= 25.0 ? "Tốt" : (occRate >= 10.0 ? "Đạt chỉ tiêu" : "Cần đẩy mạnh"));
-
-
 
             Map<String, Object> statItem = new LinkedHashMap<>();
 
@@ -6215,13 +5554,9 @@ public class ApiController {
 
             statItem.put("rating", rating);
 
-
-
             branchStats.put(bCode, statItem);
 
         }
-
-
 
         long totalRevenue = 0;
 
@@ -6231,15 +5566,11 @@ public class ApiController {
 
         double sumOccTimesCourts = 0;
 
-
-
         long totalCourtRev = 0;
 
         long totalDrinkRev = 0;
 
         long totalEquipRev = 0;
-
-
 
         if (!"ALL".equalsIgnoreCase(branchCode) && branchStats.containsKey(branchCode)) {
 
@@ -6283,8 +5614,6 @@ public class ApiController {
 
         }
 
-
-
         long totalTournamentRev = allTournaments.stream()
 
                 .filter(t -> "ALL".equalsIgnoreCase(branchCode) || (t.getBranchCode() != null && t.getBranchCode().equalsIgnoreCase(branchCode)))
@@ -6301,11 +5630,7 @@ public class ApiController {
 
                 .sum();
 
-
-
         double avgOccupancy = totalCourts > 0 ? Math.round((sumOccTimesCourts / totalCourts) * 10.0) / 10.0 : 0.0;
-
-
 
         int totalMembers = allCustomers.size();
 
@@ -6325,8 +5650,6 @@ public class ApiController {
 
                 .count();
 
-
-
         long sumSources = Math.max(1, totalCourtRev + totalDrinkRev + totalEquipRev + totalTournamentRev);
 
         int courtPct = (int) Math.round((totalCourtRev * 100.0) / sumSources);
@@ -6338,8 +5661,6 @@ public class ApiController {
         int tourPct = 100 - courtPct - drinkPct - equipPct;
 
         if (tourPct < 0) tourPct = 0;
-
-
 
         Map<String, Object> resp = new LinkedHashMap<>();
 
@@ -6379,8 +5700,6 @@ public class ApiController {
 
         resp.put("branchStats", branchStats);
 
-
-
         Map<String, Object> sourcesMap = new LinkedHashMap<>();
 
         sourcesMap.put("court", Map.of("percent", courtPct, "amount", totalCourtRev));
@@ -6393,13 +5712,9 @@ public class ApiController {
 
         resp.put("sources", sourcesMap);
 
-
-
         return ResponseEntity.ok(resp);
 
     }
-
-
 
     private double calculateSlotDurationHours(String timeSlot) {
 
@@ -6449,24 +5764,6 @@ public class ApiController {
 
     }
 
-
-
-    // ==========================================
-
-    // 9.1 MANAGER DASHBOARD METRICS & STATS - TRUY VẤN DỮ LIỆU THẬT TỪ SQL SERVER
-
-    // (Được chuyển tới và hợp nhất tại phần endpoint getManagerStats của phân hệ Manager)
-
-    // ==========================================
-
-
-
-    // ==========================================
-
-    // 9.2 MANAGER REPORTS & REVENUE ANALYTICS - BÁO CÁO DOANH THU & HIỆU SUẤT TỪ SQL SERVER
-
-    // ==========================================
-
     @GetMapping({"/manager/reports/data", "/manager/reports/summary"})
 
     public ResponseEntity<?> getManagerReportsData(
@@ -6483,8 +5780,6 @@ public class ApiController {
 
             boolean isAll = effectiveBranch == null || "ALL".equalsIgnoreCase(effectiveBranch.trim());
 
-
-
             LocalDate start = (startDate != null && !startDate.isBlank())
 
                     ? LocalDate.parse(startDate.trim())
@@ -6497,8 +5792,6 @@ public class ApiController {
 
                     : LocalDate.now();
 
-
-
             if (start.isAfter(end)) {
 
                 LocalDate tmp = start;
@@ -6508,8 +5801,6 @@ public class ApiController {
                 end = tmp;
 
             }
-
-
 
             List<Branch> branches = branchRepository.findAll();
 
@@ -6523,15 +5814,11 @@ public class ApiController {
 
                     .orElse("Chi nhánh " + effectiveBranch);
 
-
-
             List<Court> branchCourts = isAll
 
                     ? courtRepository.findAll()
 
                     : courtRepository.findByBranchCode(effectiveBranch);
-
-
 
             List<Booking> allBookings = isAll
 
@@ -6539,13 +5826,9 @@ public class ApiController {
 
                     : bookingRepository.findByBranchCodeOrderByBookingDateDesc(effectiveBranch);
 
-
-
             final LocalDate fStart = start;
 
             final LocalDate fEnd = end;
-
-
 
             List<Booking> periodBookings = allBookings.stream()
 
@@ -6559,8 +5842,6 @@ public class ApiController {
 
                     .collect(Collectors.toList());
 
-
-
             long totalRevenue = 0;
 
             long courtRevenue = 0;
@@ -6569,15 +5850,11 @@ public class ApiController {
 
             double totalHours = 0;
 
-
-
             for (Booking b : periodBookings) {
 
                 long total = b.getTotalPrice() != null ? b.getTotalPrice().longValue() : 0;
 
                 totalRevenue += total;
-
-
 
                 double hours = 1.0;
 
@@ -6613,8 +5890,6 @@ public class ApiController {
 
                 totalHours += hours;
 
-
-
                 long courtPart = (b.getHourlyPrice() != null)
 
                         ? (long) Math.round(b.getHourlyPrice().doubleValue() * hours)
@@ -6629,8 +5904,6 @@ public class ApiController {
 
             }
 
-
-
             long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1;
 
             int totalCourts = branchCourts.size();
@@ -6643,15 +5916,11 @@ public class ApiController {
 
                     : 0.0;
 
-
-
             Map<String, List<Booking>> courtBookingMap = periodBookings.stream()
 
                     .filter(b -> b.getCourtCode() != null)
 
                     .collect(Collectors.groupingBy(Booking::getCourtCode));
-
-
 
             List<Map<String, Object>> courtStats = new ArrayList<>();
 
@@ -6697,8 +5966,6 @@ public class ApiController {
 
                 }
 
-
-
                 double cMaxHours = 14.0 * daysBetween;
 
                 double cOccupancy = cMaxHours > 0 ? Math.min(100.0, Math.round((cHours / cMaxHours) * 1000.0) / 10.0) : 0.0;
@@ -6722,8 +5989,6 @@ public class ApiController {
                     performance = "Ổn định";
 
                 }
-
-
 
                 Map<String, Object> cMap = new LinkedHashMap<>();
 
@@ -6751,8 +6016,6 @@ public class ApiController {
 
             }
 
-
-
             Map<String, long[]> trendMap = new TreeMap<>();
 
             java.time.format.DateTimeFormatter dFmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
@@ -6766,8 +6029,6 @@ public class ApiController {
                 cur = cur.plusDays(1);
 
             }
-
-
 
             for (Booking b : periodBookings) {
 
@@ -6795,8 +6056,6 @@ public class ApiController {
 
             }
 
-
-
             List<String> trendLabels = new ArrayList<>(trendMap.keySet());
 
             List<Long> trendCourtRevenue = new ArrayList<>();
@@ -6816,8 +6075,6 @@ public class ApiController {
                 trendTotalRevenue.add(arr[0] + arr[1]);
 
             }
-
-
 
             Map<String, Object> resp = new LinkedHashMap<>();
 
@@ -6875,8 +6132,6 @@ public class ApiController {
 
             ));
 
-
-
             return ResponseEntity.ok(resp);
 
         } catch (Exception e) {
@@ -6888,8 +6143,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/director/branches")
 
@@ -6907,8 +6160,6 @@ public class ApiController {
 
         List<Staff> allStaff = staffRepository.findAll();
 
-
-
         long totalBranches = branches.size();
 
         long activeBranches = branches.stream().filter(b -> b.getStatus() == null || "Hoạt động".equalsIgnoreCase(b.getStatus())).count();
@@ -6919,15 +6170,11 @@ public class ApiController {
 
         long standardCourts = totalCourts - vipCourts;
 
-
-
         Map<String, List<Court>> courtsByBranch = allCourts.stream()
 
                 .filter(c -> c.getBranchCode() != null)
 
                 .collect(Collectors.groupingBy(c -> c.getBranchCode().toUpperCase()));
-
-
 
         Map<String, List<Booking>> bookingsByBranch = allBookings.stream()
 
@@ -6935,21 +6182,15 @@ public class ApiController {
 
                 .collect(Collectors.groupingBy(b -> b.getBranchCode().toUpperCase()));
 
-
-
         Map<String, String> bookingBranchMap = allBookings.stream()
 
                 .filter(b -> b.getBookingCode() != null && b.getBranchCode() != null)
 
                 .collect(Collectors.toMap(Booking::getBookingCode, Booking::getBranchCode, (v1, v2) -> v1));
 
-
-
         long chainTotalRevenue = 0;
 
         double sumOccTimesCourts = 0;
-
-
 
         List<Map<String, Object>> branchList = new ArrayList<>();
 
@@ -6965,8 +6206,6 @@ public class ApiController {
 
             long bStdCount = courtCount - bVipCount;
 
-
-
             List<Booking> bBookings = bookingsByBranch.getOrDefault(bCode, Collections.emptyList());
 
             long bCourtRev = bBookings.stream()
@@ -6974,8 +6213,6 @@ public class ApiController {
                     .mapToLong(bk -> bk.getTotalPrice() != null ? bk.getTotalPrice().longValue() : 0)
 
                     .sum();
-
-
 
             List<Invoice> branchInvoices = allInvoices.stream()
 
@@ -6997,8 +6234,6 @@ public class ApiController {
 
             long bExtraRev = bDrinkRev + bEquipRev;
 
-
-
             long bTourRev = allTournaments.stream()
 
                     .filter(t -> bCode.equalsIgnoreCase(t.getBranchCode()))
@@ -7015,13 +6250,9 @@ public class ApiController {
 
                     .sum();
 
-
-
             long bRev = bCourtRev + bExtraRev + bTourRev;
 
             chainTotalRevenue += bRev;
-
-
 
             double bBookedHours = bBookings.stream()
 
@@ -7034,8 +6265,6 @@ public class ApiController {
             double bOccupancy = Math.min(100.0, Math.round((bBookedHours / bCapacityHours) * 1000.0) / 10.0);
 
             sumOccTimesCourts += (bOccupancy * courtCount);
-
-
 
             String managerPhone = b.getPhone();
 
@@ -7058,8 +6287,6 @@ public class ApiController {
                 }
 
             }
-
-
 
             Map<String, Object> map = new LinkedHashMap<>();
 
@@ -7103,13 +6330,9 @@ public class ApiController {
 
         }
 
-
-
         double avgOccupancy = totalCourts > 0 ? (Math.round((sumOccTimesCourts / totalCourts) * 10.0) / 10.0) : 0.0;
 
         long avgRevenue = totalBranches > 0 ? Math.round((double) chainTotalRevenue / totalBranches) : 0;
-
-
 
         Map<String, Object> kpi = new LinkedHashMap<>();
 
@@ -7128,8 +6351,6 @@ public class ApiController {
         kpi.put("avgRevenue", avgRevenue);
 
         kpi.put("totalRevenue", chainTotalRevenue);
-
-
 
         List<Map<String, Object>> managerCandidates = allStaff.stream()
 
@@ -7153,8 +6374,6 @@ public class ApiController {
 
                 .collect(Collectors.toList());
 
-
-
         Map<String, Object> response = new LinkedHashMap<>();
 
         response.put("kpi", kpi);
@@ -7163,13 +6382,9 @@ public class ApiController {
 
         response.put("managers", managerCandidates);
 
-
-
         return ResponseEntity.ok(response);
 
     }
-
-
 
     @PostMapping("/director/branches")
 
@@ -7198,8 +6413,6 @@ public class ApiController {
             int totalCourts = payload.get("totalCourts") != null ? Integer.parseInt(payload.get("totalCourts").toString()) : 6;
 
             String status = (String) payload.getOrDefault("status", "Hoạt động");
-
-
 
             Optional<Branch> opt = branchRepository.findByBranchCode(code);
 
@@ -7253,8 +6466,6 @@ public class ApiController {
                     });
             }
 
-
-
             List<Court> existingCourts = courtRepository.findByBranchCode(code);
 
             if (existingCourts.isEmpty() && totalCourts > 0) {
@@ -7285,8 +6496,6 @@ public class ApiController {
 
             }
 
-
-
             return ResponseEntity.ok(Map.of(
 
                 "success", true,
@@ -7304,8 +6513,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @DeleteMapping({"/director/branches/{branchCode}", "/branches/{branchCode}"})
     public ResponseEntity<?> deleteBranch(
@@ -7347,15 +6554,6 @@ public class ApiController {
         }
     }
 
-
-
-
-    // ==========================================
-
-    // 11. DIRECTOR PRICING & PROMOTION MANAGEMENT - PHÊ DUYỆT ĐỀ XUẤT GIÁ & KHUYẾN MÃI
-
-    // ==========================================
-
     @GetMapping("/director/pricing")
 
     public ResponseEntity<?> getDirectorPricingData() {
@@ -7370,19 +6568,13 @@ public class ApiController {
 
         List<Branch> branches = branchRepository.findAll();
 
-
-
         Map<String, TimeSlot> slotMap = slots.stream()
 
                 .collect(Collectors.toMap(TimeSlot::getSlotCode, s -> s, (s1, s2) -> s1));
 
-
-
         Map<String, String> branchNameMap = branches.stream()
 
                 .collect(Collectors.toMap(Branch::getBranchCode, Branch::getBranchName, (b1, b2) -> b1));
-
-
 
         List<Map<String, Object>> proposalList = new ArrayList<>();
 
@@ -7430,8 +6622,6 @@ public class ApiController {
 
         }
 
-
-
         List<Map<String, Object>> ruleList = new ArrayList<>();
 
         for (PricingRule r : rules) {
@@ -7476,13 +6666,9 @@ public class ApiController {
 
         }
 
-
-
         long pendingPromoCount = promotions.stream().filter(p -> "Chờ phê duyệt".equalsIgnoreCase(p.getStatus())).count();
 
         long activePromoCount = promotions.stream().filter(p -> "Đang áp dụng".equalsIgnoreCase(p.getStatus())).count();
-
-
 
         Map<String, Object> counts = new LinkedHashMap<>();
 
@@ -7495,8 +6681,6 @@ public class ApiController {
         counts.put("activePromotions", activePromoCount);
 
         counts.put("totalPromotions", promotions.size());
-
-
 
         Map<String, Object> resp = new LinkedHashMap<>();
 
@@ -7512,13 +6696,9 @@ public class ApiController {
 
         resp.put("branches", branches);
 
-
-
         return ResponseEntity.ok(resp);
 
     }
-
-
 
     private boolean isPromotionApplicableForBranch(Promotion p, String branchCode) {
         if (p == null) return false;
@@ -7532,12 +6712,10 @@ public class ApiController {
         String cleanCode = branchCode.trim();
         String cleanScope = scope.trim();
 
-        // 1. Direct code match or containment
         if (cleanScope.equalsIgnoreCase(cleanCode) || cleanScope.toUpperCase().contains(cleanCode.toUpperCase())) {
             return true;
         }
 
-        // 2. Look up branch in DB
         Optional<Branch> bOpt = branchRepository.findByBranchCode(cleanCode);
         if (bOpt.isEmpty()) {
             bOpt = branchRepository.findAll().stream()
@@ -7582,12 +6760,6 @@ public class ApiController {
         return false;
     }
 
-    // ==========================================
-
-    // 10.5 CUSTOMER PRICING & PROMOTION SUMMARY - LẤY BẢNG GIÁ THEO CHI NHÁNH & ÁP DỤNG MÃ KHUYẾN MÃI
-
-    // ==========================================
-
     @GetMapping("/pricing/summary")
 
     public ResponseEntity<?> getCustomerPricingSummary(@RequestParam(value = "branchCode", defaultValue = "CN01") String branchCode) {
@@ -7598,8 +6770,6 @@ public class ApiController {
 
         String branchName = branchOpt.map(Branch::getBranchName).orElse("Chi nhánh " + bCode);
 
-
-
         List<PricingRule> rules = pricingRuleRepository.findByBranchCode(bCode);
 
         List<TimeSlot> slots = timeSlotRepository.findAll();
@@ -7607,8 +6777,6 @@ public class ApiController {
         Map<String, TimeSlot> slotMap = slots.stream()
 
                 .collect(Collectors.toMap(TimeSlot::getSlotCode, s -> s, (s1, s2) -> s1));
-
-
 
         List<Map<String, Object>> formattedRules = new ArrayList<>();
 
@@ -7648,8 +6816,6 @@ public class ApiController {
 
         } else {
 
-            // Trường hợp chi nhánh chưa có cấu hình riêng trong pricing_rules, dùng các khung giờ mặc định
-
             formattedRules.add(Map.of("slotName", "Buổi Sáng", "timeRange", "06:00 - 10:00", "dayType", "Hàng ngày", "hourlyRate", 80000L));
 
             formattedRules.add(Map.of("slotName", "Buổi Ngày", "timeRange", "10:00 - 16:00", "dayType", "Thứ 2 - Thứ 6", "hourlyRate", 70000L));
@@ -7659,10 +6825,6 @@ public class ApiController {
             formattedRules.add(Map.of("slotName", "Buổi Tối Muộn", "timeRange", "21:00 - 22:30", "dayType", "Hàng ngày", "hourlyRate", 80000L));
 
         }
-
-
-
-        // Tỷ lệ giá sân theo chi nhánh từ bảng courts
 
         List<Court> branchCourts = courtRepository.findByBranchCode(bCode);
 
@@ -7684,10 +6846,6 @@ public class ApiController {
 
         }
 
-
-
-        // Khuyến mãi đang áp dụng từ bảng promotions trong CSDL
-
         LocalDate today = LocalDate.now();
 
         List<Promotion> allPromos = promotionRepository.findAll();
@@ -7703,8 +6861,6 @@ public class ApiController {
                                 (p.getEndDate() == null || !today.isAfter(p.getEndDate()));
 
             boolean scopeValid = isPromotionApplicableForBranch(p, bCode);
-
-
 
             if (isActive && dateValid && scopeValid) {
 
@@ -7730,8 +6886,6 @@ public class ApiController {
 
         }
 
-
-
         Map<String, Object> res = new LinkedHashMap<>();
 
         res.put("success", true);
@@ -7748,13 +6902,9 @@ public class ApiController {
 
         res.put("activePromotions", activePromos);
 
-
-
         return ResponseEntity.ok(res);
 
     }
-
-
 
     @PostMapping("/promotions/apply")
 
@@ -7784,15 +6934,11 @@ public class ApiController {
 
             }
 
-
-
             if (promoCode == null || promoCode.trim().isEmpty()) {
 
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập mã khuyến mãi!"));
 
             }
-
-
 
             Optional<Promotion> promoOpt = promotionRepository.findByPromoCode(promoCode.trim().toUpperCase());
 
@@ -7802,15 +6948,11 @@ public class ApiController {
 
             }
 
-
-
             Promotion p = promoOpt.get();
 
             if (!"Đang áp dụng".equalsIgnoreCase(p.getStatus())) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã khuyến mãi '" + promoCode + "' hiện không khả dụng (Trạng thái: " + p.getStatus() + "). Vui lòng kiểm tra hoặc kích hoạt mã trong trang Quản lý giá & Khuyến mãi của Giám đốc!"));
             }
-
-
 
             LocalDate today = LocalDate.now();
 
@@ -7826,13 +6968,9 @@ public class ApiController {
 
             }
 
-
-
             if (!isPromotionApplicableForBranch(p, branchCode)) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã khuyến mãi '" + promoCode + "' chỉ áp dụng cho " + (p.getScope() != null ? p.getScope() : "chi nhánh khác") + "!"));
             }
-
-
 
             BigDecimal discountValue = p.getDiscountValue() != null ? p.getDiscountValue() : BigDecimal.ZERO;
 
@@ -7850,15 +6988,11 @@ public class ApiController {
 
             }
 
-
-
             if (discountAmount.compareTo(orderAmount) > 0) {
 
                 discountAmount = orderAmount;
 
             }
-
-
 
             BigDecimal finalAmount = orderAmount.subtract(discountAmount);
 
@@ -7867,8 +7001,6 @@ public class ApiController {
                 finalAmount = BigDecimal.ZERO;
 
             }
-
-
 
             Map<String, Object> resp = new LinkedHashMap<>();
 
@@ -7888,8 +7020,6 @@ public class ApiController {
 
             resp.put("message", "Áp dụng thành công mã " + p.getPromoCode() + " (" + p.getPromoName() + ")! Giảm " + String.format("%,d", discountAmount.longValue()) + " đ.");
 
-
-
             return ResponseEntity.ok(resp);
 
         } catch (Exception e) {
@@ -7899,8 +7029,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/pricing/proposals/{id}/approve")
 
@@ -7923,10 +7051,6 @@ public class ApiController {
             p.setApprovedAt(LocalDateTime.now());
 
             pricingProposalRepository.save(p);
-
-
-
-            // Đồng bộ và cập nhật giá mới vào bảng pricing_rules trong SQL Server
 
             String bCode = p.getBranchCode();
 
@@ -7951,10 +7075,6 @@ public class ApiController {
                     }
 
                 }
-
-
-
-                // Đồng bộ và cập nhật giá mới vào bảng courts để khách đặt sân và thu ngân POS lập tức nhận giá mới
 
                 if (p.getProposedPrice() != null) {
 
@@ -8000,10 +7120,6 @@ public class ApiController {
 
             }
 
-
-
-            // Ghi nhật ký kiểm toán hệ thống (Audit Log)
-
             try {
 
                 AuditLog logEntry = new AuditLog();
@@ -8024,8 +7140,6 @@ public class ApiController {
 
             } catch (Exception ignored) {}
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã phê duyệt đề xuất giá " + p.getProposalCode() + " thành công và đồng bộ biểu giá vào hệ thống!", "proposal", p));
 
         } catch (Exception e) {
@@ -8035,8 +7149,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/pricing/proposals/{id}/reject")
 
@@ -8066,10 +7178,6 @@ public class ApiController {
 
             pricingProposalRepository.save(p);
 
-
-
-            // Ghi nhật ký kiểm toán hệ thống (Audit Log)
-
             try {
 
                 AuditLog logEntry = new AuditLog();
@@ -8090,8 +7198,6 @@ public class ApiController {
 
             } catch (Exception ignored) {}
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã từ chối đề xuất giá " + p.getProposalCode() + "!", "proposal", p));
 
         } catch (Exception e) {
@@ -8101,8 +7207,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping({"/director/pricing/proposals", "/manager/pricing/proposals"})
 
@@ -8124,13 +7228,9 @@ public class ApiController {
 
             String reason = (String) payload.getOrDefault("reason", "");
 
-
-
             long count = pricingProposalRepository.count();
 
             String code = "DX-G" + String.format("%02d", count + 1);
-
-
 
             PricingProposal pp = new PricingProposal();
 
@@ -8154,8 +7254,6 @@ public class ApiController {
 
             pp.setCreatedAt(LocalDateTime.now());
 
-
-
             pricingProposalRepository.save(pp);
 
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã tạo đề xuất giá mới thành công vào Database!", "proposal", pp));
@@ -8167,8 +7265,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PostMapping("/director/pricing/rules")
 
@@ -8188,15 +7284,11 @@ public class ApiController {
 
             String startDateStr = (String) payload.get("startDate");
 
-
-
             if (branchCode == null || branchCode.trim().isEmpty() || slotCode == null || slotCode.trim().isEmpty()) {
 
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng chọn chi nhánh và khung giờ áp dụng!"));
 
             }
-
-
 
             if (code == null || code.trim().isEmpty()) {
 
@@ -8209,8 +7301,6 @@ public class ApiController {
                 code = code.trim().toUpperCase();
 
             }
-
-
 
             Optional<PricingRule> opt = pricingRuleRepository.findByPricingCode(code);
 
@@ -8228,8 +7318,6 @@ public class ApiController {
 
             r.setStartDate(startDateStr != null && !startDateStr.isEmpty() ? LocalDate.parse(startDateStr) : LocalDate.now());
 
-
-
             pricingRuleRepository.save(r);
 
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã lưu chính sách giá thành công vào Database!", "rule", r));
@@ -8241,8 +7329,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @DeleteMapping("/director/pricing/rules/{pricingCode}")
 
@@ -8270,8 +7356,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/director/pricing/promotions")
 
     public ResponseEntity<?> saveOrUpdatePromotion(@RequestBody Map<String, Object> payload) {
@@ -8297,15 +7381,11 @@ public class ApiController {
 
             String endDateStr = (String) payload.get("endDate");
 
-
-
             if (name == null || name.trim().isEmpty()) {
 
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tên chương trình khuyến mãi không được để trống!"));
 
             }
-
-
 
             if (code == null || code.trim().isEmpty()) {
 
@@ -8318,8 +7398,6 @@ public class ApiController {
                 code = code.trim().toUpperCase();
 
             }
-
-
 
             Optional<Promotion> opt = promotionRepository.findByPromoCode(code);
 
@@ -8341,8 +7419,6 @@ public class ApiController {
 
             p.setEndDate(endDateStr != null && !endDateStr.isEmpty() ? LocalDate.parse(endDateStr) : LocalDate.now().plusMonths(1));
 
-
-
             promotionRepository.save(p);
 
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã lưu chương trình khuyến mãi vào Database!", "promotion", p));
@@ -8354,8 +7430,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/pricing/promotions/{promoCode}/status")
 
@@ -8389,8 +7463,6 @@ public class ApiController {
 
     }
 
-
-
     @DeleteMapping("/director/pricing/promotions/{promoCode}")
 
     public ResponseEntity<?> deletePromotion(@PathVariable String promoCode) {
@@ -8416,8 +7488,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/pricing/promotions/{id}/approve")
 
@@ -8453,8 +7523,6 @@ public class ApiController {
 
             promotionRepository.save(p);
 
-
-
             try {
 
                 AuditLog logEntry = new AuditLog();
@@ -8475,8 +7543,6 @@ public class ApiController {
 
             } catch (Exception ignored) {}
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã phê duyệt và kích hoạt chiến dịch khuyến mãi '" + p.getPromoName() + "' thành công!", "promotion", p));
 
         } catch (Exception e) {
@@ -8486,8 +7552,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/pricing/promotions/{id}/reject")
 
@@ -8523,8 +7587,6 @@ public class ApiController {
 
             promotionRepository.save(p);
 
-
-
             try {
 
                 AuditLog logEntry = new AuditLog();
@@ -8545,8 +7607,6 @@ public class ApiController {
 
             } catch (Exception ignored) {}
 
-
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã bác bỏ chương trình khuyến mãi '" + p.getPromoName() + "'!", "promotion", p));
 
         } catch (Exception e) {
@@ -8556,14 +7616,6 @@ public class ApiController {
         }
 
     }
-
-
-
-    // ==========================================
-
-    // 12. DIRECTOR TOURNAMENT APPROVAL & MEMBER STATS - PHÊ DUYỆT GIẢI ĐẤU & HỘI VIÊN
-
-    // ==========================================
 
     @GetMapping("/director/tournaments")
 
@@ -8581,19 +7633,13 @@ public class ApiController {
 
             List<Booking> allBookings = bookingRepository.findAll();
 
-
-
             Map<String, String> branchNameMap = branches.stream()
 
                     .collect(Collectors.toMap(Branch::getBranchCode, Branch::getBranchName, (b1, b2) -> b1));
 
-
-
             Map<String, List<TournamentRegistration>> regMap = allRegistrations.stream()
 
                     .collect(Collectors.groupingBy(TournamentRegistration::getTournamentCode));
-
-
 
             List<Map<String, Object>> tournamentList = new ArrayList<>();
 
@@ -8602,8 +7648,6 @@ public class ApiController {
             long activeTournaments = 0;
 
             long completedTournaments = 0;
-
-
 
             for (Tournament t : rawTournaments) {
 
@@ -8629,8 +7673,6 @@ public class ApiController {
 
                 item.put("maxParticipants", t.getMaxParticipants() != null ? t.getMaxParticipants() : 32);
 
-
-
                 List<TournamentRegistration> regs = regMap.getOrDefault(t.getTournamentCode(), Collections.emptyList());
 
                 int currentParticipants = regs.size() > 0 ? regs.size() : (t.getCurrentParticipants() != null ? t.getCurrentParticipants() : 0);
@@ -8644,8 +7686,6 @@ public class ApiController {
                 item.put("status", t.getStatus() != null ? t.getStatus() : "Chờ phê duyệt");
 
                 item.put("registrations", regs);
-
-
 
                 if ("Chờ phê duyệt".equalsIgnoreCase(t.getStatus())) {
 
@@ -8661,15 +7701,9 @@ public class ApiController {
 
                 }
 
-
-
                 tournamentList.add(item);
 
             }
-
-
-
-            // Sắp xếp: Chờ phê duyệt lên đầu tiên, sau đó theo ID
 
             tournamentList.sort((a, b) -> {
 
@@ -8685,10 +7719,6 @@ public class ApiController {
 
             });
 
-
-
-            // Danh sách hội viên từ bảng customers
-
             List<Map<String, Object>> customerList = new ArrayList<>();
 
             long diamondCount = 0;
@@ -8696,8 +7726,6 @@ public class ApiController {
             long goldCount = 0;
 
             long silverCount = 0;
-
-
 
             for (Customer c : rawCustomers) {
 
@@ -8725,10 +7753,6 @@ public class ApiController {
 
                 cMap.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().toString() : "2026-01-01");
 
-
-
-                // Tính tổng chi tiêu thực tế từ các lượt booking hoặc ước tính dựa trên giờ chơi
-
                 long spent = allBookings.stream()
 
                         .filter(b -> c.getPhone() != null && c.getPhone().equals(b.getCustomerPhone()))
@@ -8745,10 +7769,6 @@ public class ApiController {
 
                 cMap.put("totalSpent", spent);
 
-
-
-                // Chi nhánh thường xuyên
-
                 String favBranch = allBookings.stream()
 
                         .filter(b -> c.getPhone() != null && c.getPhone().equals(b.getCustomerPhone()))
@@ -8761,8 +7781,6 @@ public class ApiController {
 
                 cMap.put("favoriteBranch", favBranch);
 
-
-
                 String tier = c.getMembershipTier() != null ? c.getMembershipTier() : "Đồng";
 
                 if (tier.contains("Kim Cương")) diamondCount++;
@@ -8771,19 +7789,11 @@ public class ApiController {
 
                 else if (tier.contains("Bạc")) silverCount++;
 
-
-
                 customerList.add(cMap);
 
             }
 
-
-
-            // Sắp xếp hội viên theo điểm tích lũy giảm dần
-
             customerList.sort((a, b) -> Integer.compare((Integer) b.get("rewardPoints"), (Integer) a.get("rewardPoints")));
-
-
 
             Map<String, Object> counts = new LinkedHashMap<>();
 
@@ -8803,8 +7813,6 @@ public class ApiController {
 
             counts.put("silverMembers", silverCount);
 
-
-
             Map<String, Object> response = new LinkedHashMap<>();
 
             response.put("counts", counts);
@@ -8814,8 +7822,6 @@ public class ApiController {
             response.put("customers", customerList);
 
             response.put("branches", branches);
-
-
 
             return ResponseEntity.ok(response);
 
@@ -8828,8 +7834,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/tournaments/{id}/approve")
 
@@ -8860,8 +7864,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/tournaments/{id}/reject")
 
@@ -8897,8 +7899,6 @@ public class ApiController {
 
     }
 
-
-
     @PutMapping("/director/tournaments/{id}/status")
 
     public ResponseEntity<?> updateTournamentStatus(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
@@ -8925,8 +7925,6 @@ public class ApiController {
 
             t.setStatus(newStatus.trim());
 
-
-
             if (payload.containsKey("startDate") && payload.get("startDate") != null && !payload.get("startDate").toString().isEmpty()) {
 
                 try {
@@ -8947,8 +7945,6 @@ public class ApiController {
 
             }
 
-
-
             tournamentRepository.save(t);
 
             return ResponseEntity.ok(Map.of(
@@ -8968,8 +7964,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @PutMapping("/director/tournaments/{id}")
 
@@ -9055,8 +8049,6 @@ public class ApiController {
 
             }
 
-
-
             tournamentRepository.save(t);
 
             return ResponseEntity.ok(Map.of(
@@ -9077,8 +8069,6 @@ public class ApiController {
 
     }
 
-
-
     @PostMapping("/director/tournaments")
 
     public ResponseEntity<?> createTournament(@RequestBody Map<String, Object> payload) {
@@ -9092,8 +8082,6 @@ public class ApiController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tên giải đấu không được để trống!"));
 
             }
-
-
 
             String branchCode = (String) payload.get("branchCode");
             if (branchCode == null || branchCode.isBlank()) {
@@ -9112,8 +8100,6 @@ public class ApiController {
                 code = "GD" + String.format("%02d", count + 1);
 
             }
-
-
 
             Tournament t = new Tournament();
 
@@ -9137,8 +8123,6 @@ public class ApiController {
 
             t.setStatus((String) payload.getOrDefault("status", "Chờ phê duyệt"));
 
-
-
             String startStr = (String) payload.get("startDate");
 
             String endStr = (String) payload.get("endDate");
@@ -9146,8 +8130,6 @@ public class ApiController {
             t.setStartDate(startStr != null && !startStr.isEmpty() ? LocalDateTime.parse(startStr) : LocalDateTime.now().plusDays(10));
 
             t.setEndDate(endStr != null && !endStr.isEmpty() ? LocalDateTime.parse(endStr) : LocalDateTime.now().plusDays(12));
-
-
 
             tournamentRepository.save(t);
 
@@ -9160,8 +8142,6 @@ public class ApiController {
         }
 
     }
-
-
 
     @GetMapping("/director/tournaments/{tournamentCode}/registrations")
 
@@ -9180,16 +8160,6 @@ public class ApiController {
         }
 
     }
-
-
-
-    // ==========================================
-
-    // 8. CUSTOMERS & MANAGER DASHBOARD STATS
-
-    // ==========================================
-
-
 
     @GetMapping("/customers")
 
@@ -9216,8 +8186,6 @@ public class ApiController {
         return list;
 
     }
-
-
 
     @PostMapping("/customers")
 
@@ -9249,8 +8217,6 @@ public class ApiController {
 
     }
 
-
-
     @GetMapping("/manager/stats")
 
     public ResponseEntity<?> getManagerStats(
@@ -9259,11 +8225,7 @@ public class ApiController {
 
             @RequestParam(required = false, defaultValue = "7") int days) {
 
-
-
         String bCode = (branchCode == null || branchCode.trim().isEmpty() || "ALL".equalsIgnoreCase(branchCode)) ? "CN01" : branchCode.trim();
-
-
 
         List<Booking> branchBookings = bookingRepository.findByBranchCodeOrderByBookingDateDesc(bCode);
 
@@ -9273,8 +8235,6 @@ public class ApiController {
 
         }
 
-
-
         List<Court> branchCourts = courtRepository.findByBranchCode(bCode);
 
         if (branchCourts == null || branchCourts.isEmpty()) {
@@ -9283,18 +8243,12 @@ public class ApiController {
 
         }
 
-
-
         List<Customer> allCustomers = customerRepository.findAll();
 
         LocalDate today = LocalDate.now();
 
-
-
-        // 1. KPI: Total bookings (100% database)
         int totalBookings = branchBookings.size();
 
-        // Weekly comparison for bookings: This week [today - 6 .. today] vs Previous week [today - 13 .. today - 7]
         LocalDate thisWeekStart = today.minusDays(6);
         LocalDate prevWeekStart = today.minusDays(13);
         LocalDate prevWeekEnd = today.minusDays(7);
@@ -9332,7 +8286,6 @@ public class ApiController {
             }
         }
 
-        // 2. KPI: Today revenue (100% database, no mock fallback)
         List<Booking> todayBookings = branchBookings.stream()
                 .filter(b -> today.equals(b.getBookingDate()))
                 .collect(Collectors.toList());
@@ -9373,7 +8326,6 @@ public class ApiController {
             }
         }
 
-        // 3. KPI: Occupancy rate (%) (100% real math, no Math.max(35))
         int activeCourtsCount = branchCourts.size();
         int totalCapacityHours = (activeCourtsCount > 0 ? activeCourtsCount : 1) * 16;
 
@@ -9416,7 +8368,6 @@ public class ApiController {
             }
         }
 
-        // 4. KPI: Customers (100% database)
         int totalCustomers = allCustomers.size();
         LocalDateTime weekAgo = today.minusDays(6).atStartOfDay();
         LocalDateTime prevWeekStartDt = today.minusDays(13).atStartOfDay();
@@ -9453,7 +8404,6 @@ public class ApiController {
             }
         }
 
-        // 5. Daily Combo Chart (Last N days)
         List<String> chartLabels = new ArrayList<>();
         List<Integer> chartBookingCounts = new ArrayList<>();
         List<Double> chartRevenues = new ArrayList<>();
@@ -9492,7 +8442,6 @@ public class ApiController {
             chartRevenues.add(Math.round((dayRev / 1_000_000.0) * 10.0) / 10.0);
         }
 
-        // 6. Carpet Type Breakdown (Donut chart from real courts)
         Map<String, Long> carpetCounts = branchCourts.stream()
                 .collect(Collectors.groupingBy(
                         c -> {
@@ -9512,7 +8461,6 @@ public class ApiController {
         int pEnlio = totalCarpets > 0 ? Math.round((float) enlio * 100 / totalCarpets) : 0;
         int pIntl = totalCarpets > 0 ? Math.max(0, 100 - pYonex - pEnlio) : 0;
 
-        // 7. Today Timeline Slots from Database
         List<Map<String, Object>> timeline = new ArrayList<>();
         List<Booking> timelineSource = todayBookings;
         for (Booking b : timelineSource) {
@@ -9582,19 +8530,9 @@ public class ApiController {
 
         res.put("recentBookings", branchBookings.stream().limit(10).collect(Collectors.toList()));
 
-
-
         return ResponseEntity.ok(res);
 
     }
-
-
-
-    // ==========================================
-
-    // 9. MANAGER DETAILED REPORTS DATA (Chi nhánh Thủ Đức CN01)
-
-    // ==========================================
 
     @GetMapping("/manager/reports")
 
@@ -9608,15 +8546,11 @@ public class ApiController {
 
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
 
-
-
         String bCode = (branchCode == null || branchCode.trim().isEmpty() || "ALL".equalsIgnoreCase(branchCode)) ? "CN01" : branchCode.trim();
 
         Branch branch = branchRepository.findByBranchCode(bCode).orElse(null);
 
         String branchName = branch != null ? branch.getBranchName() : "Chi nhánh 1 - Sân Cầu Lông Thủ Đức";
-
-
 
         List<Court> branchCourts = courtRepository.findByBranchCode(bCode);
 
@@ -9626,23 +8560,15 @@ public class ApiController {
 
         }
 
-
-
-        // Lấy danh sách toàn bộ đơn đặt sân của Chi nhánh Thủ Đức từ CSDL
-
         List<Booking> allBranchBookings = bookingRepository.findByBranchCodeOrderByBookingDateDesc(bCode);
 
         if (allBranchBookings == null) allBranchBookings = new ArrayList<>();
-
-
 
         LocalDate today = LocalDate.now();
 
         java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         java.time.format.DateTimeFormatter dtfShort = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
-
-
 
         LocalDate startDate;
 
@@ -9657,8 +8583,6 @@ public class ApiController {
         String chartSubtitle;
 
         String comparisonLabel;
-
-
 
         if (fromDate != null && toDate != null) {
 
@@ -9726,7 +8650,7 @@ public class ApiController {
 
             comparisonLabel = String.format("Lũy kế Quý %d từ 01/%02d đến hôm nay %s", qNum, startMonth, today.format(dtf));
 
-        } else { // "this_month"
+        } else {
 
             startDate = today.withDayOfMonth(1);
 
@@ -9744,10 +8668,6 @@ public class ApiController {
 
         }
 
-
-
-        // 1. Lọc đơn đặt sân của chi nhánh Thủ Đức nằm trong khoảng [startDate, endDate]
-
         final LocalDate fStart = startDate;
 
         final LocalDate fEnd = endDate;
@@ -9760,19 +8680,11 @@ public class ApiController {
 
                 .collect(Collectors.toList());
 
-
-
-        // Lọc các đơn hợp lệ (loại bỏ 'Đã hủy') để tính doanh thu và giờ chơi
-
         List<Booking> activeBookings = periodBookings.stream()
 
                 .filter(b -> !"Đã hủy".equalsIgnoreCase(b.getStatus()))
 
                 .collect(Collectors.toList());
-
-
-
-        // 2. Tính toán hiệu suất từng sân (CL01 -> CL08) 100% từ CSDL
 
         List<Map<String, Object>> courtPerformance = new ArrayList<>();
 
@@ -9784,10 +8696,6 @@ public class ApiController {
 
         int activeCourtCount = 0;
 
-
-
-        // Tính số ngày đã diễn ra trong khoảng lọc để làm mẫu số cho tỷ lệ lấp đầy
-
         LocalDate effectiveEndDate = endDate.isAfter(today) ? today : endDate;
 
         long elapsedDays = 1;
@@ -9798,11 +8706,9 @@ public class ApiController {
 
         }
 
-        double courtDailyOperatingHours = 14.0; // 08:00 đến 22:00
+        double courtDailyOperatingHours = 14.0;
 
         double maxOperatingHours = Math.max(14.0, elapsedDays * courtDailyOperatingHours);
-
-
 
         for (Court court : branchCourts) {
 
@@ -9813,8 +8719,6 @@ public class ApiController {
                     .filter(b -> code.equalsIgnoreCase(b.getCourtCode()))
 
                     .collect(Collectors.toList());
-
-
 
             double courtHours = 0;
 
@@ -9832,11 +8736,7 @@ public class ApiController {
 
             }
 
-
-
             sumCourtRev += courtRev;
-
-
 
             boolean isMaintenance = "Bảo trì".equalsIgnoreCase(court.getStatus());
 
@@ -9845,8 +8745,6 @@ public class ApiController {
             String eff;
 
             String badge;
-
-
 
             if (isMaintenance) {
 
@@ -9892,15 +8790,11 @@ public class ApiController {
 
             }
 
-
-
             String hoursStr = (courtHours == (long) courtHours)
 
                     ? ((long) courtHours + " giờ")
 
                     : String.format(Locale.US, "%.1f giờ", courtHours);
-
-
 
             Map<String, Object> cMap = new LinkedHashMap<>();
 
@@ -9926,15 +8820,7 @@ public class ApiController {
 
         }
 
-
-
         double avgOccupancy = activeCourtCount > 0 ? Math.round((sumOcc / activeCourtCount) * 10.0) / 10.0 : 0.0;
-
-
-
-        // 3. Tính toán doanh thu dịch vụ (F&B, thiết bị) từ CSDL
-
-        // Tra cứu hóa đơn trong khoảng thời gian lọc
 
         List<Invoice> periodInvoices = invoiceRepository.findByInvoiceDateBetween(
 
@@ -9958,15 +8844,9 @@ public class ApiController {
 
         }
 
-        // Doanh thu dịch vụ tương ứng với tỷ lệ thực tế sân cầu lông (~25% doanh thu tiền giờ sân)
-
         long serviceRev = (actualInvoiceServices > 0) ? Math.max(actualInvoiceServices, Math.round(sumCourtRev * 0.25)) : Math.round(sumCourtRev * 0.25);
 
         long totalRev = sumCourtRev + serviceRev;
-
-
-
-        // 4. Biểu đồ diễn biến doanh thu (Trend Chart) động 100% theo nhan đề bộ lọc
 
         List<String> trendLabels = new ArrayList<>();
 
@@ -9974,11 +8854,7 @@ public class ApiController {
 
         List<Long> trendServiceRevs = new ArrayList<>();
 
-
-
         if ("today".equals(periodType)) {
-
-            // Theo khung giờ trong ngày: 08:00 - 10:00, 10:00 - 12:00, 14:00 - 16:00, 16:00 - 18:00, 18:00 - 20:00, 20:00 - 22:00
 
             String[] slots = new String[]{"06:00 - 08:00", "08:00 - 10:00", "10:00 - 12:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00", "20:00 - 22:00"};
 
@@ -10005,8 +8881,6 @@ public class ApiController {
             }
 
         } else if ("this_week".equals(periodType)) {
-
-            // 7 ngày trong tuần từ Thứ 2 đến Chủ nhật
 
             String[] dayNames = new String[]{"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"};
 
@@ -10045,8 +8919,6 @@ public class ApiController {
             }
 
         } else if ("quarter".equals(periodType)) {
-
-            // 3 tháng trong quý
 
             int q = (today.getMonthValue() - 1) / 3;
 
@@ -10092,8 +8964,6 @@ public class ApiController {
 
             if (daysCount <= 1) {
 
-                // Giống today
-
                 String[] slots = new String[]{"06:00 - 08:00", "08:00 - 10:00", "10:00 - 12:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00", "20:00 - 22:00"};
 
                 for (String slot : slots) {
@@ -10119,8 +8989,6 @@ public class ApiController {
                 }
 
             } else if (daysCount <= 14) {
-
-                // Từng ngày
 
                 for (int i = 0; i < daysCount; i++) {
 
@@ -10157,8 +9025,6 @@ public class ApiController {
                 }
 
             } else {
-
-                // Nhóm theo tuần
 
                 LocalDate cur = startDate;
 
@@ -10208,8 +9074,6 @@ public class ApiController {
 
         } else {
 
-            // "this_month": 5 tuần của tháng 10
-
             trendLabels.addAll(List.of("Tuần 1 (01-07)", "Tuần 2 (08-14)", "Tuần 3 (15-21)", "Tuần 4 (22-28)", "Tuần 5 (29-31)"));
 
             LocalDate mStart = today.withDayOfMonth(1);
@@ -10231,8 +9095,6 @@ public class ApiController {
             for (LocalDate[] wr : weekRanges) {
 
                 if (wr[0].isAfter(today)) {
-
-                    // Tuần chưa tới -> 0 VNĐ
 
                     trendCourtRevs.add(0L);
 
@@ -10262,17 +9124,11 @@ public class ApiController {
 
         }
 
-
-
-        // 5. Cơ cấu nguồn thu (Pie Chart)
-
         long drinkRev = Math.round(serviceRev * 0.55);
 
         long shuttleRev = Math.round(serviceRev * 0.30);
 
         long racketRev = Math.max(0, serviceRev - drinkRev - shuttleRev);
-
-
 
         double courtPct = totalRev > 0 ? (sumCourtRev * 100.0 / totalRev) : 80.0;
 
@@ -10281,8 +9137,6 @@ public class ApiController {
         double shuttlePct = totalRev > 0 ? (shuttleRev * 100.0 / totalRev) : 5.8;
 
         double racketPct = Math.max(0.0, 100.0 - courtPct - drinkPct - shuttlePct);
-
-
 
         Map<String, Object> revenueStructure = new LinkedHashMap<>();
 
@@ -10306,10 +9160,6 @@ public class ApiController {
 
                 : String.format(Locale.US, "%.0fK", totalRev / 1000.0));
 
-
-
-        // 6. Đóng gói kết quả trả về
-
         Map<String, Object> kpis = new LinkedHashMap<>();
 
         kpis.put("totalRevenue", totalRev);
@@ -10322,8 +9172,6 @@ public class ApiController {
 
         kpis.put("growthTrend", 14.2);
 
-
-
         Map<String, Object> weeklyTrend = new LinkedHashMap<>();
 
         weeklyTrend.put("labels", trendLabels);
@@ -10331,8 +9179,6 @@ public class ApiController {
         weeklyTrend.put("courtRevenues", trendCourtRevs);
 
         weeklyTrend.put("serviceRevenues", trendServiceRevs);
-
-
 
         Map<String, Object> response = new LinkedHashMap<>();
 
@@ -10364,13 +9210,9 @@ public class ApiController {
 
         response.put("courtPerformance", courtPerformance);
 
-
-
         return ResponseEntity.ok(response);
 
     }
-
-
 
     private double parseBookingHours(Booking b) {
 
@@ -10416,8 +9258,6 @@ public class ApiController {
 
     }
 
-
-
     private boolean isSlotMatch(String bookingSlot, String targetSlot) {
 
         if (bookingSlot == null || targetSlot == null) return false;
@@ -10443,6 +9283,4 @@ public class ApiController {
     }
 
 }
-
-
 

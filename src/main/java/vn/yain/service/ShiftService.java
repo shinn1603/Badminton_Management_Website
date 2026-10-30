@@ -38,10 +38,6 @@ public class ShiftService {
 
     private static final String[] DAYS_ORDER = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
 
-    // ==========================================
-    // 1. STAFF CRUD & PERSISTENCE
-    // ==========================================
-
     public List<Staff> getAllStaff(String branchCode) {
         ensureDefaultStaffSeeded();
         if (branchCode != null && !branchCode.trim().isEmpty() && !"ALL".equalsIgnoreCase(branchCode.trim())) {
@@ -114,10 +110,6 @@ public class ShiftService {
         staffSeeded = true;
     }
 
-    // ==========================================
-    // 2. WEEKLY WORK SHIFTS PERSISTENCE
-    // ==========================================
-
     public Map<String, Object> getWeeklySchedule(String branchCode) {
         ensureDefaultStaffSeeded();
         boolean isAll = branchCode == null || "ALL".equalsIgnoreCase(branchCode.trim());
@@ -176,7 +168,6 @@ public class ShiftService {
             try {
                 workShiftRepository.deleteAll(duplicateShiftsToDelete);
             } catch (Exception e) {
-                // Ignore cleanup errors during read
             }
         }
 
@@ -239,7 +230,6 @@ public class ShiftService {
         String dt = recoverDuty(duty, st);
         String ic = (icon != null && !icon.trim().isEmpty()) ? icon.trim() : "POS";
 
-        // Ensure each shift has at most 1 manager
         if (isManager(st, dt, ic)) {
             List<WorkShift> existingShifts = workShiftRepository.findByBranchCodeAndDayOfWeekAndShiftType(br, d, s);
             if (existingShifts != null) {
@@ -256,7 +246,6 @@ public class ShiftService {
             }
         }
 
-        // Ensure staff exists in DB to prevent foreign key violation
         if (!staffRepository.existsByStaffCode(st)) {
             staffRepository.save(Staff.builder()
                     .staffCode(st)
@@ -268,7 +257,6 @@ public class ShiftService {
                     .build());
         }
 
-        // Remove existing identical assignment to prevent duplicate
         workShiftRepository.deleteByDayOfWeekAndShiftTypeAndStaffCode(d, s, st);
 
         String shiftCode = "WS-" + d.toUpperCase() + "-" + s.substring(0, Math.min(3, s.length())).toUpperCase() + "-" + st + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
@@ -375,40 +363,34 @@ public class ShiftService {
         List<WorkShift> list = new ArrayList<>();
         int seq = 100;
 
-        // Monday
         list.add(createShift(branchCode, "mon", "morning", "NS03", "POS", "POS", seq++));
         list.add(createShift(branchCode, "mon", "morning", "NS11", "Kỹ thuật", "TECH", seq++));
         list.add(createShift(branchCode, "mon", "night", "NS09", "Lễ tân", "REC", seq++));
         list.add(createShift(branchCode, "mon", "night", "NS02", "Quản lý", "MGR", seq++));
         list.add(createShift(branchCode, "mon", "night", "NS12", "Kỹ thuật", "TECH", seq++));
 
-        // Tuesday
         list.add(createShift(branchCode, "tue", "morning", "NS03", "POS", "POS", seq++));
         list.add(createShift(branchCode, "tue", "morning", "NS04", "Thu ngân", "CASH", seq++));
         list.add(createShift(branchCode, "tue", "night", "NS09", "Lễ tân", "REC", seq++));
         list.add(createShift(branchCode, "tue", "night", "NS11", "Kỹ thuật", "TECH", seq++));
 
-        // Wednesday
         list.add(createShift(branchCode, "wed", "morning", "NS03", "POS", "POS", seq++));
         list.add(createShift(branchCode, "wed", "morning", "NS11", "Kỹ thuật", "TECH", seq++));
         list.add(createShift(branchCode, "wed", "night", "NS04", "Thu ngân", "CASH", seq++));
         list.add(createShift(branchCode, "wed", "night", "NS02", "Quản lý", "MGR", seq++));
         list.add(createShift(branchCode, "wed", "night", "NS12", "Kỹ thuật", "TECH", seq++));
 
-        // Thursday
         list.add(createShift(branchCode, "thu", "morning", "NS10", "Thu ngân", "CASH", seq++));
         list.add(createShift(branchCode, "thu", "morning", "NS12", "Kỹ thuật", "TECH", seq++));
         list.add(createShift(branchCode, "thu", "night", "NS03", "POS", "POS", seq++));
         list.add(createShift(branchCode, "thu", "night", "NS11", "Kỹ thuật", "TECH", seq++));
 
-        // Friday
         list.add(createShift(branchCode, "fri", "morning", "NS03", "POS", "POS", seq++));
         list.add(createShift(branchCode, "fri", "morning", "NS10", "Thu ngân", "CASH", seq++));
         list.add(createShift(branchCode, "fri", "night", "NS09", "Lễ tân", "REC", seq++));
         list.add(createShift(branchCode, "fri", "night", "NS02", "Quản lý", "MGR", seq++));
         list.add(createShift(branchCode, "fri", "night", "NS12", "Kỹ thuật", "TECH", seq++));
 
-        // Saturday
         list.add(createShift(branchCode, "sat", "morning", "NS03", "POS", "POS", seq++));
         list.add(createShift(branchCode, "sat", "morning", "NS11", "Kỹ thuật", "TECH", seq++));
         list.add(createShift(branchCode, "sat", "morning", "NS09", "Lễ tân", "REC", seq++));
@@ -416,7 +398,6 @@ public class ShiftService {
         list.add(createShift(branchCode, "sat", "night", "NS02", "Quản lý", "MGR", seq++));
         list.add(createShift(branchCode, "sat", "night", "NS12", "Kỹ thuật", "TECH", seq++));
 
-        // Sunday
         list.add(createShift(branchCode, "sun", "morning", "NS10", "Thu ngân", "CASH", seq++));
         list.add(createShift(branchCode, "sun", "morning", "NS12", "Kỹ thuật", "TECH", seq++));
         list.add(createShift(branchCode, "sun", "morning", "NS09", "Lễ tân", "REC", seq++));
@@ -445,9 +426,7 @@ public class ShiftService {
                 .build();
     }
 
-    // ==========================================
     // 3. CASHIER SHIFT SUMMARY & CLOSE (XL-08)
-    // ==========================================
 
     public Map<String, Object> getShiftSummary(String staffCode, String branchCode) {
         String staff = (staffCode != null && !staffCode.trim().isEmpty()) ? staffCode.trim() : "NVQ01";
@@ -556,7 +535,6 @@ public class ShiftService {
                     .build());
         }
 
-        // Persist shift handover record to database
         WorkShift closedShift = WorkShift.builder()
                 .shiftCode(handoverCode)
                 .staffCode(effectiveStaff)

@@ -1,7 +1,5 @@
 package vn.yain.config;
 
-
-
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +14,6 @@ import vn.yain.entity.*;
 
 import vn.yain.repository.*;
 
-
-
 import java.math.BigDecimal;
 
 import java.time.LocalDate;
@@ -28,8 +24,6 @@ import java.util.List;
 
 import java.util.Optional;
 
-
-
 @Configuration
 
 @RequiredArgsConstructor
@@ -37,8 +31,6 @@ import java.util.Optional;
 @Slf4j
 
 public class DatabaseSeeder implements CommandLineRunner {
-
-
 
     private final BranchRepository branchRepository;
 
@@ -81,8 +73,6 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
-
-
 
     @Override
 
@@ -145,7 +135,6 @@ public class DatabaseSeeder implements CommandLineRunner {
     private void ensureSchemaUpdated() {
         if (jdbcTemplate == null) return;
         try {
-            // Courts columns
             String[] courtAlters = {
                 "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'condition_images') ALTER TABLE dbo.courts ADD condition_images NVARCHAR(MAX);",
                 "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.courts') AND name = 'likes_count') ALTER TABLE dbo.courts ADD likes_count INT DEFAULT 0;",
@@ -161,12 +150,10 @@ public class DatabaseSeeder implements CommandLineRunner {
                 } catch (Exception ignored) {}
             }
 
-            // Customers avatar
             try {
                 jdbcTemplate.execute("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.customers') AND name = 'avatar_url') ALTER TABLE dbo.customers ADD avatar_url NVARCHAR(500);");
             } catch (Exception ignored) {}
 
-            // Users avatar
             try {
                 jdbcTemplate.execute("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.users') AND name = 'avatar_url') ALTER TABLE dbo.users ADD avatar_url NVARCHAR(500);");
             } catch (Exception ignored) {}
@@ -177,11 +164,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private void seedBranches() {
 
-        // Xóa chi nhánh giả lập ALL nếu tồn tại trong cơ sở dữ liệu
-
         branchRepository.findByBranchCode("ALL").ifPresent(branchRepository::delete);
-
-
 
         if (branchRepository.count() < 4) {
 
@@ -211,8 +194,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Branch createBranch(String code, String name, String addr, String phone, String mgr, int courts, String status) {
 
         Branch b = new Branch();
@@ -235,15 +216,11 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedCourts() {
 
         if (courtRepository.count() < 26) {
 
             List<Court> courts = List.of(
-
-                // Chi nhánh 1 - Thủ Đức (8 sân)
 
                 createCourt("CL01", "CN01", "Sân cầu lông 1 (VIP)", "Cầu lông VIP", new BigDecimal("120000"), "Trống", "/images/badminton-court.jpg"),
 
@@ -261,8 +238,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 createCourt("CL08", "CN01", "Sân cầu lông 8", "Cầu lông tiêu chuẩn", new BigDecimal("90000"), "Trống", "/images/badminton-court.jpg"),
 
-                // Chi nhánh 2 - Bình Thạnh (6 sân)
-
                 createCourt("BT01", "CN02", "Sân BT 1 (VIP)", "Cầu lông VIP", new BigDecimal("120000"), "Đang sử dụng", "/images/badminton-court.jpg"),
 
                 createCourt("BT02", "CN02", "Sân BT 2", "Cầu lông tiêu chuẩn", new BigDecimal("90000"), "Trống", "/images/badminton-court.jpg"),
@@ -275,8 +250,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 createCourt("BT06", "CN02", "Sân BT 6 (VIP)", "Cầu lông VIP", new BigDecimal("120000"), "Trống", "/images/badminton-court.jpg"),
 
-                // Chi nhánh 3 - Quận 9 (6 sân)
-
                 createCourt("Q901", "CN03", "Sân Q9 1 (VIP)", "Cầu lông VIP", new BigDecimal("120000"), "Trống", "/images/badminton-court.jpg"),
 
                 createCourt("Q902", "CN03", "Sân Q9 2", "Cầu lông tiêu chuẩn", new BigDecimal("90000"), "Đang sử dụng", "/images/badminton-court.jpg"),
@@ -288,8 +261,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                 createCourt("Q905", "CN03", "Sân Q9 5", "Cầu lông tiêu chuẩn", new BigDecimal("90000"), "Trống", "/images/badminton-court.jpg"),
 
                 createCourt("Q906", "CN03", "Sân Q9 6", "Cầu lông tiêu chuẩn", new BigDecimal("90000"), "Trống", "/images/badminton-court.jpg"),
-
-                // Chi nhánh 4 - Gò Vấp (6 sân)
 
                 createCourt("GV01", "CN04", "Sân GV 1 (VIP)", "Cầu lông VIP", new BigDecimal("120000"), "Trống", "/images/badminton-court.jpg"),
 
@@ -315,7 +286,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             }
 
-            // Chuẩn hóa tên sân VIP và Thường cho các dữ liệu cũ đã lưu
             try {
                 List<Court> allCourts = courtRepository.findAll();
                 for (Court exCourt : allCourts) {
@@ -329,8 +299,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private Court createCourt(String code, String branch, String name, String type, BigDecimal rate, String status, String img) {
 
@@ -354,8 +322,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedTimeSlots() {
 
         if (timeSlotRepository.count() < 4) {
@@ -376,8 +342,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private TimeSlot createTimeSlot(String code, String start, String end, String type) {
 
         TimeSlot ts = new TimeSlot();
@@ -393,8 +357,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return ts;
 
     }
-
-
 
     private void seedPricingRules() {
 
@@ -430,8 +392,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private PricingRule createPricingRule(String code, String branch, String slot, String dayType, LocalDate start, BigDecimal rate) {
 
         PricingRule pr = new PricingRule();
@@ -451,8 +411,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return pr;
 
     }
-
-
 
     private void seedCustomers() {
 
@@ -484,8 +442,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Customer createCustomer(String code, String name, String phone, String email, String pass, BigDecimal hours, int pts, String tier) {
 
         Customer c = new Customer();
@@ -509,8 +465,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return c;
 
     }
-
-
 
     private void seedStaff() {
 
@@ -554,8 +508,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Staff createStaff(String code, String branch, String name, String pos, String phone, String email, String addr) {
 
         Staff s = new Staff();
@@ -580,11 +532,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedUsers() {
-
-        // 1. Quét và chuyển đổi dứt điểm bất kỳ tài khoản có vai trò 'STAFF' sang 'POS' (Thu ngân POS)
 
         userRepository.findAll().forEach(u -> {
 
@@ -598,13 +546,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         });
 
-
-
-        // 2. Danh sách chuẩn hóa toàn bộ tài khoản đăng nhập & trải nghiệm nhanh
-
         List<User> users = List.of(
-
-            // 5 Tài khoản trải nghiệm nhanh chính trên trang Đăng nhập (/login)
 
             createUser("director", "123456", "Nguyễn Phước Thọ", "DIRECTOR", "ALL", "0901111222", "director@utesport.vn", "NS01"),
 
@@ -616,15 +558,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             createUser("customer", "123456", "Lê Bá Đạt", "CUSTOMER", "CN01", "0912345678", "khachhang@gmail.com", null),
 
-
-
-            // Ban Giám Đốc chuỗi
-
             createUser("nam.vh", "123456", "Võ Hoàng Nam", "DIRECTOR", "ALL", "0901111222", "nam.vh@utesport.vn", "NS01"),
-
-
-
-            // Quản lý các chi nhánh (CN01, CN02, CN03, CN04)
 
             createUser("ql_cn01", "123456", "Trần Phúc Bảo", "MANAGER", "CN01", "0903123456", "bao.tran@utesport.vn", "NS02"),
 
@@ -639,10 +573,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             createUser("khang.lh", "123456", "Lê Hoàng Khang", "MANAGER", "CN04", "0903555777", "khang.lh@utesport.vn", "NS07"),
 
             createUser("ql_cn04", "123456", "Lê Hoàng Khang", "MANAGER", "CN04", "0903555777", "khang.lh.mgr@utesport.vn", "NS07"),
-
-
-
-            // Thu ngân POS các chi nhánh (CN01, CN02, CN03, CN04)
 
             createUser("mai.lt", "123456", "Lê Thị Mai", "POS", "CN01", "0904777888", "mai.lt@utesport.vn", "NS04"),
 
@@ -661,8 +591,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             createUser("nv_cn04", "123456", "Lê Văn Hùng", "POS", "CN04", "0908111333", "hung.lv@utesport.vn", "NS08")
 
         );
-
-
 
         for (User u : users) {
 
@@ -730,8 +658,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private User createUser(String username, String rawPass, String fullName, String role, String branch, String phone, String email, String staffCode) {
 
         User u = new User();
@@ -757,8 +683,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return u;
 
     }
-
-
 
     private void seedEquipment() {
 
@@ -790,8 +714,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Equipment createEquipment(String code, String branch, String name, int stock, BigDecimal price, String condition) {
 
         Equipment e = new Equipment();
@@ -811,8 +733,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return e;
 
     }
-
-
 
     private void seedProducts() {
 
@@ -854,8 +774,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Product createProduct(String code, String branch, String name, String cat, String unit, BigDecimal price, BigDecimal cost, int stock, int min) {
 
         Product p = new Product();
@@ -882,8 +800,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedBookings() {
 
         if (bookingRepository.count() < 25) {
@@ -891,8 +807,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             LocalDate today = LocalDate.now();
 
             List<Booking> bookings = List.of(
-
-                // Hôm nay (Live Operations)
 
                 createBooking("DS0101", "KH002", "Nguyễn Hoàng Nam", "0903123456", "CL02", "CN01", today, "08:00 - 10:00", new BigDecimal("90000"), new BigDecimal("180000"), new BigDecimal("54000"), "Tiền mặt", "Đang sử dụng", "Khách quen tuần 3 buổi"),
 
@@ -902,17 +816,11 @@ public class DatabaseSeeder implements CommandLineRunner {
 
                 createBooking("DS0104", "KH004", "Vũ Thị Mai Anh", "0977555444", "CL03", "CN01", today, "19:00 - 20:00", new BigDecimal("90000"), new BigDecimal("90000"), new BigDecimal("27000"), "VietQR Pro", "Chờ xác nhận", "Khách đặt qua web portal"),
 
-                // Ngày mai
-
                 createBooking("DS0105", "KH005", "Trần Thanh Hằng", "0933444555", "CL01", "CN01", today.plusDays(1), "17:00 - 18:00", new BigDecimal("120000"), new BigDecimal("120000"), new BigDecimal("36000"), "Chuyển khoản VietQR", "Đã cọc 30%", "Chuyển khoản VietQR giữ chỗ 10p"),
 
                 createBooking("DS0106", "KH006", "Bùi Khánh Linh", "0909111222", "CL04", "CN01", today.plusDays(1), "20:00 - 22:00", new BigDecimal("90000"), new BigDecimal("180000"), new BigDecimal("54000"), "Tiền mặt", "Đã xác nhận", "Giao lưu công ty FPT"),
 
-                // Hôm qua
-
                 createBooking("DS0107", "KH002", "Đỗ Quang Vinh", "0944333222", "CL02", "CN01", today.minusDays(1), "15:00 - 16:00", new BigDecimal("90000"), new BigDecimal("90000"), BigDecimal.ZERO, "Tiền mặt", "Đã hủy", "Bận công tác đột xuất"),
-
-                // Các chi nhánh khác
 
                 createBooking("DS0201", "KH001", "Lê Bá Đạt", "0912345678", "BT01", "CN02", today, "18:00 - 20:00", new BigDecimal("120000"), new BigDecimal("240000"), new BigDecimal("72000"), "Chuyển khoản VietQR", "Đang sử dụng", "Sân VIP Bình Thạnh"),
 
@@ -921,8 +829,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                 createBooking("DS0301", "KH004", "Vũ Thị Mai Anh", "0977555444", "Q902", "CN03", today, "17:00 - 19:00", new BigDecimal("90000"), new BigDecimal("180000"), new BigDecimal("54000"), "VietQR Pro", "Đang sử dụng", "Nhóm bạn sinh viên"),
 
                 createBooking("DS0401", "KH005", "Trần Thanh Hằng", "0933444555", "GV02", "CN04", today, "18:00 - 20:00", new BigDecimal("90000"), new BigDecimal("180000"), new BigDecimal("54000"), "Tiền mặt", "Đang sử dụng", "Khách vãng lai chi nhánh GV"),
-
-                // Lịch sử doanh thu
 
                 createBooking("DS01_1001_1", "KH001", "Lê Bá Đạt", "0912345678", "CL01", "CN01", today.minusDays(5), "08:00 - 10:00", new BigDecimal("120000"), new BigDecimal("240000"), new BigDecimal("72000"), "Tiền mặt", "Hoàn thành", "Khách quen tập sáng"),
 
@@ -966,8 +872,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Booking createBooking(String code, String custCode, String custName, String phone, String court, String branch, LocalDate date, String slot, BigDecimal hourly, BigDecimal total, BigDecimal deposit, String method, String status, String notes) {
 
         Booking b = new Booking();
@@ -1006,11 +910,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedTournaments() {
-
-        // Cập nhật trạng thái các giải đấu đã qua hạn sang 'Đã kết thúc'
 
         tournamentRepository.findByTournamentCode("GD01").ifPresent(t -> {
 
@@ -1023,8 +923,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
 
         });
-
-
 
         List<Tournament> defaultTournaments = List.of(
             createTournament("GD01", "CN01", "Giải Cầu Lông Đôi Nam Nữ Mùa Thu UTE Open 2026", "Đôi nam nữ", LocalDateTime.of(2026, 10, 10, 8, 0), LocalDateTime.of(2026, 10, 12, 18, 0), "Thi đấu theo thể thức loại trực tiếp 3 hiệp 21 điểm theo luật BWF. Mỗi VĐV chỉ được đăng ký 1 nội dung.", 32, 24, new BigDecimal("300000"), new BigDecimal("20000000"), "Đã kết thúc"),
@@ -1041,8 +939,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private Tournament createTournament(String code, String branch, String name, String cat, LocalDateTime start, LocalDateTime end, String rules, int max, int cur, BigDecimal fee, BigDecimal prize, String status) {
 
@@ -1076,8 +972,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedTournamentRegistrations() {
 
         if (tournamentRegistrationRepository.count() < 5) {
@@ -1100,8 +994,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private TournamentRegistration createTournamentReg(String tourCode, String custCode, String team, String cat, String phone, String status) {
 
         TournamentRegistration reg = new TournamentRegistration();
@@ -1123,8 +1015,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return reg;
 
     }
-
-
 
     private void seedPayments() {
 
@@ -1150,8 +1040,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private Payment createPayment(String code, String bookingCode, BigDecimal amount, String method, String type, String ref, String status) {
 
         Payment p = new Payment();
@@ -1176,8 +1064,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedWorkShifts() {
 
         if (workShiftRepository.count() < 5) {
@@ -1201,8 +1087,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private WorkShift createWorkShift(String code, String staffCode, LocalDate date, String start, String end, String type, String status) {
 
@@ -1230,8 +1114,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedPromotions() {
 
         if (promotionRepository.count() < 3) {
@@ -1249,8 +1131,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private Promotion createPromotion(String code, String name, String type, BigDecimal val, LocalDate start, LocalDate end, String scope, String status) {
 
@@ -1275,8 +1155,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return p;
 
     }
-
-
 
     private void seedSystemSettings() {
 
@@ -1318,8 +1196,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void saveSettingIfMissing(String code, String name, String val, String desc) {
 
         if (systemSettingRepository.findBySettingCode(code).isEmpty()) {
@@ -1329,8 +1205,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private SystemSetting createSetting(String code, String name, String val, String desc) {
 
@@ -1349,8 +1223,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         return s;
 
     }
-
-
 
     private void seedStockReceipts() {
 
@@ -1374,8 +1246,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             stockReceiptRepository.save(r1);
 
-
-
             StockReceipt r2 = new StockReceipt();
 
             r2.setReceiptCode("PN0102");
@@ -1397,8 +1267,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private void seedSuppliers() {
 
@@ -1532,8 +1400,6 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     }
 
-
-
     private void seedAuditLogs() {
 
         if (auditLogRepository.count() < 10) {
@@ -1571,8 +1437,6 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
     }
-
-
 
     private AuditLog createAuditLog(String username, String userCode, String actionType, String details, String module, String ip, String status, LocalDateTime time) {
 

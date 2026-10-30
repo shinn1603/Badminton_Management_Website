@@ -108,7 +108,6 @@ class SystemSettingsAndAuditLogsTest {
         assertNotNull(depSetting);
         assertEquals("35", depSetting.getSettingValue());
 
-        // Reset settings
         mockMvc.perform(post("/api/admin/settings/reset"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
@@ -121,7 +120,6 @@ class SystemSettingsAndAuditLogsTest {
     @Test
     @DisplayName("API Audit Logs & Backup: GET /api/admin/logs va POST /api/admin/logs/backup")
     void testAdminAuditLogsAndBackup() throws Exception {
-        // Create manual backup log
         Map<String, String> backupPayload = Map.of("filename", "backup_unit_test.sql.gz");
         mockMvc.perform(post("/api/admin/logs/backup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -130,13 +128,11 @@ class SystemSettingsAndAuditLogsTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.backup.actionType", containsString("Sao lưu")));
 
-        // Get logs
         mockMvc.perform(get("/api/admin/logs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.logs", not(empty())));
 
-        // Get backup logs
         mockMvc.perform(get("/api/admin/logs/backups"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
@@ -161,7 +157,6 @@ class SystemSettingsAndAuditLogsTest {
         testUser.setStatus("Hoạt động");
         userRepository.save(testUser);
 
-        // 1. Request OTP
         Map<String, String> forgotPayload = Map.of("identifier", username);
         mockMvc.perform(post("/api/auth/forgot-password")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -170,14 +165,12 @@ class SystemSettingsAndAuditLogsTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.email", containsString("***")));
 
-        // 2. Retrieve valid OTP from controller memory
         java.lang.reflect.Field otpField = ApiController.class.getDeclaredField("forgotPasswordOtpMap");
         otpField.setAccessible(true);
         @SuppressWarnings("unchecked")
         Map<String, Map<String, Object>> otpMap = (Map<String, Map<String, Object>>) otpField.get(apiController);
         String validOtp = (String) otpMap.get(username.toLowerCase()).get("otp");
 
-        // 3. Reset password directly with valid OTP
         Map<String, String> resetPayload = Map.of(
                 "identifier", username,
                 "newPassword", "NewPassword@2026",

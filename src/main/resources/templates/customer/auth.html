@@ -416,8 +416,6 @@
 </head>
 <body>
 
-  <!-- Customer Header -->
-    <!-- 1. TOP NAVBAR -->
   <header class="cust-navbar">
     <div class="cust-nav-inner">
       <a href="/customer/home" class="cust-brand-wrap">
@@ -458,7 +456,6 @@
       </nav>
 
       <div class="cust-nav-actions">
-        <!-- THEME TOGGLE BUTTON -->
         <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối" style="padding: 8px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;">
           <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
             <circle cx="12" cy="12" r="5"></circle>
@@ -471,7 +468,6 @@
           </svg>
         </button>
 
-        <!-- DYNAMIC USER AUTH WIDGET -->
         <div id="navUserArea">
           <a href="/customer/auth" class="btn btn-primary" id="btnNavAuth" style="padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600;">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
@@ -482,7 +478,6 @@
     </div>
   </header>
 
-  <!-- Auth Card Container -->
   <div class="auth-page-wrapper">
     <div class="auth-container-card">
       <div class="auth-card-top">
@@ -493,7 +488,6 @@
         <p class="auth-sub">Đăng nhập để đặt sân trực tuyến và quản lý lịch chơi</p>
       </div>
 
-      <!-- Quick Account State Bar -->
       <div id="alreadyLoggedInBanner" style="display: none; padding: 14px 20px; background: rgba(16, 185, 129, 0.1); border-bottom: 1px solid rgba(16, 185, 129, 0.25); text-align: center; font-size: 13px;">
         <span style="color: var(--text-dark);">Tài khoản hiện tại: <strong id="loggedUserName">---</strong></span>
         <div style="display: flex; gap: 10px; justify-content: center; margin-top: 8px;">
@@ -502,7 +496,6 @@
         </div>
       </div>
 
-      <!-- Tab Switcher -->
       <div class="auth-tab-switch">
         <button type="button" class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">
           <svg class="svg-icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
@@ -515,9 +508,7 @@
       </div>
 
       <div class="auth-body">
-        <!-- In-card Inline Alert Box -->
         <div id="authInlineAlert" style="display: none; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; margin-bottom: 16px; align-items: center; gap: 8px;"></div>
-        <!-- Section 1: Form Login -->
         <div class="auth-form-section active" id="loginSection">
           <form onsubmit="handleLoginSubmit(event)">
             <div class="form-group">
@@ -560,7 +551,6 @@
             </button>
           </div>
 
-          <!-- Dòng điều hướng đăng nhập nội bộ cho nhân viên -->
           <div class="auth-staff-redirect" style="margin-top: 22px; padding-top: 16px; border-top: 1px dashed var(--cust-border); text-align: center; font-size: 13px; color: var(--cust-text-muted);">
             <span>Bạn là nhân viên? </span>
             <a href="/login" style="color: var(--cust-primary); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s ease;">
@@ -570,7 +560,6 @@
           </div>
         </div>
 
-        <!-- Form Register -->
         <div class="auth-form-section" id="registerSection">
           <div class="auth-rule-box">
             <svg class="svg-icon" style="color: var(--cust-primary); width: 15px; height: 15px; flex-shrink: 0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -628,11 +617,9 @@
     </div>
   </div>
 
-  <!-- FORGOT PASSWORD MODAL FOR CUSTOMERS (CHUẨN 3 BƯỚC BẢO MẬT OTP) -->
   <div id="customerForgotModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(5px); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
     <div style="background: #ffffff; border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 24px; padding: 28px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); position: relative;">
       
-      <!-- Modal Header -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="margin: 0; font-size: 19px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
           <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2;"><path d="M21 2l-2 2m-1.5 1.5L14 9a6 6 0 1 0 4 4l3.5-3.5L21 8l-1.5-1.5L21 5l-2-2z"></path></svg>
@@ -643,7 +630,6 @@
         </button>
       </div>
 
-      <!-- Step Indicator Bar -->
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 10px 14px; background: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0;">
         <div id="custStepDot1" style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #059669;">
           <span style="width: 20px; height: 20px; border-radius: 50%; background: #059669; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px;">1</span>
@@ -661,7 +647,6 @@
         </div>
       </div>
 
-      <!-- BƯỚC 1: NHẬP SĐT / EMAIL ĐỂ NHẬN OTP -->
       <div id="custForgotStep1">
         <p style="font-size: 13px; color: #475569; margin: 0 0 16px; line-height: 1.5;">
           Vui lòng nhập số điện thoại hoặc email tài khoản của bạn. Hệ thống sẽ gửi mã xác thực OTP 6 chữ số đến email đã đăng ký.
@@ -676,7 +661,6 @@
         </div>
       </div>
 
-      <!-- BƯỚC 2: NHẬP & XÁC THỰC MÃ OTP -->
       <div id="custForgotStep2" style="display: none;">
         <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px;">
           <p style="font-size: 12.5px; color: #065f46; margin: 0; line-height: 1.5;">
@@ -703,7 +687,6 @@
         </div>
       </div>
 
-      <!-- BƯỚC 3: THIẾT LẬP MẬT KHẨU MỚI (CHỈ MỞ KHI OTP HỢP LỆ) -->
       <div id="custForgotStep3" style="display: none;">
         <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
           <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: #16a34a; fill: none; stroke-width: 2.5;"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -741,7 +724,6 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
   <div id="toastNotification" class="toast-popup success">
     <svg class="svg-icon" style="color: #5eead4; width: 18px; height: 18px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
     <span id="toastMsg">Thao tác thành công!</span>

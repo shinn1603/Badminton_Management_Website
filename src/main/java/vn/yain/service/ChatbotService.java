@@ -60,13 +60,11 @@ public class ChatbotService {
     @Autowired(required = false)
     private SupportChatService supportChatService;
 
-    // Session Memory Store (sessionId -> ChatSessionContext)
     private final Map<String, ChatSessionContext> sessionStore = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = 600000)
     public void cleanExpiredSessions() {
         long now = System.currentTimeMillis();
-        // Evict sessions inactive for over 30 minutes
         sessionStore.entrySet().removeIf(entry -> (now - entry.getValue().lastAccessed) > 1800000);
     }
 
@@ -81,20 +79,20 @@ public class ChatbotService {
 
         public String courtCode = null;
         public String courtName = null;
-        public String courtType = null; // "VIP", "STANDARD"
+        public String courtType = null;
 
         public LocalDate date = null;
-        public String timeSlot = null; // e.g. "18:00 - 20:00"
+        public String timeSlot = null;
         public int durationHours = 0;
 
-        public String additionalServices = null; // e.g. "Không chọn thêm (Chỉ thuê sân)" or "Thuê 2 vợt, 2 nước"
+        public String additionalServices = null;
         public BigDecimal additionalFee = BigDecimal.ZERO;
         public BigDecimal courtPrice = BigDecimal.ZERO;
         public BigDecimal hourlyRate = BigDecimal.ZERO;
         public BigDecimal totalPrice = BigDecimal.ZERO;
         public BigDecimal depositAmount = BigDecimal.ZERO;
 
-        public String stage = "GREETING"; // GREETING, COLLECTING_INFO, PROPOSING_COURT, PROPOSING_ADDONS, ASK_NAME, ASK_PHONE, AWAITING_CONFIRMATION, BOOKED
+        public String stage = "GREETING";
         public String lastBookingCode = null;
         public List<Map<String, String>> dialogHistory = new ArrayList<>();
 
@@ -187,7 +185,6 @@ public class ChatbotService {
             ctx.customerCode = customerCode.trim();
         }
 
-        // Welcome Greeting if empty input
         if (rawInput == null || rawInput.trim().isEmpty()) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -201,12 +198,8 @@ public class ChatbotService {
         String text = rawInput.trim();
         String normalized = removeAccents(text.toLowerCase());
 
-        // Extract slots / entities proactively from user message
         extractBookingSlots(text, normalized, ctx);
 
-        // =========================================================================
-        // 0. XỬ LÝ CHUYỂN GIAO CHAT VỚI NHÂN VIÊN THẬT (LIVE HUMAN HANDOVER)
-        // =========================================================================
         if (matches(normalized, "ket thuc gap nhan vien", "quay lai bot", "dung chat nhan vien", "thoat chat nhan vien", "ket thuc ho tro")) {
             if (supportChatService != null) {
                 supportChatService.closeSession(sid, "Khách hàng");
@@ -235,7 +228,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // Nếu phiên chat đang trong trạng thái Live với nhân viên, chuyển tin nhắn thẳng cho nhân viên
         if (supportChatService != null && supportChatService.isSessionLiveWithStaff(sid)) {
             supportChatService.sendCustomerMessage(sid, text, ctx.customerName, ctx.customerPhone);
             return ChatMessageDto.builder()
@@ -247,7 +239,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // 1. Try Google Gemini Cloud AI if configured
         if (geminiAiService != null && geminiAiService.isConfigured()) {
             ChatMessageDto aiReply = geminiAiService.chatWithGemini(text, ctx);
             if (aiReply != null) {
@@ -255,14 +246,12 @@ public class ChatbotService {
             }
         }
 
-        // 2. Machine Learning Intent Classification (TF-IDF + Character 3-Gram)
         IntentClassificationService.PredictionResult mlResult = null;
         if (intentClassifier != null) {
             mlResult = intentClassifier.predict(text);
         }
         String mlTag = (mlResult != null) ? mlResult.getIntent() : "";
 
-        // Chặn sớm nếu người dùng hỏi ngoài luồng (Toán học, Thời tiết, Nấu ăn...)
         if (mlResult != null && mlResult.isOutOfScope()) {
             if ("OUT_OF_SCOPE_MATH".equals(mlTag)) {
                 return ChatMessageDto.builder()
@@ -285,9 +274,6 @@ public class ChatbotService {
             }
         }
 
-        // =========================================================================
-        // MICRO-FAQ 1: CHI TIẾT PHÒNG TẮM & NƯỚC NÓNG
-        // =========================================================================
         if ((normalized.contains("tam") && (normalized.contains("phong") || normalized.contains("buong") || normalized.contains("nuoc nong") || normalized.contains("may cho") || normalized.contains("khan") || normalized.contains("say toc")))
                 || matches(normalized, "phong tam may cho", "may buong tam", "co nuoc nong", "nuoc nong khong", "may say toc", "dau goi", "sua tam", "khan tam", "tam o dau")) {
             return ChatMessageDto.builder()
@@ -304,9 +290,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 2: CHI TIẾT VỚ / TẤT THỂ THAO
-        // =========================================================================
         if (((containsWord(normalized, "tat") || containsWord(normalized, "vo")) && (normalized.contains("doi") || normalized.contains("chong truot") || normalized.contains("co ngan") || normalized.contains("co trung") || matches(normalized, "ban tat", "ban vo", "mua tat", "mua vo", "tat the thao", "vo the thao", "tat bao nhieu", "vo bao nhieu", "gia tat", "gia vo")))
                 || matches(normalized, "tat la 1 doi", "tat la mot doi", "ban tat", "ban vo", "vo may tien", "tat bao nhieu", "vo 1 doi", "tat the thao", "vo chong truot")) {
             return ChatMessageDto.builder()
@@ -322,9 +305,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 3: CHI TIẾT TÊN CÁC DÒNG VỢT CHO THUÊ & MỨC CĂNG
-        // =========================================================================
         if ((normalized.contains("vot") && (normalized.contains("ten gi") || normalized.contains("hang gi") || normalized.contains("loai gi") || normalized.contains("hieu gi") || normalized.contains("cang") || normalized.contains("do cang") || normalized.contains("thong so") || normalized.contains("astrox") || normalized.contains("100zz") || normalized.contains("88d") || normalized.contains("lining")))
                 || matches(normalized, "vot ten gi", "thue vot gi", "vot hang gi", "cac loai vot", "cang may kg", "do cang vot", "hang vot nao")) {
             return ChatMessageDto.builder()
@@ -345,9 +325,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 4: CHI TIẾT CÁC LOẠI CẦU & ỐNG CẦU
-        // =========================================================================
         if ((normalized.contains("cau") && (normalized.contains("ong") || normalized.contains("ten gi") || normalized.contains("may qua") || normalized.contains("hang gi") || normalized.contains("ban le") || normalized.contains("loai gi") || normalized.contains("hieu gi")))
                 || matches(normalized, "ong cau ten gi", "1 ong cau", "ong cau may qua", "cau ten gi", "cau hieu gi", "ban le tung qua", "gia 1 qua cau", "cau ben nhat")) {
             return ChatMessageDto.builder()
@@ -367,9 +344,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 5: CHI TIẾT BÃI ĐỖ XE & PHÍ GIỮ XE
-        // =========================================================================
         if ((normalized.contains("xe") && (normalized.contains("gui") || normalized.contains("do") || normalized.contains("o to") || normalized.contains("oto") || normalized.contains("7 cho") || normalized.contains("mat tien") || normalized.contains("phi gui") || normalized.contains("bai")))
                 || matches(normalized, "phi gui xe", "tien gui xe", "gui xe may", "dau o to", "do xe o to", "xe 7 cho", "bai xe", "co mat tien gui xe")) {
             return ChatMessageDto.builder()
@@ -386,9 +360,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 6: CHI TIẾT GIÀY & BẢNG SIZE
-        // =========================================================================
         if ((normalized.contains("giay") && (normalized.contains("size") || normalized.contains("lefus") || normalized.contains("kawasaki") || normalized.contains("khu khuan") || normalized.contains("co lon") || normalized.contains("co nho")))
                 || matches(normalized, "size bao nhieu", "co size", "size giay", "thue giay size", "giay hang gi", "giay lefus", "giay kawasaki")) {
             return ChatMessageDto.builder()
@@ -405,9 +376,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 7: CHI TIẾT MENU NƯỚC & ĐỒ ĂN NHẸ F&B
-        // =========================================================================
         if (matches(normalized, "mi ly", "xuc xich", "do an nhe", "bo huc", "redbull", "pocari", "revive", "aquafina", "nuoc ngot", "ban nuoc gi", "ban do an", "chuoi")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -429,9 +397,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // MICRO-FAQ 8: CHI TIẾT THÔNG SỐ SÂN, ĐÈN & TRẦN NHÀ
-        // =========================================================================
         if (matches(normalized, "chieu cao tran", "tran cao", "may quat", "den may lux", "lux", "khoang cach san", "day may mm", "thong so san")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -448,9 +413,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // FAQ: GIẢI THÍCH CHỨC NĂNG TỰ KHÓA SÂN
-        // =========================================================================
         if (matches(normalized, "chuc nang tu khoa san", "tu khoa san la gi", "khoa san la gi", "tu khoa san hoat dong the nao", "lam sao de tu khoa san", "co che tu khoa san", "khoa san the nao")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -467,9 +429,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT 0: BẮT ĐẦU LẠI / LÀM MỚI HỘI THOẠI
-        // =========================================================================
         if ("GREETING_RESET".equals(mlTag) || matches(normalized, "bat dau lai", "lam moi", "xoa lich su", "reset", "chao bot", "hello", "xin chao")) {
             ctx.reset();
             return ChatMessageDto.builder()
@@ -482,9 +441,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: YÊU CẦU HOÀN CỌC / HỖ TRỢ HOÀN TIỀN
-        // =========================================================================
         if (matches(normalized, "hoan coc", "hoan tien", "nhan lai coc", "tra lai tien coc", "hoan lai tien", "cho hoan coc", "da hoan coc")) {
             String targetCode = null;
             Pattern codePattern = Pattern.compile("(?:ds\\s*)?(\\d{6})", Pattern.CASE_INSENSITIVE);
@@ -539,9 +495,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: TIẾP TỤC THANH TOÁN / MỞ LẠI MÃ KHÓA SÂN & VIETQR
-        // =========================================================================
         if (!normalized.contains("huy") && ("CONTINUE_PAYMENT".equals(mlTag) || matches(normalized,
                 "tiep tuc thanh toan", "thanh toan tiep", "thanh toan don", "mo lai thanh toan", "mo lai ma khoa san",
                 "chua chuyen khoan", "chua chuyen khoan xong", "ma khoa san cua toi", "ma khoa san",
@@ -590,7 +543,6 @@ public class ChatbotService {
                                 .build();
                     }
 
-                    // Booking is currently pending deposit -> open VietQR payment card!
                     BigDecimal dep = b.getDepositAmount() != null ? b.getDepositAmount()
                             : (b.getTotalPrice() != null ? b.getTotalPrice().multiply(new BigDecimal("0.3")).setScale(0, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO);
                     String bin = (bookingService != null) ? bookingService.getBankBin() : "970422";
@@ -650,9 +602,6 @@ public class ChatbotService {
             }
         }
 
-        // =========================================================================
-        // INTENT: TRA CỨU ĐƠN ĐẶT SÂN
-        // =========================================================================
         if (!normalized.contains("huy") && ("CHECK_BOOKING".equals(mlTag) || matches(normalized, "kiem tra don", "tra cuu don", "xem don", "don cua toi", "ma don", "thong tin don", "xem lai thong tin don", "xem lai don", "don dat san", "lich su dat", "lich su don", "don hang cua toi"))) {
             String targetCode = null;
             Pattern codePattern = Pattern.compile("(?:ds\\s*)?(\\d{6})", Pattern.CASE_INSENSITIVE);
@@ -735,9 +684,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: YÊU CẦU HỦY ĐẶT SÂN
-        // =========================================================================
         if ("CANCEL_BOOKING".equals(mlTag) || matches(normalized, "huy san", "huy don", "muon huy", "khong den duoc", "huy ca choi", "yeu cau huy")) {
             String targetCode = null;
             Pattern codePattern = Pattern.compile("(?:ds\\s*)?(\\d{6})", Pattern.CASE_INSENSITIVE);
@@ -838,9 +784,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: HỎI CHI NHÁNH GẦN TÔI
-        // =========================================================================
         if (!isSpecificBranch(normalized) && (matches(normalized, "gan toi", "gan nhat", "o dia chi", "o duong", "o khu vuc", "cach bao xa", "o gan", "dia chi nao gan")
                 || (normalized.startsWith("toi o ") && !normalized.contains("thue") && !normalized.contains("dat")))) {
             String recommendedBranchCode = "CN01";
@@ -885,9 +828,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: DANH SÁCH CHI NHÁNH
-        // =========================================================================
         if (!isSpecificBranch(normalized) && ("FIND_BRANCH".equals(mlTag) || matches(normalized, "chi nhanh nao", "cac chi nhanh", "danh sach chi nhanh", "co may chi nhanh", "co nhung co so nao", "he thong o dau", "he thong co nhung chi nhanh nao"))) {
             List<Branch> branches = branchRepository != null ? branchRepository.findAll() : Collections.emptyList();
             StringBuilder sb = new StringBuilder("Hệ thống sân cầu lông UTE Sport hiện có các cơ sở thi đấu sau:\n\n");
@@ -910,9 +850,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: BẢNG GIÁ
-        // =========================================================================
         if ("PRICING_INFO".equals(mlTag) || matches(normalized, "bang gia", "bao nhieu tien", "chi phi", "gio vang", "don gia", "gia thue san")) {
             String pricingText =
                     "Biểu phí thuê sân cầu lông tiêu chuẩn tại UTE Sport:\n\n" +
@@ -934,9 +871,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: TIỆN ÍCH & CƠ SỞ VẬT CHẤT
-        // =========================================================================
         if ("COURT_FACILITIES".equals(mlTag) || matches(normalized, "co so vat chat", "loai tham", "tham yonex", "tham enlio", "may lanh", "quat", "dau xe", "do xe", "bai xe", "phong tam", "phong thay do", "wifi", "anh sang", "chieu cao", "khan dai")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -952,9 +886,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: GIẢI ĐẤU (TOURNAMENTS)
-        // =========================================================================
         if ("TOURNAMENTS".equals(mlTag) || matches(normalized, "giai dau", "giai cau long", "co giai nao", "lich thi dau", "dang ky giai", "tournament")) {
             List<Tournament> tournaments = tournamentRepository != null ? tournamentRepository.findAll() : Collections.emptyList();
             StringBuilder sb = new StringBuilder("Hệ thống giải đấu cầu lông đang mở đăng ký tại UTE Sport:\n\n");
@@ -989,9 +920,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: DỊCH VỤ ĐI KÈM & THUÊ DỤNG CỤ THỂ THAO
-        // =========================================================================
         if (("SERVICES_EQUIPMENT".equals(mlTag) || matches(normalized, "thue vot", "co vot khong", "ban cau", "mua cau", "dan vot", "cang vot", "nuoc uong", "dich vu", "phu kien"))
                 && !isBookingFlow(normalized, ctx)) {
             String serviceInfo =
@@ -1020,9 +948,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: HỘI VIÊN & ĐIỂM THƯỞNG
-        // =========================================================================
         if (("MEMBERSHIP_LOYALTY".equals(mlTag) || matches(normalized, "tich diem", "the hoi vien", "hang thanh vien", "diem thuong", "doi voucher", "dong bac vang", "kim cuong", "thanh vien vip", "hoi vien vip", "the vip", "uu dai"))
                 && !isBookingFlow(normalized, ctx)) {
             return ChatMessageDto.builder()
@@ -1042,9 +967,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: PHƯƠNG THỨC THANH TOÁN
-        // =========================================================================
         if ("PAYMENT_METHODS".equals(mlTag) || matches(normalized, "thanh toan the nao", "phuong thuc thanh toan", "chuyen khoan", "quet ma qr", "vietqr", "tien mat", "hoa don do", "vat")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -1060,9 +982,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: NỘI QUY SÂN
-        // =========================================================================
         if ("RULES_REGULATIONS".equals(mlTag) || matches(normalized, "noi quy", "quy dinh", "giay de kep", "giay non marking", "di tre", "mang thuc an", "hut thuoc")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -1077,9 +996,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // INTENT: ĐỒ THẤT LẠC & HỖ TRỢ
-        // =========================================================================
         if ("LOST_FOUND_SUPPORT".equals(mlTag) || matches(normalized, "quen do", "that lac", "mat do", "quen ao", "quen vot", "hotline", "so dien thoai", "khieu nai", "gap nhan vien")) {
             return ChatMessageDto.builder()
                     .sender("bot")
@@ -1095,23 +1011,8 @@ public class ChatbotService {
                     .build();
         }
 
-        // =========================================================================
-        // =========================================================================
-        // LUỒNG ĐẶT VÀ KHÓA SÂN THÔNG MINH (MULTI-TURN SLOT-FILLING BOOKING ENGINE)
-        // Bắt buộc đảm bảo đủ 6 thông tin:
-        // 1. Tên khách hàng
-        // 2. Số điện thoại
-        // 3. Chi nhánh
-        // 4. Đặt sân gì
-        // 5. Mấy giờ & ngày nào
-        // 6. Có chọn thêm gì đi kèm không
-        // RỒI MỚI CHO HIỆN MÃ KHÓA SÂN!
-        // =========================================================================
-        // =========================================================================
-
         boolean isBookingIntent = isBookingFlow(normalized, ctx) || "CONFIRM_BOOKING".equals(mlTag) || "SEARCH_SLOTS".equals(mlTag) || "REQUEST_LOCK_CODE".equals(mlTag) || "SELECT_ADDONS".equals(mlTag) || "PROVIDE_CUSTOMER_INFO".equals(mlTag) || "SELECT_BRANCH".equals(mlTag) || isSpecificBranch(normalized);
 
-        // Trường hợp người dùng mới chỉ nói "tôi muốn đặt sân" mà chưa có bất kỳ thông tin nào
         boolean isSimpleBookingPrompt = matches(normalized, "toi muon dat san", "muon dat san", "dat san di", "cho toi dat san") && !ctx.isBranchProvided() && !ctx.isSlotProvided();
         if (isSimpleBookingPrompt) {
             return ChatMessageDto.builder()
@@ -1127,10 +1028,8 @@ public class ChatbotService {
         }
 
         if (isBookingIntent) {
-            // Cập nhật giá nếu đã có giờ và sân
             recalculatePrices(ctx);
 
-            // Kiểm tra các thông tin bắt buộc
             boolean hasName = ctx.isNameProvided();
             boolean hasPhone = ctx.isPhoneProvided();
             boolean hasBranch = ctx.isBranchProvided();
@@ -1142,16 +1041,10 @@ public class ChatbotService {
 
             boolean userWantsToLock = matches(normalized, "ok dat san", "dat san cho toi", "dat luon", "dong y dat", "xac nhan dat", "chot san", "lay san nay", "khoa san cho toi", "khoa san nay", "hien ma khoa san", "cho ma khoa san", "xuat ma khoa san", "lay ma khoa san", "khoa san gium", "xac nhan va xuat ma khoa san", "xac nhan");
 
-            // =====================================================================
-            // CASE 1: ĐÃ ĐỦ CẢ 6 THÔNG TIN VÀ XÁC NHẬN CHỐT -> CHO HIỆN MÃ KHÓA SÂN
-            // =====================================================================
             if (hasAll6 && (userWantsToLock || "AWAITING_CONFIRMATION".equals(ctx.stage))) {
                 return executeCourtLocking(ctx);
             }
 
-            // =====================================================================
-            // CASE 2: ĐÃ ĐỦ CẢ 6 THÔNG TIN NHƯNG CHƯA BẤM CHỐT -> TÓM TẮT & XIN XÁC NHẬN
-            // =====================================================================
             if (hasAll6) {
                 ctx.stage = "AWAITING_CONFIRMATION";
                 String summary = String.format(
@@ -1184,11 +1077,6 @@ public class ChatbotService {
                         .build();
             }
 
-            // =====================================================================
-            // CASE 3: THIẾU THÔNG TIN -> HỎI THEO THỨ TỰ LOGIC CHẶT CHẼ
-            // =====================================================================
-
-            // 1. Thiếu Chi nhánh
             if (!hasBranch) {
                 ctx.stage = "COLLECTING_INFO";
                 String promptText = "Dạ, để đặt và giữ chỗ sân, bạn muốn chơi tại **chi nhánh nào** trong hệ thống UTE Sport ạ?" +
@@ -1203,7 +1091,6 @@ public class ChatbotService {
                         .build();
             }
 
-            // 2. Thiếu Khung giờ & Ngày
             if (!hasSlot) {
                 ctx.stage = "COLLECTING_INFO";
                 String promptText = String.format("Dạ, tôi đã ghi nhận bạn chọn **%s**.\n\nBạn dự định chơi vào **ngày nào** và **từ mấy giờ đến mấy giờ** ạ? (Ví dụ: 'Hôm nay từ 18h đến 20h', 'Tối mai 19h-21h').", ctx.branchName);
@@ -1217,7 +1104,6 @@ public class ChatbotService {
                         .build();
             }
 
-            // 3. Thiếu Sân gì (đã có Chi nhánh và Giờ)
             if (!hasCourt) {
                 ctx.stage = "PROPOSING_COURT";
                 List<Court> branchCourts = (courtRepository != null && ctx.branchCode != null) ? courtRepository.findByBranchCode(ctx.branchCode) : Collections.emptyList();
@@ -1247,7 +1133,6 @@ public class ChatbotService {
                             .build();
                 }
 
-                // Nếu người dùng có chọn loại sân VIP hay Standard
                 Optional<Court> matchedCourt = Optional.empty();
                 if ("VIP".equalsIgnoreCase(ctx.courtType)) {
                     matchedCourt = availableCourts.stream().filter(c -> c.getCourtName().toUpperCase().contains("VIP") || c.getCourtType().toUpperCase().contains("VIP")).findFirst();
@@ -1287,7 +1172,6 @@ public class ChatbotService {
                 }
             }
 
-            // 4. Thiếu Dịch vụ đi kèm
             if (!hasAddOns) {
                 ctx.stage = "PROPOSING_ADDONS";
                 String promptText = String.format(
@@ -1310,7 +1194,6 @@ public class ChatbotService {
                         .build();
             }
 
-            // 5. Thiếu Tên hoặc Số điện thoại
             if (!hasName || !hasPhone) {
                 if (!hasName && !hasPhone) {
                     ctx.stage = "ASK_NAME";
@@ -1351,9 +1234,6 @@ public class ChatbotService {
             }
         }
 
-        // =========================================================================
-        // DEFAULT FALLBACK
-        // =========================================================================
         return ChatMessageDto.builder()
                 .sender("bot")
                 .intent("DEFAULT")
@@ -1364,9 +1244,6 @@ public class ChatbotService {
                 .build();
     }
 
-    // =========================================================================
-    // HÀM TẠO ĐƠN VÀ CHO HIỆN MÃ KHÓA SÂN
-    // =========================================================================
     private ChatMessageDto executeCourtLocking(ChatSessionContext ctx) {
         if (bookingService == null || courtService == null) {
             return ChatMessageDto.builder()
@@ -1376,7 +1253,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // Re-verify court availability
         List<Court> branchCourts = (courtRepository != null && ctx.branchCode != null) ? courtRepository.findByBranchCode(ctx.branchCode) : Collections.emptyList();
         if (branchCourts == null) branchCourts = Collections.emptyList();
         Optional<Court> availableCourt = branchCourts.stream()
@@ -1440,7 +1316,6 @@ public class ChatbotService {
                     .build();
         }
 
-        // VietQR Dynamic URL (MBBank)
         String qrUrl = String.format(
                 "https://img.vietqr.io/image/970422-0903123456-compact2.png?amount=%d&addInfo=CK%%20%s&accountName=UTE%%20BADMINTON%%20CLUB",
                 ctx.depositAmount.longValue(), bookingCode
@@ -1492,13 +1367,9 @@ public class ChatbotService {
                 .build();
     }
 
-    // =========================================================================
-    // HÀM TRÍCH XUẤT THỰC THỂ (SLOT EXTRACTION)
-    // =========================================================================
     private void extractBookingSlots(String rawInput, String normalized, ChatSessionContext ctx) {
         if (rawInput == null) return;
 
-        // 1. Số điện thoại (10 chữ số)
         Matcher phoneMatcher = Pattern.compile("(?:0[3|5|7|8|9])([0-9]{8})\\b").matcher(rawInput);
         if (phoneMatcher.find()) {
             String detectedPhone = phoneMatcher.group(0);
@@ -1513,7 +1384,6 @@ public class ChatbotService {
             }
         }
 
-        // 2. Họ tên khách hàng
         Matcher namePattern = Pattern.compile("(?i)(?:tôi tên là|mình tên là|em tên là|tôi tên|mình tên|em tên|tên tôi là|tên mình là|tôi là|mình là)\\s+([^,.;!?\n]{2,30})").matcher(rawInput);
         if (namePattern.find()) {
             String detectedName = namePattern.group(1).trim();
@@ -1530,7 +1400,6 @@ public class ChatbotService {
                     ctx.customerName = capitalizeWords(detectedName);
                 }
             } else if ("ASK_NAME".equals(ctx.stage)) {
-                // Khi đang hỏi tên, nếu người dùng trả lời 1 chuỗi chữ hợp lệ không chứa lệnh
                 String clean = rawInput.trim();
                 if (!clean.matches(".*\\d.*") && clean.length() >= 2 && clean.length() <= 30 && !clean.contains("?") && !matches(normalized, "dat san", "huy", "chi nhanh", "gia", "khong")) {
                     ctx.customerName = capitalizeWords(clean);
@@ -1538,7 +1407,6 @@ public class ChatbotService {
             }
         }
 
-        // 3. Chi nhánh
         String prevBranchCode = ctx.branchCode;
         if (matches(normalized, "co so 5", "chi nhanh 5", "pickleball", "cn05", "cn 5", "cn5")) {
             ctx.branchCode = "CN05";
@@ -1565,7 +1433,6 @@ public class ChatbotService {
             });
         }
 
-        // 4. Ngày và Khung giờ
         if (matches(normalized, "ngay mai", "mai")) {
             ctx.date = LocalDate.now().plusDays(1);
         } else if (matches(normalized, "ngay kia", "mot")) {
@@ -1592,7 +1459,7 @@ public class ChatbotService {
                     int h = Integer.parseInt(mSingle.group(1));
                     if (h >= 5 && h <= 22) {
                         startHour = h;
-                        endHour = startHour + 2; // mặc định 2 tiếng
+                        endHour = startHour + 2;
                     }
                 } catch (Exception ignored) {}
             }
@@ -1606,7 +1473,6 @@ public class ChatbotService {
             ctx.durationHours = endHour - startHour;
         }
 
-        // 5. Đặt sân gì (Sân VIP / Sân tiêu chuẩn / Sân cụ thể)
         if (matches(normalized, "san vip", "san 1", "cl01", "san so 1", "vip")) {
             ctx.courtType = "VIP";
             ctx.courtCode = "CL01";
@@ -1625,7 +1491,6 @@ public class ChatbotService {
             }
         }
 
-        // 6. Có chọn thêm gì đi kèm không
         if (matches(normalized, "khong lay them gi", "khong can gi them", "khong co", "khong can", "ko lay gi", "ko can", "chi thue san thoi", "chi thue san", "thoi khoi", "du roi", "khong them do", "ko lay phu kien", "khong chon them")) {
             ctx.additionalServices = "Không chọn thêm (Chỉ thuê sân)";
             ctx.additionalFee = BigDecimal.ZERO;
@@ -1704,7 +1569,6 @@ public class ChatbotService {
 
     private boolean isSpecificBranch(String normalized) {
         if (normalized == null || normalized.isBlank()) return false;
-        // Loại trừ các câu hỏi tổng quát về danh sách chi nhánh
         if (matches(normalized, "chi nhanh nao", "cac chi nhanh", "danh sach chi nhanh", "co may chi nhanh", "co nhung chi nhanh", "co nhung co so", "he thong co", "dia chi chi nhanh", "chi nhanh o dau", "dia chi san")) {
             return false;
         }

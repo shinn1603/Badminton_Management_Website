@@ -61,7 +61,6 @@ class CashierAndCourtOperationsTest {
     @Test
     @DisplayName("Luồng xuyên suốt: Đặt cọc 30% -> Nhận sân (Check-in) -> Bán dịch vụ (F&B) -> Trả sân (Check-out) -> Quyết toán hóa đơn")
     void testFullCashierLifecycle_Deposit_CheckIn_ServiceOrder_CheckOut() {
-        // Giai đoạn 1: Đơn đặt sân đã tạo ban đầu (100,000 VND)
         Booking booking = new Booking();
         booking.setBookingCode("DS_FULL_FLOW");
         booking.setCourtCode("CL01");
@@ -81,13 +80,11 @@ class CashierAndCourtOperationsTest {
         when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
         when(invoiceRepository.save(any(Invoice.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Bước 1: Khách thanh toán cọc 30% qua VietQR
         Booking deposited = bookingService.confirmDeposit("DS_FULL_FLOW", new BigDecimal("30000"), "VietQR Pro", "VQR-FULL-01");
         assertNotNull(deposited);
         assertEquals("Đã cọc 30%", deposited.getStatus());
         verify(paymentRepository, times(1)).save(any(Payment.class));
 
-        // Bước 2: Khách đến quầy lễ tân check-in nhận sân
         Booking checkedIn = bookingService.checkIn("DS_FULL_FLOW");
         assertNotNull(checkedIn);
         assertEquals("Đang sử dụng", checkedIn.getStatus());
@@ -95,7 +92,6 @@ class CashierAndCourtOperationsTest {
         assertEquals("Đang sử dụng", court.getStatus());
         verify(courtService, atLeastOnce()).updateCourtStatus("CL01", "Đang sử dụng");
 
-        // Bước 3: Trong khi chơi, khách gọi thêm 2 chai Revive (15,000đ/chai)
         Product revive = new Product();
         revive.setProductCode("SP_REVIVE");
         revive.setProductName("Revive Chanh Muối");
@@ -108,13 +104,10 @@ class CashierAndCourtOperationsTest {
 
         Map<String, Object> serviceOrder = warehouseService.orderServiceForBooking("DS_FULL_FLOW", "SP_REVIVE", 2);
         assertTrue((boolean) serviceOrder.get("success"));
-        assertEquals(18, revive.getStockQuantity()); // Tồn kho giảm từ 20 -> 18
+        assertEquals(18, revive.getStockQuantity());
         assertEquals(new BigDecimal("30000"), serviceOrder.get("itemTotal"));
-        assertEquals(new BigDecimal("130000"), booking.getTotalPrice()); // Tổng tiền booking tăng từ 100,000 -> 130,000
+        assertEquals(new BigDecimal("130000"), booking.getTotalPrice());
 
-        // Bước 4: Hết giờ thi đấu, nhân viên check-out quyết toán hóa đơn
-        // Tiền sân + tiền dịch vụ trong đơn = 130,000đ, Thuê thêm vợt 20,000đ, Cọc đã đóng 30,000đ
-        // Tổng phải thu = 130,000 + 20,000 - 30,000 = 120,000đ
         BigDecimal extraEqFee = new BigDecimal("20000");
         Invoice invoice = bookingService.checkOut("DS_FULL_FLOW", extraEqFee, BigDecimal.ZERO, "Tiền mặt", "NVQ01");
 
@@ -128,7 +121,6 @@ class CashierAndCourtOperationsTest {
 
         assertEquals("Hoàn thành", booking.getStatus());
         assertNotNull(booking.getCheckOutTime());
-        // Sân phải được giải phóng về trạng thái "Trống"
         verify(courtService, times(1)).updateCourtStatus("CL01", "Trống");
     }
 
@@ -199,7 +191,7 @@ class CashierAndCourtOperationsTest {
         oldCourt.setStatus("Đang sử dụng");
 
         Court targetCourt = new Court();
-        targetCourt.setCourtCode("CL06"); // VIP
+        targetCourt.setCourtCode("CL06");
         targetCourt.setHourlyRate(new BigDecimal("120000"));
         targetCourt.setStatus("Trống");
 
@@ -239,7 +231,6 @@ class CashierAndCourtOperationsTest {
         assertEquals("Đã hủy", cancelled.getStatus());
         verify(courtService, times(1)).updateCourtStatus("CL02", "Trống");
 
-        // Gọi lại lần 2 trên đơn đã hủy phải trả về an toàn mà không sinh ngoại lệ
         Booking cancelledAgain = bookingService.cancelBooking("DS_CANCEL", "Khách gọi lại");
         assertEquals("Đã hủy", cancelledAgain.getStatus());
     }
@@ -260,14 +251,13 @@ class CashierAndCourtOperationsTest {
         when(productRepository.findByProductCode("SP_GRIP")).thenReturn(Optional.of(grip));
         when(bookingRepository.findByBookingCode("DS_ORDER_ERR")).thenReturn(Optional.of(booking));
 
-        // Khách yêu cầu mua 5 quấn cán nhưng kho chỉ còn 2
         IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
             warehouseService.orderServiceForBooking("DS_ORDER_ERR", "SP_GRIP", 5);
         });
 
         assertTrue(ex.getMessage().contains("Số lượng tồn kho không đủ"));
-        assertEquals(2, grip.getStockQuantity()); // Tồn kho không bị thay đổi
-        assertEquals(new BigDecimal("100000"), booking.getTotalPrice()); // Tổng tiền không đổi
+        assertEquals(2, grip.getStockQuantity());
+        assertEquals(new BigDecimal("100000"), booking.getTotalPrice());
         verify(productRepository, never()).save(grip);
         verify(bookingRepository, never()).save(booking);
     }
@@ -305,8 +295,8 @@ class CashierAndCourtOperationsTest {
         Map<String, Object> result = warehouseService.cancelServiceForBooking("DS_CANCEL_SVC", "SP_WATER", 2);
 
         assertTrue((boolean) result.get("success"));
-        assertEquals(7, water.getStockQuantity()); // 5 + 2 = 7
-        assertEquals(new BigDecimal("130000"), booking.getTotalPrice()); // 150,000 - 20,000 = 130,000
+        assertEquals(7, water.getStockQuantity());
+        assertEquals(new BigDecimal("130000"), booking.getTotalPrice());
         verify(productRepository, times(1)).save(water);
         verify(bookingRepository, times(1)).save(booking);
     }

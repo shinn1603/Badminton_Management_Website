@@ -39,11 +39,11 @@ public class Supplier {
     private String address;
 
     @Column(name = "category", length = 100)
-    private String category; // Nước giải khát, Cầu lông, Dụng cụ, Phụ kiện, Đa ngành
+    private String category;
 
     @Column(name = "status", length = 30)
     @Builder.Default
-    private String status = "Đang hợp tác"; // Đang hợp tác, Tạm ngưng
+    private String status = "Đang hợp tác";
 
     @Column(name = "notes", length = 500)
     private String notes;

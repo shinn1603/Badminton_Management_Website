@@ -54,7 +54,6 @@ public class SupportChatService {
         }
         ticket = supportTicketRepository.save(ticket);
 
-        // System notification message
         ChatMessage sysMsg = ChatMessage.builder()
                 .sessionId(sessionId)
                 .sender("system")
@@ -189,7 +188,6 @@ public class SupportChatService {
             list = chatMessageRepository.findBySessionIdOrderByCreatedAtAsc(sessionId);
         }
 
-        // Mark read
         if ("staff".equalsIgnoreCase(role)) {
             for (ChatMessage m : list) {
                 if ("customer".equals(m.getSender()) && Boolean.FALSE.equals(m.getReadByStaff())) {

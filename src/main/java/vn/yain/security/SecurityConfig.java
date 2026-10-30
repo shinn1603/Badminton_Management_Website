@@ -73,15 +73,11 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                // Allow static resources
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico").permitAll()
-                // Allow public web routes
                 .requestMatchers("/", "/login", "/logout", "/error").permitAll()
                 .requestMatchers("/customer/**", "/pos/**", "/manager/**", "/director/**", "/admin/**").permitAll()
-                // Allow public auth, webhooks, and websocket endpoints
                 .requestMatchers("/api/auth/**", "/api/health", "/api/user/**", "/ws/**", "/ws-court/**", "/webhook/**", "/api/webhook/**").permitAll()
                 .requestMatchers("/api/chatbot/**", "/api/upload/**", "/api/customer/avatar", "/api/customer/profile/**").permitAll()
-                // Public customer booking, courts and catalog lookups
                 .requestMatchers("/api/courts", "/api/courts/**").permitAll()
                 .requestMatchers("/api/products", "/api/products/**").permitAll()
                 .requestMatchers("/api/equipment", "/api/equipment/**").permitAll()
@@ -97,7 +93,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/bookings", "/api/bookings/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/bookings", "/api/bookings/**").permitAll()
                 .requestMatchers("/api/bookings/*/deposit").permitAll()
-                // Administrative & Manager APIs
                 .requestMatchers("/api/admin/**").permitAll()
                 .requestMatchers("/api/director/**").hasAnyRole("DIRECTOR", "ADMIN")
                 .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
@@ -105,7 +100,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/staff", "/api/staff/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
                 .requestMatchers("/api/inventory", "/api/inventory/**").hasAnyRole("MANAGER", "ADMIN", "DIRECTOR")
                 .requestMatchers("/api/shifts", "/api/shifts/**").hasAnyRole("POS", "STAFF", "MANAGER", "ADMIN", "DIRECTOR")
-                // Require authentication for all remaining APIs
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
             )

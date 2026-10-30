@@ -26,10 +26,10 @@ public class Payment {
     private BigDecimal amount;
 
     @Column(nullable = false, length = 50)
-    private String method; // VietQR Pro, Tiền mặt, VNPay, MoMo
+    private String method;
 
     @Column(name = "transaction_type", nullable = false, length = 50)
-    private String transactionType; // Đặt cọc 30%, Thanh toán đủ, Hoàn tiền cọc
+    private String transactionType;
 
     @Column(name = "transaction_ref", length = 100)
     private String transactionRef;

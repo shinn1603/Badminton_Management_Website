@@ -171,7 +171,6 @@
 <body>
 
   <div class="layout-container">
-    <!-- SIDEBAR -->
     <aside class="sidebar" id="appSidebar">
       <div class="brand-header">
         <div class="brand-logo-wrap">
@@ -209,7 +208,6 @@
           <span class="menu-text">Đặt sân</span>
           <span class="menu-tag">7 đơn</span>
         </a>
-
 
         <a href="/manager/courts" class="menu-item">
           <svg class="svg-icon" viewBox="0 0 24 24">
@@ -271,9 +269,7 @@
       </div>
     </aside>
 
-    <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
-      <!-- HEADER -->
       <header class="header-bar">
         <div class="header-left">
           <button type="button" class="btn-icon" onclick="toggleSidebar()">
@@ -310,9 +306,7 @@
         </div>
       </header>
 
-      <!-- CONTENT -->
       <main class="page-content">
-        <!-- LUXURY HERO BANNER -->
         <div class="hero-banner" style="margin-bottom: 24px;">
           <div class="hero-banner-content">
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
@@ -324,7 +318,6 @@
           </div>
         </div>
 
-        <!-- BREADCRUMB & TITLE (REFERENCE IMAGE 3) -->
         <div class="breadcrumb-row">
           <a href="/manager/dashboard">Trang chủ</a>
           <span>&gt;</span>
@@ -345,7 +338,6 @@
           </button>
         </div>
 
-        <!-- 4 MINI KPI CARDS (REFERENCE IMAGE 3) -->
         <div class="mini-stats-grid">
           <div class="mini-stat-card">
             <div class="mini-stat-icon stat-icon-green">
@@ -400,9 +392,7 @@
           </div>
         </div>
 
-        <!-- TWO COLUMN LAYOUT: LEFT TABLE/KANBAN (65%) + RIGHT FORM PANEL (35%) (REFERENCE IMAGE 3) -->
         <div class="booking-mgmt-layout">
-          <!-- LEFT: BOOKING LIST / KANBAN -->
           <div class="card">
             <div class="card-header">
               <div class="card-title">
@@ -417,7 +407,6 @@
                 <span>Danh sách đặt sân</span>
               </div>
 
-              <!-- VIEW SWITCHER (TABLE VS KANBAN) -->
               <div class="view-toggle-btn-group">
                 <button type="button" class="view-btn active" id="btnViewTable" onclick="switchView('table')">
                   <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
@@ -438,7 +427,6 @@
             </div>
 
             <div class="card-body">
-              <!-- CONTROLS & FILTER -->
               <div class="table-control-bar">
                 <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 260px;">
                   <input type="text" id="filterKeyword" class="form-control" placeholder="Tìm tên khách, SĐT, mã đơn..." oninput="applyFilters()" style="flex: 1;">
@@ -455,7 +443,6 @@
                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;" id="recordsCountText">7 / 7 bản ghi</span>
               </div>
 
-              <!-- VIEW 1: TABLE VIEW (DEFAULT) -->
               <div id="tableViewWrap" class="table-responsive">
                 <table class="table">
                   <thead>
@@ -470,14 +457,11 @@
                     </tr>
                   </thead>
                   <tbody id="bookingsTableBody">
-                    <!-- Populated by JS -->
                   </tbody>
                 </table>
               </div>
 
-              <!-- VIEW 2: KANBAN BOARD VIEW -->
               <div id="kanbanViewWrap" class="kanban-board" style="display: none;">
-                <!-- Col 1: Chờ xác nhận -->
                 <div class="kanban-column" id="kanbanPending">
                   <div class="kanban-column-header">
                     <span>Chờ xác nhận</span>
@@ -486,7 +470,6 @@
                   <div class="kanban-cards-wrap" id="kListPending"></div>
                 </div>
 
-                <!-- Col 2: Đã xác nhận / Đã cọc -->
                 <div class="kanban-column" id="kanbanConfirmed">
                   <div class="kanban-column-header">
                     <span>Đã xác nhận</span>
@@ -495,7 +478,6 @@
                   <div class="kanban-cards-wrap" id="kListConfirmed"></div>
                 </div>
 
-                <!-- Col 3: Đang sử dụng -->
                 <div class="kanban-column" id="kanbanInUse">
                   <div class="kanban-column-header">
                     <span>Đang sử dụng</span>
@@ -504,7 +486,6 @@
                   <div class="kanban-cards-wrap" id="kListInUse"></div>
                 </div>
 
-                <!-- Col 4: Hoàn thành / Hủy -->
                 <div class="kanban-column" id="kanbanCompleted">
                   <div class="kanban-column-header">
                     <span>Hoàn thành / Hủy</span>
@@ -516,7 +497,6 @@
             </div>
           </div>
 
-          <!-- RIGHT: PHIẾU ĐẶT SÂN / CHI TIẾT (REFERENCE IMAGE 3) -->
           <div class="card booking-form-panel">
             <div class="card-header">
               <div class="card-title">
@@ -598,7 +578,6 @@
                 </select>
               </div>
 
-              <!-- BUTTONS (REFERENCE IMAGE 3: Lưu / Làm mới / Xóa) -->
               <div style="display: flex; gap: 8px; margin-top: 20px;">
                 <button type="submit" class="btn btn-primary" style="flex: 2;">
                   <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
@@ -619,7 +598,6 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- BOOKINGS CRUD & DATA LOGIC -->
   <script>
     // Initial 7 records matching Reference Image 3:
     let initialBookings = [

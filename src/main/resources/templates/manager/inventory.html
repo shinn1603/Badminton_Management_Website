@@ -111,7 +111,6 @@
 <body>
 
   <div class="layout-container">
-    <!-- LEFT SIDEBAR -->
     <aside class="sidebar" id="appSidebar">
       <div class="brand-header">
         <div class="brand-logo-wrap">
@@ -167,7 +166,6 @@
           <span class="menu-text">Cấu hình giá</span>
         </a>
 
-        <!-- GOM 2 TAB KHO THÀNH 1 MỤC QUẢN LÝ KHO DUY NHẤT -->
         <a href="/manager/inventory" class="menu-item active">
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -211,7 +209,6 @@
       </div>
     </aside>
 
-    <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
       <header class="header-bar">
         <div class="header-left">
@@ -264,10 +261,8 @@
         </div>
       </header>
 
-      <!-- PAGE CONTENT -->
       <main class="page-content">
 
-        <!-- HERO BANNER -->
         <div class="hero-banner" style="margin-bottom: 20px;">
           <div class="hero-banner-content">
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
@@ -279,7 +274,6 @@
           </div>
         </div>
 
-        <!-- THÔNG BÁO PHÂN QUYỀN TOÀN QUYỀN GIÁM ĐỐC -->
         <div class="authority-alert">
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.16); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
@@ -298,7 +292,6 @@
           </span>
         </div>
 
-        <!-- TAB NAVIGATION (GOM 2 TAB KHO LẠI) -->
         <div class="warehouse-nav-tabs">
           <button type="button" class="warehouse-tab-btn active" id="tabBtnStock" onclick="switchWarehouseTab('stock')">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
@@ -310,11 +303,7 @@
           </button>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- TAB 1: TỒN KHO THỰC TẾ & ĐỊNH MỨC                            -->
-        <!-- ============================================================ -->
         <div id="panelStock" style="display: block;">
-          <!-- KPI METRICS -->
           <div class="kpi-grid">
             <div class="kpi-card-unified">
               <div class="kpi-header">
@@ -361,7 +350,6 @@
             </div>
           </div>
 
-          <!-- TABLE CARD -->
           <div class="table-card">
             <div class="table-header">
               <div class="table-title">
@@ -406,18 +394,13 @@
                   </tr>
                 </thead>
                 <tbody id="inventoryTableBody">
-                  <!-- Dữ liệu nạp động từ API -->
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- TAB 2: LẬP PHIẾU NHẬP & LỊCH SỬ PHIẾU                        -->
-        <!-- ============================================================ -->
         <div id="panelReceipt" style="display: none;">
-          <!-- CARD LẬP PHIẾU NHẬP -->
           <div class="table-card" style="margin-bottom: 24px;">
             <div class="table-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px;">
               <div class="table-title">
@@ -451,7 +434,6 @@
                   <input type="text" class="form-control" id="receiptNotes" placeholder="Ví dụ: Nhập bổ sung nước tăng lực và cầu lông phục vụ giải đấu cuối tuần...">
                 </div>
 
-                <!-- BẢNG CHI TIẾT HÀNG NHẬP -->
                 <div style="border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; background: var(--surface);">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div style="font-size: 13px; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
@@ -463,7 +445,6 @@
                     </button>
                   </div>
 
-                  <!-- HEADER ROW -->
                   <div class="receipt-item-row" style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); padding: 0 4px 6px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 10px;">
                     <div>MẶT HÀNG (*)</div>
                     <div style="text-align: center;">ĐƠN VỊ</div>
@@ -474,7 +455,6 @@
                   </div>
 
                   <div id="receiptItemsContainer">
-                    <!-- Dòng hàng nhập tự động chèn vào đây -->
                   </div>
 
                   <div style="margin-top: 10px;">
@@ -485,7 +465,6 @@
                   </div>
                 </div>
 
-                <!-- TOTALS BOX -->
                 <div class="totals-box">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px;">
                     <span style="color: var(--text-muted);">Tổng số mặt hàng:</span>
@@ -512,7 +491,6 @@
             </div>
           </div>
 
-          <!-- CARD LỊCH SỬ CÁC PHIẾU NHẬP KHO GẦN ĐÂY -->
           <div class="table-card">
             <div class="table-header">
               <div class="table-title">
@@ -540,7 +518,6 @@
                   </tr>
                 </thead>
                 <tbody id="receiptHistoryBody">
-                  <!-- Lịch sử phiếu nhập nạp động từ API -->
                 </tbody>
               </table>
             </div>

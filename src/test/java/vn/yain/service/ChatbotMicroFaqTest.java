@@ -13,7 +13,6 @@ public class ChatbotMicroFaqTest {
     @BeforeEach
     void setUp() {
         chatbotService = new ChatbotService();
-        // Không inject Gemini, không inject DB để test tầng Micro-FAQ
     }
 
     @Test

@@ -68,13 +68,11 @@ public class PaymentWebhookService {
         }
         if (content == null) content = "";
 
-        // Trích xuất mã giao dịch từ webhook provider (nếu có)
         String referenceCode = webhookData.get("referenceCode") != null ? webhookData.get("referenceCode").toString() : null;
         if (referenceCode == null && webhookData.get("id") != null) {
             referenceCode = "SEPAY-" + webhookData.get("id").toString();
         }
 
-        // Trích xuất số tiền chuyển khoản
         BigDecimal transferAmount = null;
         Object rawAmount = webhookData.get("transferAmount");
         if (rawAmount == null) rawAmount = webhookData.get("amount");
@@ -87,10 +85,8 @@ public class PaymentWebhookService {
             }
         }
 
-        // Tìm mã đặt sân trong nội dung chuyển khoản
         Matcher matcher = BOOKING_CODE_PATTERN.matcher(content);
         if (!matcher.find()) {
-            // Thử kiểm tra trực tiếp trong payload nếu có trường bookingCode
             String directCode = (String) webhookData.get("bookingCode");
             if (directCode != null && !directCode.isBlank()) {
                 matcher = BOOKING_CODE_PATTERN.matcher(directCode);
@@ -113,8 +109,6 @@ public class PaymentWebhookService {
 
         Booking booking = opt.get();
 
-        // 1. CHỐNG XỬ LÝ LẶP (IDEMPOTENCY CHECK)
-        // Nếu đơn đã cọc hoặc đã hoàn thành, bỏ qua việc ghi nhận lại tránh nhân đôi tiền và tích lũy điểm
         if ("Đã cọc 30%".equalsIgnoreCase(booking.getStatus()) ||
             "Đang sử dụng".equalsIgnoreCase(booking.getStatus()) ||
             "Hoàn thành".equalsIgnoreCase(booking.getStatus())) {
@@ -133,7 +127,6 @@ public class PaymentWebhookService {
             return Map.of("success", false, "message", "Booking is already cancelled: " + bookingCode);
         }
 
-        // 2. ĐỐI SOÁT SỐ TIỀN THANH TOÁN (RECONCILIATION)
         BigDecimal expectedDeposit = booking.getDepositAmount() != null && booking.getDepositAmount().compareTo(BigDecimal.ZERO) > 0
                 ? booking.getDepositAmount()
                 : (booking.getTotalPrice() != null ? booking.getTotalPrice().multiply(new BigDecimal("0.3")) : BigDecimal.ZERO);
@@ -147,14 +140,12 @@ public class PaymentWebhookService {
 
         String txRef = referenceCode != null ? referenceCode : "SEPAY-" + bookingCode;
 
-        // Kiểm tra xem giao dịch thanh toán txRef đã tồn tại chưa
         if (paymentRepository.findByBookingCode(bookingCode).stream()
                 .anyMatch(p -> txRef.equalsIgnoreCase(p.getTransactionRef()))) {
             log.info("Giao dịch tham chiếu [{}] đã tồn tại, tránh ghi nhận giao dịch trùng lặp", txRef);
             return Map.of("success", true, "duplicate", true, "message", "Transaction reference already recorded");
         }
 
-        // 3. XÁC NHẬN CỌC & GHI NHẬN THANH TOÁN
         BigDecimal effectiveDeposit = transferAmount != null ? transferAmount : expectedDeposit;
         Booking updated = bookingService.confirmDeposit(bookingCode, effectiveDeposit, "Chuyển khoản VietQR", txRef);
 

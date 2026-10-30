@@ -336,7 +336,6 @@ public class EmailService {
             helper.setText(html, true);
             sender.send(message);
 
-            // Tự động lưu cấu hình hợp lệ vào CSDL
             saveOrUpdateSetting("CFG_MAIL_USERNAME", username);
             saveOrUpdateSetting("CFG_MAIL_PASSWORD", password);
             saveOrUpdateSetting("CFG_MAIL_PORT", String.valueOf(port));
@@ -359,7 +358,6 @@ public class EmailService {
             boolean isAuthErr = fullErr.contains("535") || fullErr.contains("AuthenticationFailedException") || fullErr.contains("Username and Password not accepted") || fullErr.contains("BadCredentials");
             boolean isConnErr = fullErr.contains("Could not connect") || fullErr.contains("ConnectException") || fullErr.contains("timed out") || fullErr.contains("SocketTimeoutException") || fullErr.contains("MailConnectException");
 
-            // Nếu chỉ lỗi kết nối mạng/tường lửa mà không phải sai mật khẩu, tự động thử cổng thay thế (587 <-> 465)
             if (isConnErr && !isAuthErr) {
                 int altPort = (port == 587) ? 465 : 587;
                 try {
@@ -375,7 +373,6 @@ public class EmailService {
                         altHelper.setText(altHtml, true);
                         altSender.send(altMsg);
 
-                        // Lưu cổng thành công vào database
                         saveOrUpdateSetting("CFG_MAIL_USERNAME", username);
                         saveOrUpdateSetting("CFG_MAIL_PASSWORD", password);
                         saveOrUpdateSetting("CFG_MAIL_PORT", String.valueOf(altPort));
@@ -441,7 +438,6 @@ public class EmailService {
             log.warn("[EMAIL SERVICE] Chưa cấu hình SMTP (username/password trống), chuyển sang chế độ mô phỏng log.");
         }
 
-        // Chế độ mô phỏng (Development / Offline Logger)
         log.info("================================================================================");
         log.info("[EMAIL SIMULATION - UTE SPORT NOTIFICATION]");
         log.info("From: {} ({})", getResolvedUsername(), getResolvedFromName());
@@ -452,10 +448,6 @@ public class EmailService {
         log.info("================================================================================");
         return true;
     }
-
-    // =========================================================================
-    // 1. GỬI MÃ OTP / THÔNG BÁO QUÊN MẬT KHẨU
-    // =========================================================================
 
     public void sendPasswordResetOtp(String toEmail, String fullName, String otpCode) {
         String safeName = (fullName != null && !fullName.isBlank()) ? fullName : "Quý khách";
@@ -580,10 +572,6 @@ public class EmailService {
         sendHtmlEmailAsync(toEmail, subject, html);
     }
 
-    // =========================================================================
-    // 2. GỬI PHIẾU XÁC NHẬN ĐẶT SÂN & VÉ ĐIỆN TỬ (E-TICKET BM-KH02)
-    // =========================================================================
-
     public void sendBookingTicket(Booking booking, String qrCodeUrl) {
         sendBookingConfirmation(booking);
     }
@@ -591,7 +579,6 @@ public class EmailService {
     public void sendBookingConfirmation(Booking booking) {
         if (booking == null) return;
 
-        // Tìm email người nhận
         String toEmail = booking.getCustomerEmail();
         if (toEmail == null || toEmail.isBlank() || !toEmail.contains("@")) {
             if (booking.getCustomerCode() != null) {
@@ -615,7 +602,6 @@ public class EmailService {
             return;
         }
 
-        // Thông tin sân và chi nhánh
         Court court = courtRepository.findByCourtCode(booking.getCourtCode()).orElse(null);
         String courtName = court != null ? court.getCourtName() : ("Sân " + booking.getCourtCode());
         String courtType = court != null ? court.getCourtType() : "Tiêu chuẩn";
@@ -747,10 +733,6 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
-
-    // =========================================================================
-    // 2.2 GỬI THÔNG BÁO HỦY ĐẶT SÂN & HƯỚNG DẪN HOÀN TIỀN CỌC
-    // =========================================================================
 
     public void sendCancellationNotice(Booking booking, String reason) {
         if (booking == null) return;
@@ -951,11 +933,6 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
-
-    // =========================================================================
-    // 3. GỬI PHIẾU XÁC NHẬN THAM GIA GIẢI ĐẤU (BM-KH03)
-    // =========================================================================
-    // =========================================================================
 
     public void sendTournamentRegistration(String email, String fullName, Tournament tournament, String regCode) {
         if (tournament == null) return;

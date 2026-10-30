@@ -40,7 +40,6 @@ public class CourtService {
     @Autowired(required = false)
     private SimpMessagingTemplate messagingTemplate;
 
-    // Track held courts and their expiration times (600 seconds = 10 minutes)
     private final Map<String, LocalDateTime> heldCourtTimestamps = new ConcurrentHashMap<>();
 
     public int[] parseSlotHours(String slot) {
@@ -85,22 +84,19 @@ public class CourtService {
             }
 
             String currentStatus = court.getStatus() != null ? court.getStatus() : "Trống";
-            // Không can thiệp nếu sân đang bảo trì
             if ("Bảo trì".equalsIgnoreCase(currentStatus)) {
                 continue;
             }
 
-            // Kiểm tra nếu sân đang bị tạm giữ chỗ (10 phút)
             if (heldCourtTimestamps.containsKey(court.getCourtCode())) {
                 LocalDateTime expire = heldCourtTimestamps.get(court.getCourtCode());
                 if (LocalDateTime.now().isAfter(expire)) {
                     heldCourtTimestamps.remove(court.getCourtCode());
                 } else {
-                    continue; // Vẫn đang trong thời gian giữ chỗ 10 phút
+                    continue;
                 }
             }
 
-            // 1. Quét các đơn cũ từ các ngày trước mà vẫn bị kẹt trạng thái "Đang sử dụng"
             try {
                 List<vn.yain.entity.Booking> allCourtBookings = bookingRepository.findByCourtCode(court.getCourtCode());
                 if (allCourtBookings != null) {
@@ -115,7 +111,6 @@ public class CourtService {
                 }
             } catch (Exception ignored) {}
 
-            // 2. Lấy danh sách đơn đặt sân của sân trong ngày hôm nay
             List<vn.yain.entity.Booking> todayBookings = bookingRepository.findByCourtCodeAndBookingDate(court.getCourtCode(), today);
 
             boolean isCurrentlyInUse = false;
@@ -133,7 +128,6 @@ public class CourtService {
                     int endHour = hours[1];
                     if (startHour == 0 && endHour == 0) continue;
 
-                    // Khách đã đánh xong (giờ hiện tại >= giờ kết thúc)
                     if (currentDecimal >= endHour) {
                         if ("Đang sử dụng".equalsIgnoreCase(bStatus) || "Đã nhận sân".equalsIgnoreCase(bStatus)) {
                             b.setStatus("Hoàn thành");
@@ -143,7 +137,6 @@ public class CourtService {
                         continue;
                     }
 
-                    // Đang trong khung giờ thi đấu (startHour <= currentDecimal < endHour)
                     if (currentDecimal >= startHour && currentDecimal < endHour) {
                         if (!"Hoàn thành".equalsIgnoreCase(bStatus) && !bStatus.contains("hủy")) {
                             isCurrentlyInUse = true;
@@ -156,7 +149,6 @@ public class CourtService {
                         }
                     }
 
-                    // Sắp diễn ra trong vòng 30 phút (startHour - currentDecimal <= 0.5)
                     if (currentDecimal < startHour && (startHour - currentDecimal) <= 0.5) {
                         if (!"Hoàn thành".equalsIgnoreCase(bStatus) && !bStatus.contains("hủy")) {
                             isUpcomingSoon = true;
@@ -165,7 +157,6 @@ public class CourtService {
                 }
             }
 
-            // 3. Quyết định trạng thái chuẩn của sân
             String targetStatus = "Trống";
             if (isCurrentlyInUse) {
                 targetStatus = "Đang sử dụng";
@@ -173,7 +164,6 @@ public class CourtService {
                 targetStatus = "Đã đặt trước";
             }
 
-            // Nếu trạng thái trong CSDL khác targetStatus -> Cập nhật và phát sự kiện realtime
             if (!targetStatus.equalsIgnoreCase(currentStatus)) {
                 court.setStatus(targetStatus);
                 courtRepository.save(court);
@@ -237,12 +227,10 @@ public class CourtService {
         }
         Court saved = courtRepository.save(court);
 
-        // Remove from hold timer if status changes
         if (!"Đang giữ chỗ".equalsIgnoreCase(newStatus)) {
             heldCourtTimestamps.remove(courtCode);
         }
 
-        // Broadcast realtime update to all subscribers
         broadcastCourtEvent(CourtEventDto.builder()
                 .eventType("COURT_STATUS_CHANGED")
                 .courtCode(saved.getCourtCode())
@@ -268,7 +256,6 @@ public class CourtService {
         court.setStatus("Đang giữ chỗ");
         courtRepository.save(court);
 
-        // Record expiration time (10 minutes from now)
         heldCourtTimestamps.put(courtCode, LocalDateTime.now().plusSeconds(600));
 
         CourtEventDto event = CourtEventDto.builder()
@@ -278,7 +265,7 @@ public class CourtService {
                 .timeSlot(timeSlot)
                 .status("Đang giữ chỗ")
                 .customerName(customerName != null ? customerName : "Khách trực tuyến")
-                .holdRemainingSeconds(600) // 10 minutes = 600s
+                .holdRemainingSeconds(600)
                 .timestamp(LocalDateTime.now())
                 .build();
 

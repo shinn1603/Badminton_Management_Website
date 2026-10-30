@@ -131,13 +131,11 @@ public class CustomerAndCashierAcceptanceDemoTest {
     void testCustomerEndToEndAcceptanceDemo() {
         log.info("========== BẮT ĐẦU DEMO LUỒNG KHÁCH HÀNG (CUSTOMER FLOW) ==========");
 
-        // Bước 1: Khách hàng vào trang tra cứu sân tại Chi nhánh Quận 9 (CN01)
         List<Court> availableCourts = courtService.getCourts("CN01");
         assertNotNull(availableCourts, "Danh sách sân không được null");
         assertFalse(availableCourts.isEmpty(), "Chi nhánh CN01 phải có sân hoạt động");
         log.info("-> Bước 1: Khách hàng tìm thấy {} sân khả dụng tại CN01", availableCourts.size());
 
-        // Bước 2: Khách chọn Sân A khung giờ 19:00 - 20:00 và giữ chỗ tạm 10 phút
         String timeSlot = "19:00 - 20:00";
         String customerPhone = "0988776655";
         CourtEventDto holdResult = courtService.holdCourtForBooking(demoCourtA.getCourtCode(), "CN01", timeSlot, "Khách trực tuyến");
@@ -147,7 +145,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
         assertEquals(600, holdResult.getHoldRemainingSeconds());
         log.info("-> Bước 2: Đã giữ chỗ tạm thời sân {} slot {} trong 600s", demoCourtA.getCourtCode(), timeSlot);
 
-        // Bước 3: Khách hàng điền thông tin và xác nhận đặt sân (Hệ thống tính 30% tiền cọc)
         String bookingCode = "DS" + (600000 + (int)(Math.random() * 300000));
         LocalDate bookingDate = LocalDate.now().plusDays(2);
 
@@ -169,7 +166,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
         assertEquals(0, new BigDecimal("30000").compareTo(savedBooking.getDepositAmount()), "Tiền cọc phải là 30,000 VND (30%)");
         log.info("-> Bước 3: Tạo đơn đặt sân {} thành công, tổng tiền: 100,000đ, tiền cọc 30%: 30,000đ", bookingCode);
 
-        // Bước 4: Khách quét mã VietQR chuyển khoản 30,000 VND -> Cổng ngân hàng kích hoạt Webhook
         Map<String, Object> vietqrWebhookPayload = Map.of(
                 "content", "CK " + bookingCode + " TIEN COC 30%",
                 "transferAmount", 30000,
@@ -189,14 +185,12 @@ public class CustomerAndCashierAcceptanceDemoTest {
         assertEquals(0, new BigDecimal("30000").compareTo(payments.get(0).getAmount()));
         log.info("-> Bước 4: Webhook VietQR xử lý tự động thành công, đơn chuyển trạng thái 'Đã cọc 30%'");
 
-        // Bước 5: Kiểm tra tính Idempotent chống lặp giao dịch (Webhook gọi lại lần 2)
         Map<String, Object> duplicateRes = paymentWebhookService.processVietQRWebhook(
                 "UTE_VIETQR_SECRET_TOKEN_2026", null, vietqrWebhookPayload);
         assertTrue(Boolean.TRUE.equals(duplicateRes.get("success")));
         assertTrue(Boolean.TRUE.equals(duplicateRes.get("duplicate")), "Webhook lặp phải được đánh dấu duplicate=true");
         log.info("-> Bước 5: Kiểm tra chống lặp Idempotency an toàn, không sinh duplicate thanh toán");
 
-        // Bước 6: Khách hàng mở trang Lịch sử vé để xem E-Ticket và mã QR Check-in
         List<Booking> customerBookings = bookingRepository.findByCustomerPhone(customerPhone);
         assertFalse(customerBookings.isEmpty());
         assertTrue(customerBookings.stream().anyMatch(b -> b.getBookingCode().equals(bookingCode)));
@@ -211,7 +205,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
     void testCashierPosEndToEndAcceptanceDemo() {
         log.info("========== BẮT ĐẦU DEMO LUỒNG THU NGÂN / POS (CASHIER FLOW) ==========");
 
-        // Chuẩn bị đơn đặt sân đã cọc 30,000 VND
         String bookingCode = "DS" + (700000 + (int)(Math.random() * 200000));
         LocalDate today = LocalDate.now();
         String timeSlot = "18:00 - 19:00";
@@ -230,7 +223,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
         b.setStatus("Đã cọc 30%");
         bookingRepository.saveAndFlush(b);
 
-        // Bản ghi cọc 30k đã thanh toán
         Payment depositPayment = new Payment();
         depositPayment.setPaymentCode("TT-DEMO-" + bookingCode);
         depositPayment.setBookingCode(bookingCode);
@@ -241,7 +233,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
         depositPayment.setTransactionRef("SEPAY-INIT-" + bookingCode);
         paymentRepository.save(depositPayment);
 
-        // Bước 1: Thu ngân mở lưới 26 sân tại /pos/grid, thấy khách đến quầy và thực hiện Check-in
         Booking checkedIn = bookingService.checkIn(bookingCode);
         assertNotNull(checkedIn);
         assertEquals("Đang sử dụng", checkedIn.getStatus(), "Trạng thái đơn phải chuyển sang 'Đang sử dụng'");
@@ -251,7 +242,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
         assertEquals("Đang sử dụng", courtAfterCheckin.getStatus(), "Trạng thái sân phải là 'Đang sử dụng'");
         log.info("-> Bước 1: Check-in đơn {} thành công. Sân {} chuyển sang 'Đang sử dụng'", bookingCode, demoCourtA.getCourtCode());
 
-        // Bước 2: Khách có nhu cầu chuyển sang Sân VIP (Sân B - 120,000đ/giờ)
         Map<String, Object> transferResult = bookingService.transferCourt(bookingCode, demoCourtB.getCourtCode(), timeSlot);
         assertNotNull(transferResult);
         assertTrue((boolean) transferResult.get("success"), "Chuyển sân thi đấu phải thành công");
@@ -261,7 +251,6 @@ public class CustomerAndCashierAcceptanceDemoTest {
         assertEquals(0, new BigDecimal("120000").compareTo(transferred.getTotalPrice()), "Giá sân VIP B sau chuyển sân là 120,000đ");
         log.info("-> Bước 2: Đổi sang sân VIP {} thành công, giá mới cập nhật 120,000đ", demoCourtB.getCourtCode());
 
-        // Bước 3: Trong khi thi đấu trên Sân B, khách gọi 3 chai Revive (3 x 15k = 45k) và 1 ống cầu (250k)
         int initialDrinkStock = demoDrink.getStockQuantity();
         int initialShuttleStock = demoShuttlecock.getStockQuantity();
 
@@ -271,24 +260,19 @@ public class CustomerAndCashierAcceptanceDemoTest {
         Map<String, Object> shuttleOrder = warehouseService.orderServiceForBooking(bookingCode, demoShuttlecock.getProductCode(), 1);
         assertTrue((boolean) shuttleOrder.get("success"));
 
-        // Xác minh kho hàng bị trừ trực tiếp
         Product updatedDrink = productRepository.findByProductCode(demoDrink.getProductCode()).orElseThrow();
         Product updatedShuttle = productRepository.findByProductCode(demoShuttlecock.getProductCode()).orElseThrow();
         assertEquals(initialDrinkStock - 3, updatedDrink.getStockQuantity(), "Kho Revive phải giảm đúng 3 chai");
         assertEquals(initialShuttleStock - 1, updatedShuttle.getStockQuantity(), "Kho Cầu Yonex phải giảm đúng 1 ống");
 
-        // Tổng tiền đơn sau khi đổi sân VIP (120k) + 45k (nước) + 250k (cầu) = 415,000 VND
         Booking afterFnb = bookingRepository.findByBookingCode(bookingCode).orElseThrow();
         assertEquals(0, new BigDecimal("415000").compareTo(afterFnb.getTotalPrice()), "Tổng tiền đơn phải là 415,000đ");
         log.info("-> Bước 3: Gọi dịch vụ F&B thành công. Kho hàng trừ tự động. Tổng tiền đơn tăng lên 415,000đ");
 
-        // Bước 4: Khách kết thúc buổi chơi, ra quầy trả sân và quyết toán
-        // Phí phát sinh thuê vợt: 5,000 VND
-        // Tổng phải thanh toán nốt = 415,000 (tổng đơn gồm sân VIP + F&B) + 5,000 (phụ phí) - 30,000 (cọc) = 390,000 VND
         Invoice invoice = bookingService.checkOut(
                 bookingCode,
-                new BigDecimal("5000"), // extraEquipmentFee
-                BigDecimal.ZERO,        // extraProductFee
+                new BigDecimal("5000"),
+                BigDecimal.ZERO,
                 "Tiền mặt",
                 "THUNGAN_01"
         );
@@ -306,13 +290,11 @@ public class CustomerAndCashierAcceptanceDemoTest {
         assertEquals("Trống", courtAfterCheckout.getStatus(), "Sân phải được trả về trạng thái 'Trống' sẵn sàng đón khách mới");
         log.info("-> Bước 4: Check-out thành công. Hóa đơn {} xuất với số tiền thu nốt: 370,000đ. Sân đã trở về 'Trống'", invoice.getInvoiceCode());
 
-        // Bước 5: Cuối ca làm việc, thu ngân thực hiện tổng kết và chốt ca (Shift Closing)
         Map<String, Object> shiftSummary = shiftService.getShiftSummary("THUNGAN_01", "CN01");
         assertNotNull(shiftSummary);
         assertNotNull(shiftSummary.get("systemCashTotal"));
         assertNotNull(shiftSummary.get("systemTransferTotal"));
 
-        // Thu ngân kiểm đếm tiền mặt thực tế và bàn giao ca
         BigDecimal actualCashCounted = (BigDecimal) shiftSummary.get("systemCashTotal");
         Map<String, Object> closeShiftReceipt = shiftService.closeShift(
                 "THUNGAN_01",

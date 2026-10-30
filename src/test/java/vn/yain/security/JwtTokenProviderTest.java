@@ -26,10 +26,8 @@ class JwtTokenProviderTest {
         assertNotNull(token);
         assertTrue(token.length() > 20);
 
-        // Validate token
         assertTrue(jwtTokenProvider.validateToken(token));
 
-        // Extract claims
         assertEquals("quanly01", jwtTokenProvider.getUsernameFromToken(token));
         assertEquals("ROLE_MANAGER", jwtTokenProvider.getRoleFromToken(token));
     }

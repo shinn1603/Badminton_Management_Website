@@ -1,8 +1,4 @@
-/**
- * UTE SPORT - POS GRID REALTIME LOGIC
- * Module: Le tan & Ban hang POS (MH-NVQ01 -> MH-NVQ07)
- * Live Database Integration (No Mock / No Random Data)
- */
+
 
 let appData = {};
 const initialUrlBranch = (typeof window !== 'undefined' && window.location.search)
@@ -113,7 +109,6 @@ function isSlotOverlapping(s1, s2) {
   return Math.max(start1, start2) < Math.min(end1, end2);
 }
 
-// Update modal select dropdowns with real courts from database
 function updateCourtSelectDropdowns() {
   const bSelect = document.getElementById('bookingCourtSelect');
   if (bSelect && realCourts.length > 0) {
@@ -142,7 +137,6 @@ function updateCourtSelectDropdowns() {
   }
 }
 
-// Load all branches dynamically from database
 async function loadBranchesForPos() {
   const branchFilterEl = document.getElementById('branchFilter');
   if (!branchFilterEl) return;
@@ -178,7 +172,6 @@ async function loadBranchesForPos() {
   }
 }
 
-// Load real courts for the active branch with memory cache to prevent flickering
 async function loadCourtsForBranch(branchCode) {
   if (courtsCacheByBranch[branchCode] && courtsCacheByBranch[branchCode].length > 0) {
     realCourts = courtsCacheByBranch[branchCode];
@@ -199,7 +192,6 @@ async function loadCourtsForBranch(branchCode) {
     if (courtsCacheByBranch[branchCode] && courtsCacheByBranch[branchCode].length > 0) {
       realCourts = courtsCacheByBranch[branchCode];
     } else {
-      // Create fallback court with proper prefix matching the branch instead of always CL01..CL08
       realCourts = fallbackCourts.map(c => ({
         ...c,
         courtCode: `${branchCode}_${c.courtCode}`,
@@ -210,7 +202,6 @@ async function loadCourtsForBranch(branchCode) {
   updateCourtSelectDropdowns();
 }
 
-// Render POS timetable grid completely from live backend database
 async function renderGridForDate(dateStr) {
   if (isRenderingGrid) {
     pendingRenderDate = dateStr;
@@ -484,7 +475,6 @@ function toggleTheme() {
   localStorage.setItem('utesport_theme', nxt);
 }
 
-// SEARCH & HIGHLIGHT REAL BOOKINGS
 function handleSearch() {
   const searchInput = document.getElementById('searchInput');
   if (!searchInput) return;
@@ -570,12 +560,10 @@ function highlightExactSlot(courtCode, time) {
   }, 100);
 }
 
-// REAL-TIME INPUT RESTRICTIONS FOR CUSTOMER INFO
 function cleanCustomerNameInput(input) {
   if (!input) return;
   const errorEl = document.getElementById('custNameError');
   const original = input.value;
-  // Block digits and symbols, allow Vietnamese letters, spaces, and hyphens
   const cleaned = original.replace(/[0-9]/g, '').replace(/[^\p{L}\s'-]/gu, '');
   if (original !== cleaned) {
     input.value = cleaned;
@@ -719,7 +707,6 @@ async function submitBookingForm() {
     return;
   }
 
-  // Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0
   const phoneRegex = /^0\d{9}$/;
   if (!phoneRegex.test(phone)) {
     if (typeof showToast === 'function') showToast('Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số (bắt đầu bằng số 0).', 'warning');
@@ -816,7 +803,6 @@ async function submitBookingForm() {
   }
 }
 
-// DETAIL MODAL & CHECK-IN
 function openDetailModal(element, code, court, time, customer, phone, status, price, deposit = 0, isMaint = false) {
   activeSlotCell = element;
   activeSlotCell.dataset.code = code || 'DS0102';
@@ -847,7 +833,6 @@ function openDetailModal(element, code, court, time, customer, phone, status, pr
   const remainEl = document.getElementById('detailRemainPrice');
   if (remainEl) remainEl.textContent = remainVal.toLocaleString('vi-VN') + ' đ';
 
-  // Xử lý cảnh báo Sân Bảo Trì và Gợi ý Chuyển sân 1-Click
   const maintAlert = document.getElementById('detailMaintenanceAlert');
   const suggestionBox = document.getElementById('quickTransferSuggestion');
   if (maintAlert) {
@@ -987,7 +972,6 @@ async function cancelBookingFromModal() {
   }
 }
 
-// CHECKOUT & POS SERVICES MODAL (DYNAMIC DB INTEGRATED)
 let dbProductsCache = [];
 let currentPosFilterCat = 'all';
 let currentPosSearchTerm = '';
