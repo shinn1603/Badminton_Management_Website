@@ -440,6 +440,35 @@ public class UserService {
         return saved;
     }
 
+    @Transactional
+    public void deleteUser(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên đăng nhập không được để trống!");
+        }
+        String cleanUser = username.trim();
+        if ("admin".equalsIgnoreCase(cleanUser)) {
+            throw new IllegalArgumentException("Không thể xóa tài khoản Quản trị viên hệ thống tối cao [admin]!");
+        }
+
+        Optional<User> userOpt = userRepository.findByUsername(cleanUser)
+                .or(() -> userRepository.findByUsernameIgnoreCase(cleanUser));
+
+        if (userOpt.isPresent()) {
+            userRepository.delete(userOpt.get());
+            log.info("Đã xóa vĩnh viễn tài khoản người dùng: {}", cleanUser);
+        } else {
+            Optional<Customer> custOpt = customerRepository.findByCustomerCode(cleanUser)
+                    .or(() -> customerRepository.findByCustomerCodeIgnoreCase(cleanUser))
+                    .or(() -> customerRepository.findByPhone(cleanUser));
+            if (custOpt.isPresent()) {
+                customerRepository.delete(custOpt.get());
+                log.info("Đã xóa tài khoản khách hàng tương ứng: {}", cleanUser);
+            } else {
+                throw new IllegalArgumentException("Không tìm thấy tài khoản người dùng [" + cleanUser + "] để xóa!");
+            }
+        }
+    }
+
     public Customer createCustomer(String fullName, String phone, String email, String membershipTier) {
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new IllegalArgumentException("Họ và tên khách hàng không được để trống!");

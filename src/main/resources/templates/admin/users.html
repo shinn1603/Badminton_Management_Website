@@ -258,9 +258,12 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-action btn-outline-action" onclick="closeUserModal()">Hủy bỏ</button>
-        <button class="btn-action btn-primary-action" onclick="saveUser()">Lưu thông tin</button>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" id="btnModalDeleteUser" class="btn-action btn-outline-action" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.45); display: none;" onclick="deleteCurrentModalUser()">Xóa tài khoản</button>
+        <div style="display: flex; gap: 8px; margin-left: auto;">
+          <button class="btn-action btn-outline-action" onclick="closeUserModal()">Hủy bỏ</button>
+          <button class="btn-action btn-primary-action" onclick="saveUser()">Lưu thông tin</button>
+        </div>
       </div>
     </div>
   </div>
@@ -425,6 +428,7 @@
           <td style="text-align: right; white-space: nowrap;">
             <button class="btn-action btn-outline-action" onclick="openUserModal('${escapeHtml(u.username)}', '${escapeHtml(u.fullName || '')}', '${escapeHtml(u.role)}', '${escapeHtml(u.branchCode || 'ALL')}', '${escapeHtml(u.phone || '')}', '${escapeHtml(u.status || 'Hoạt động')}')">Sửa</button>
             ${lockBtn}
+            ${u.username && u.username.toLowerCase() !== 'admin' ? `<button class="btn-action btn-outline-action" style="margin-left: 4px; color: #ef4444; border-color: rgba(239, 68, 68, 0.35);" onclick="deleteUserAccount('${escapeHtml(u.username)}')">Xóa</button>` : ''}
           </td>
         `;
         tbody.appendChild(tr);
@@ -439,6 +443,11 @@
       const title = document.getElementById('modalTitle');
       const statusGroup = document.getElementById('statusAssignGroup');
       const inpStatus = document.getElementById('inpStatus');
+
+      const btnDel = document.getElementById('btnModalDeleteUser');
+      if (btnDel) {
+        btnDel.style.display = (username && username.toLowerCase() !== 'admin') ? 'inline-block' : 'none';
+      }
 
       if (username) {
         title.innerText = 'Cập nhật tài khoản: ' + username;
@@ -470,6 +479,51 @@
 
     function closeUserModal() {
       document.getElementById('userModal').classList.remove('open');
+    }
+
+    function deleteCurrentModalUser() {
+      const username = document.getElementById('inpUsername').value;
+      if (username) {
+        closeUserModal();
+        deleteUserAccount(username);
+      }
+    }
+
+    async function deleteUserAccount(username) {
+      if (!username) return;
+      if (username.toLowerCase() === 'admin') {
+        if (window.showToast) showToast('Không thể xóa tài khoản Quản trị viên tối cao [admin]!', 'error');
+        return;
+      }
+      if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản [${username}] khỏi hệ thống không?\n\nLưu ý: Hành động này sẽ xóa dữ liệu tài khoản và không thể hoàn tác!`)) {
+        return;
+      }
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/admin/users/${encodeURIComponent(username)}`, {
+          method: 'DELETE',
+          headers: headers
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (window.showToast) showToast(data.message || `Đã xóa tài khoản [${username}] thành công!`, 'success');
+          cachedUsers = cachedUsers.filter(u => u.username !== username);
+          renderUserTable(cachedUsers);
+          applyUserFilters();
+        } else {
+          if (window.showToast) showToast(data.message || 'Lỗi khi xóa tài khoản người dùng!', 'error');
+        }
+      } catch (err) {
+        console.error('Lỗi khi xóa tài khoản:', err);
+        if (window.showToast) showToast('Lỗi kết nối máy chủ khi xóa tài khoản!', 'error');
+      }
     }
 
     async function saveUser() {

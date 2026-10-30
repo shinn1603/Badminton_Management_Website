@@ -1766,6 +1766,29 @@ public class ApiController {
 
     }
 
+    @DeleteMapping("/admin/users/{username}")
+    public ResponseEntity<?> deleteAdminUser(@PathVariable String username, HttpServletRequest request) {
+        try {
+            userService.deleteUser(username);
+            if (auditLogRepository != null) {
+                try {
+                    AuditLog logEntry = new AuditLog();
+                    logEntry.setUsername("admin");
+                    logEntry.setActionType("Xóa tài khoản người dùng");
+                    logEntry.setDetails("Xóa vĩnh viễn tài khoản [" + username + "] khỏi hệ thống");
+                    logEntry.setModule("Tài khoản & Phân quyền");
+                    logEntry.setIpAddress(getClientIp(request));
+                    logEntry.setStatus("Thành công");
+                    logEntry.setActionTime(LocalDateTime.now());
+                    auditLogRepository.save(logEntry);
+                } catch (Exception ignored) {}
+            }
+            return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa tài khoản [" + username + "] thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/admin/permissions")
 
     public ResponseEntity<?> getAdminPermissions() {
@@ -8079,6 +8102,21 @@ public class ApiController {
 
         }
 
+    }
+
+    @DeleteMapping("/director/tournaments/{id}")
+    public ResponseEntity<?> deleteTournament(@PathVariable Long id) {
+        try {
+            Optional<Tournament> opt = tournamentRepository.findById(id);
+            if (opt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", "Không tìm thấy giải đấu ID: " + id));
+            }
+            Tournament t = opt.get();
+            tournamentRepository.delete(t);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa giải đấu [" + t.getTournamentName() + "] thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi khi xóa giải đấu: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/director/tournaments/{id}")
