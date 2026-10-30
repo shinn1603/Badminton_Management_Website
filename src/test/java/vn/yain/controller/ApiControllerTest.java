@@ -56,6 +56,9 @@ class ApiControllerTest {
     @Autowired
     private vn.yain.repository.UserRepository userRepository;
 
+    @Autowired
+    private vn.yain.repository.TournamentRepository tournamentRepository;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
@@ -439,6 +442,57 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$.success", is(true)));
 
         org.junit.jupiter.api.Assertions.assertTrue(branchRepository.findByBranchCode("CN99").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Admin: Xoa tai khoan nguoi dung thanh cong DELETE /api/admin/users/{username}")
+    void testDeleteAdminUser() throws Exception {
+        vn.yain.entity.User u = new vn.yain.entity.User();
+        u.setUsername("testuser_delete");
+        u.setPassword("123456");
+        u.setFullName("Nguyen Van Test Delete");
+        u.setRole("POS");
+        u.setStatus("Hoạt động");
+        u.setBranchCode("CN01");
+        userRepository.save(u);
+
+        org.junit.jupiter.api.Assertions.assertTrue(userRepository.findByUsername("testuser_delete").isPresent());
+
+        mockMvc.perform(delete("/api/admin/users/testuser_delete"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.message", containsString("Đã xóa tài khoản [testuser_delete] thành công!")));
+
+        org.junit.jupiter.api.Assertions.assertTrue(userRepository.findByUsername("testuser_delete").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Admin: Chan xoa tai khoan admin goc")
+    void testCannotDeleteAdminSuperUser() throws Exception {
+        mockMvc.perform(delete("/api/admin/users/admin"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", is(false)))
+                .andExpect(jsonPath("$.message", containsString("Không thể xóa tài khoản Quản trị viên hệ thống tối cao [admin]!")));
+    }
+
+    @Test
+    @DisplayName("Director: Xoa giai dau thanh cong DELETE /api/director/tournaments/{id}")
+    void testDeleteTournament() throws Exception {
+        vn.yain.entity.Tournament t = new vn.yain.entity.Tournament();
+        t.setTournamentCode("TOUR_TEST_DEL");
+        t.setTournamentName("Giải Đấu Test Xóa");
+        t.setStatus("Chờ phê duyệt");
+        t.setBranchCode("CN01");
+        t.setStartDate(java.time.LocalDateTime.now());
+        t.setEndDate(java.time.LocalDateTime.now().plusDays(2));
+        t = tournamentRepository.save(t);
+
+        mockMvc.perform(delete("/api/director/tournaments/" + t.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.message", containsString("Đã xóa giải đấu")));
+
+        org.junit.jupiter.api.Assertions.assertTrue(tournamentRepository.findById(t.getId()).isEmpty());
     }
 
     @Test

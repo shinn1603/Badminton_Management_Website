@@ -266,7 +266,7 @@ public class UserService {
                     u.setPhone(c.getPhone() != null ? c.getPhone() : "");
                     u.setEmail(c.getEmail() != null ? c.getEmail() : "");
                     u.setRole("CUSTOMER");
-                    u.setBranchCode("CN01");
+                    u.setBranchCode("ALL");
                     u.setStatus(c.getStatus() != null ? c.getStatus() : "Hoạt động");
                     u.setCreatedAt(c.getCreatedAt() != null ? c.getCreatedAt() : LocalDateTime.now());
                     users.add(u);
@@ -283,13 +283,17 @@ public class UserService {
     }
 
     public User saveOrUpdateUser(Map<String, String> payload) {
-        String username = payload.get("username");
-        if (username == null || username.trim().isEmpty()) {
+        String rawUsername = payload.get("username");
+        if (rawUsername == null || rawUsername.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên đăng nhập không được để trống!");
         }
-        Optional<User> existing = userRepository.findByUsername(username.trim());
+        final String username = rawUsername.trim();
+        if (username.length() < 3 || username.length() > 30 || !username.matches("^[a-zA-Z0-9_.\\-]+$")) {
+            throw new IllegalArgumentException("Tên đăng nhập tối thiểu 3 ký tự và chỉ chứa chữ cái, chữ số, dấu chấm hoặc gạch nối!");
+        }
+        Optional<User> existing = userRepository.findByUsername(username);
         User u = existing.orElseGet(User::new);
-        u.setUsername(username.trim());
+        u.setUsername(username);
         if (payload.containsKey("password") && payload.get("password") != null && !payload.get("password").isBlank()) {
             u.setPassword(passwordEncoder.encode(payload.get("password").trim()));
         } else if (u.getPassword() == null) {
@@ -297,8 +301,18 @@ public class UserService {
         }
         if (payload.containsKey("fullName")) u.setFullName(payload.get("fullName"));
         if (payload.containsKey("role")) u.setRole(payload.get("role").toUpperCase());
-        if (payload.containsKey("branchCode")) u.setBranchCode(payload.get("branchCode"));
-        if (payload.containsKey("phone")) u.setPhone(payload.get("phone"));
+        if ("CUSTOMER".equalsIgnoreCase(u.getRole()) || "DIRECTOR".equalsIgnoreCase(u.getRole()) || "ADMIN".equalsIgnoreCase(u.getRole())) {
+            u.setBranchCode("ALL");
+        } else if (payload.containsKey("branchCode")) {
+            u.setBranchCode(payload.get("branchCode"));
+        }
+        if (payload.containsKey("phone") && payload.get("phone") != null && !payload.get("phone").isBlank()) {
+            String ph = payload.get("phone").trim().replaceAll("[\\s.\\-]", "");
+            if (!ph.matches("^(0|\\+84)[35789][0-9]{8}$")) {
+                throw new IllegalArgumentException("Số điện thoại không hợp lệ (Phải gồm 10 chữ số theo định dạng di động Việt Nam)!");
+            }
+            u.setPhone(ph);
+        }
         if (payload.containsKey("email")) u.setEmail(payload.get("email"));
         if (payload.containsKey("status") && payload.get("status") != null && !payload.get("status").isBlank()) {
             String newStat = payload.get("status").trim();
@@ -440,6 +454,35 @@ public class UserService {
         return saved;
     }
 
+    @Transactional
+    public void deleteUser(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên đăng nhập không được để trống!");
+        }
+        String cleanUser = username.trim();
+        if ("admin".equalsIgnoreCase(cleanUser)) {
+            throw new IllegalArgumentException("Không thể xóa tài khoản Quản trị viên hệ thống tối cao [admin]!");
+        }
+
+        Optional<User> userOpt = userRepository.findByUsername(cleanUser)
+                .or(() -> userRepository.findByUsernameIgnoreCase(cleanUser));
+
+        if (userOpt.isPresent()) {
+            userRepository.delete(userOpt.get());
+            log.info("Đã xóa vĩnh viễn tài khoản người dùng: {}", cleanUser);
+        } else {
+            Optional<Customer> custOpt = customerRepository.findByCustomerCode(cleanUser)
+                    .or(() -> customerRepository.findByCustomerCodeIgnoreCase(cleanUser))
+                    .or(() -> customerRepository.findByPhone(cleanUser));
+            if (custOpt.isPresent()) {
+                customerRepository.delete(custOpt.get());
+                log.info("Đã xóa tài khoản khách hàng tương ứng: {}", cleanUser);
+            } else {
+                throw new IllegalArgumentException("Không tìm thấy tài khoản người dùng [" + cleanUser + "] để xóa!");
+            }
+        }
+    }
+
     public Customer createCustomer(String fullName, String phone, String email, String membershipTier) {
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new IllegalArgumentException("Họ và tên khách hàng không được để trống!");
@@ -472,7 +515,7 @@ public class UserService {
             u.setEmail(saved.getEmail());
             u.setPassword(saved.getPassword());
             u.setRole("CUSTOMER");
-            u.setBranchCode("CN01");
+            u.setBranchCode("ALL");
             u.setStatus("Hoạt động");
             u.setCreatedAt(LocalDateTime.now());
             userRepository.save(u);

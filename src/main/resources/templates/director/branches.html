@@ -265,6 +265,23 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination-bar" id="branchesPaginationBar" style="display: none;">
+            <div class="pagination-info" id="branchesPaginationInfo">
+              Hiển thị 1 - 5 trong tổng số 0 chi nhánh
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Hiển thị:</span>
+                <select class="pagination-size-select" id="branchesPageSizeSelect" onchange="changeBranchesPageSize(this.value)">
+                  <option value="5" selected>5 chi nhánh / trang</option>
+                  <option value="10">10 chi nhánh / trang</option>
+                  <option value="20">20 chi nhánh / trang</option>
+                </select>
+              </div>
+              <div class="pagination-controls" id="branchesPaginationControls">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -426,20 +443,44 @@
       select.innerHTML = html;
     }
 
+        let filteredBranches = [];
+    let branchCurrentPage = 1;
+    let branchPageSize = 5;
+
     function renderBranchTable(branches) {
+      filteredBranches = branches || [];
+      branchCurrentPage = 1;
+      renderBranchTablePage();
+    }
+
+    function renderBranchTablePage() {
       const tbody = document.getElementById('branchTableBody');
       const countText = document.getElementById('branchCountText');
+      const pBar = document.getElementById('branchesPaginationBar');
+      const pInfo = document.getElementById('branchesPaginationInfo');
+      const pControls = document.getElementById('branchesPaginationControls');
       if (!tbody) return;
 
-      if (countText) countText.textContent = branches.length;
+      const total = filteredBranches.length;
+      if (countText) countText.textContent = total;
 
-      if (!branches || branches.length === 0) {
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">Không tìm thấy chi nhánh nào phù hợp</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / branchPageSize) || 1;
+      if (branchCurrentPage > totalPages) branchCurrentPage = totalPages;
+      if (branchCurrentPage < 1) branchCurrentPage = 1;
+
+      const startIdx = (branchCurrentPage - 1) * branchPageSize;
+      const endIdx = Math.min(startIdx + branchPageSize, total);
+      const pageBranches = filteredBranches.slice(startIdx, endIdx);
+
       let html = '';
-      branches.forEach(b => {
+      pageBranches.forEach(b => {
         const isAct = (b.status === 'Hoạt động' || !b.status);
         const badgeClass = isAct ? 'badge-success' : 'badge-warning';
         const statusText = b.status || 'Hoạt động';
@@ -463,8 +504,8 @@
               <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">${b.managerStaffCode ? b.managerStaffCode + ' • ' : ''}${b.managerPhone || ''}</div>
             </td>
             <td style="text-align: center;">
-              <span style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">${b.totalCourts} sân</span>
-              <div style="font-size: 11px; color: var(--text-muted);">(${b.vipCourts || 0} VIP, ${b.standardCourts || (b.totalCourts - (b.vipCourts || 0))} Tiêu chuẩn)</div>
+              <span style="font-weight: 700; color: var(--text-dark); font-size: 13.5px;">${b.totalCourts || b.courtCount || 0} sân</span>
+              <div style="font-size: 11px; color: var(--text-muted);">(${b.vipCourts || 0} VIP, ${b.standardCourts || ((b.totalCourts || b.courtCount || 0) - (b.vipCourts || 0))} Tiêu chuẩn)</div>
             </td>
             <td style="font-size: 13px;">${b.operatingHours || '06:00 - 23:00 hàng ngày'}</td>
             <td style="text-align: center;">
@@ -474,8 +515,8 @@
               <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
                 <a href="/pos/grid?branchCode=${b.branchCode}" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" title="Xem sơ đồ & lưới sân">Lưới sân</a>
                 <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="editBranch('${b.branchCode}')" title="Chỉnh sửa thông tin">Sửa</button>
-                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: ${isAct ? '#f59e0b' : '#10b981'}; border-color: ${isAct ? '#fde68a' : '#a7f3d0'};" onclick="toggleBranchStatus('${b.branchCode}', '${statusText}')" title="${isAct ? 'Tạm ngưng chi nhánh' : 'Kích hoạt lại'}">
-                  ${isAct ? 'Ngưng' : 'Mở'}
+                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: ${isAct ? '#f59e0b' : '#10b981'}; border-color: ${isAct ? '#fde68a' : '#a7f3d0'};" onclick="toggleBranchStatus('${b.branchCode}', '${statusText}')" title="${isAct ? 'Tạm ngừng chi nhánh' : 'Kích hoạt lại'}">
+                  ${isAct ? 'Ngừng' : 'Mở'}
                 </button>
                 <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444; border-color: #fca5a5; display: inline-flex; align-items: center; gap: 3px;" onclick="deleteBranch('${b.branchCode}', '${(b.branchName || '').replace(/'/g, "\\'")}')" title="Xóa chi nhánh ${b.branchCode}">
                   <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: #ef4444;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -488,6 +529,37 @@
       });
 
       tbody.innerHTML = html;
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} chi nhánh`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoBranchPage(${branchCurrentPage - 1})" ${branchCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, branchCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === branchCurrentPage ? 'active' : ''}" onclick="gotoBranchPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoBranchPage(${branchCurrentPage + 1})" ${branchCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoBranchPage(p) {
+      branchCurrentPage = p;
+      renderBranchTablePage();
+    }
+
+    function changeBranchesPageSize(val) {
+      branchPageSize = parseInt(val, 10) || 5;
+      branchCurrentPage = 1;
+      renderBranchTablePage();
     }
 
     function filterBranchTable() {

@@ -1456,7 +1456,10 @@
       }
     }
 
-    async function loadCourtsFromApi() {
+    async function loadCourtsFromApi(isManual = false) {
+      const activeModal = document.querySelector('.modal[style*="display: flex"], .modal[style*="display: block"]');
+      if (activeModal && !isManual) return;
+
       const branchSel = document.getElementById('courtBranchFilter') || document.getElementById('branchSelectFilter');
       let branch = branchSel ? branchSel.value : (localStorage.getItem('utesport_active_branch') || getActiveBranchCode());
       if (branch === 'ALL' && dbBranches.length > 0 && !dbBranches.some(b => b.branchCode === 'ALL')) {
@@ -1472,17 +1475,18 @@
         const res = await fetch(`/api/courts?branchCode=${encodeURIComponent(branch)}`, { headers });
         if (res.ok) {
           const courts = await res.json();
-          if (Array.isArray(courts)) {
-            allLoadedCourts = courts.filter(c => !branch || branch === 'ALL' || c.branchCode === branch);
-          } else {
-            allLoadedCourts = [];
+          const newCourts = Array.isArray(courts) ? courts.filter(c => !branch || branch === 'ALL' || c.branchCode === branch) : [];
+          // Smart diff: Don't re-render if data is unchanged
+          if (!isManual && allLoadedCourts.length > 0 && JSON.stringify(newCourts) === JSON.stringify(allLoadedCourts)) {
+            return;
           }
-        } else {
+          allLoadedCourts = newCourts;
+        } else if (isManual) {
           allLoadedCourts = [];
         }
       } catch (err) {
         console.warn('API error loading courts:', err);
-        allLoadedCourts = [];
+        if (isManual) allLoadedCourts = [];
       }
 
       renderKPIs(allLoadedCourts);
@@ -1494,12 +1498,12 @@
       const savedTheme = localStorage.getItem('utesport_theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       await loadBranchesFromDb();
-      await loadCourtsFromApi();
+      await loadCourtsFromApi(true);
 
-      // Realtime auto-refresh polling every 3.5 seconds
+      // Passive smart polling: only updates when data actually changes (never blinks DOM)
       setInterval(() => {
-        loadCourtsFromApi();
-      }, 3500);
+        loadCourtsFromApi(false);
+      }, 30000);
     });
 
     window.addEventListener('badminton:court-event', () => {

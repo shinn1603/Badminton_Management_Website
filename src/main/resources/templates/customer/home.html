@@ -2889,21 +2889,12 @@
       }
     }
 
-    // Add-on Services Data & Handler for Instant Booking Modal
-    const DEFAULT_ADDONS = [
-      { id: 'racket', name: 'Thuê Vợt Yonex Astrox', price: 20000, desc: 'Căng sẵn 10.5kg, quấn cán mới' },
-      { id: 'shuttle', name: 'Ống Cầu Yonex Aerosensa (3 quả)', price: 45000, desc: 'Tốc độ 77, độ bền & chuẩn BWF' },
-      { id: 'revive', name: 'Nước Bù Khoáng Revive Chanh Muối (500ml)', price: 15000, desc: 'Bổ sung khoáng chất & điện giải' },
-      { id: 'pocari', name: 'Nước Điện Giải Pocari Sweat (500ml)', price: 18000, desc: 'Bù nước & ion tức thì khi vận động' },
-      { id: 'shoes', name: 'Thuê Giày Cầu Lông Chuyên Dụng', price: 30000, desc: 'Đế kếp chống trơn trượt, đủ size' },
-      { id: 'grip', name: 'Quấn Cán Vợt VS Chống Trượt', price: 15000, desc: 'Hút ẩm mồ hôi tối ưu, êm ái' }
-    ];
-
+    // Add-on Services Data & Handler for Instant Booking Modal: 100% Dynamic from Database
     async function loadModalAddons(branchCode) {
       const container = document.getElementById('modalAddonsContainer');
       if (!container) return;
 
-      let items = [...DEFAULT_ADDONS];
+      let items = [];
       try {
         const res = await fetch(`/api/products?branchCode=${encodeURIComponent(branchCode || 'CN01')}`);
         if (res.ok) {
@@ -2911,25 +2902,28 @@
           if (Array.isArray(prods) && prods.length > 0) {
             prods.forEach(p => {
               const pName = p.productName || '';
-              const pPrice = Number(p.retailPrice || p.price || 0);
+              const pPrice = Number(p.unitPrice || 0);
               if (pPrice > 0 && !items.some(it => it.name.toLowerCase() === pName.toLowerCase())) {
-                if (p.category === 'Nước giải khát' || p.category === 'Phụ kiện' || p.category === 'Cầu lông') {
-                  items.push({
-                    id: 'prod_' + (p.productCode || p.id),
-                    name: pName,
-                    price: pPrice,
-                    desc: `${p.category || 'Sản phẩm'} • ${p.unit || 'Món'}`
-                  });
-                }
+                items.push({
+                  id: 'prod_' + (p.productCode || p.id),
+                  name: pName,
+                  price: pPrice,
+                  desc: `${p.category || 'Mặt hàng'} • Còn: ${p.stockQuantity || 0} ${p.unit || ''}`
+                });
               }
             });
           }
         }
       } catch (e) {
-        console.warn('Lỗi tải danh mục phụ kiện chi nhánh:', e);
+        console.warn('Lỗi tải danh mục tiện ích chi nhánh từ CSDL:', e);
       }
 
-      container.innerHTML = items.slice(0, 6).map(it => `
+      if (items.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 14px; color: var(--text-muted); font-size: 12px;">Chi nhánh này hiện chưa có dịch vụ tiện ích đi kèm trong CSDL</div>';
+        return;
+      }
+
+      container.innerHTML = items.map(it => `
         <div class="modal-addon-item" id="label_addon_${it.id}">
           <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1; cursor: pointer;" onclick="toggleModalAddon('${it.id}')">
             <input type="checkbox" class="modal-addon-cb" id="addon_${it.id}" data-name="${escapeHtml(it.name)}" value="${it.price}" onchange="onModalAddonChanged(this)" onclick="event.stopPropagation();" style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0;">

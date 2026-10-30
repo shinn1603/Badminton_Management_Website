@@ -64,46 +64,49 @@ public class EmailService {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
 
     public String getResolvedUsername() {
+        if (springMailUsername != null && !springMailUsername.isBlank()) {
+            return springMailUsername.trim();
+        }
         String dbUser = getSetting("CFG_MAIL_USERNAME", null);
         if (dbUser != null && !dbUser.isBlank()) {
             return dbUser.trim();
-        }
-        if (springMailUsername != null && !springMailUsername.isBlank()) {
-            return springMailUsername.trim();
         }
         return "tho8189@gmail.com";
     }
 
     public String getResolvedPassword() {
+        if (springMailPassword != null && !springMailPassword.isBlank()) {
+            return springMailPassword.trim().replace(" ", "");
+        }
         String dbPass = getSetting("CFG_MAIL_PASSWORD", null);
         if (dbPass != null && !dbPass.isBlank()) {
             return dbPass.trim().replace(" ", "");
-        }
-        if (springMailPassword != null && !springMailPassword.isBlank()) {
-            return springMailPassword.trim().replace(" ", "");
         }
         return "";
     }
 
     public String getResolvedHost() {
+        if (springMailHost != null && !springMailHost.isBlank()) {
+            return springMailHost.trim();
+        }
         String dbHost = getSetting("CFG_MAIL_HOST", null);
         if (dbHost != null && !dbHost.isBlank()) {
             return dbHost.trim();
-        }
-        if (springMailHost != null && !springMailHost.isBlank()) {
-            return springMailHost.trim();
         }
         return "smtp.gmail.com";
     }
 
     public int getResolvedPort() {
+        if (springMailPort > 0) {
+            return springMailPort;
+        }
         String dbPort = getSetting("CFG_MAIL_PORT", null);
         if (dbPort != null && !dbPort.isBlank()) {
             try {
                 return Integer.parseInt(dbPort.trim());
             } catch (Exception ignored) {}
         }
-        return springMailPort > 0 ? springMailPort : 587;
+        return 465;
     }
 
     public String getResolvedFromName() {
@@ -432,6 +435,24 @@ public class EmailService {
                 log.info("[EMAIL SERVICE] Đã gửi email thành công qua SMTP tới: {} | Tiêu đề: {}", recipient, subject);
                 return true;
             } catch (Exception e) {
+                log.warn("[EMAIL SERVICE] Gửi qua cổng {} thất bại ({}), đang thử cổng dự phòng...", getResolvedPort(), e.getMessage());
+                int altPort = (getResolvedPort() == 465) ? 587 : 465;
+                try {
+                    JavaMailSender altSender = getDynamicMailSender(getResolvedHost(), altPort, getResolvedUsername(), getResolvedPassword());
+                    if (altSender != null) {
+                        MimeMessage altMsg = altSender.createMimeMessage();
+                        MimeMessageHelper altHelper = new MimeMessageHelper(altMsg, true, "UTF-8");
+                        altHelper.setFrom(getResolvedUsername(), getResolvedFromName());
+                        altHelper.setTo(recipient);
+                        altHelper.setSubject(subject);
+                        altHelper.setText(htmlBody, true);
+                        altSender.send(altMsg);
+                        log.info("[EMAIL SERVICE] Đã gửi email thành công qua cổng dự phòng {} tới: {}", altPort, recipient);
+                        return true;
+                    }
+                } catch (Exception altEx) {
+                    log.error("[EMAIL SERVICE] Cổng dự phòng {} cũng thất bại: {}", altPort, altEx.getMessage());
+                }
                 log.error("[EMAIL SERVICE] Lỗi khi gửi qua SMTP (chuyển sang mô phỏng log): {} | Chi tiết: {}", e.getMessage(), parseSmtpError(e));
             }
         } else {

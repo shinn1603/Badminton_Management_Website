@@ -146,10 +146,6 @@
               <select class="branch-select" id="branchFilterSelect" onchange="filterTableByBranch(this.value)">
                 <option value="ALL">Tất cả chi nhánh</option>
                 <option value="ALL_CHAIN">Toàn chuỗi (Không giới hạn)</option>
-                <option value="CN01">Chi nhánh Thủ Đức (CN01)</option>
-                <option value="CN02">Chi nhánh Bình Thạnh (CN02)</option>
-                <option value="CN03">Chi nhánh Quận 9 (CN03)</option>
-                <option value="CN04">Chi nhánh Gò Vấp (CN04)</option>
               </select>
 
               <select class="branch-select" id="statusFilterSelect" onchange="applyUserFilters()">
@@ -195,6 +191,24 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination-bar" id="userPaginationBar" style="display: none;">
+            <div class="pagination-info" id="userPaginationInfo">
+              Hiển thị 1 - 5 trong tổng số 0 tài khoản
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Hiển thị:</span>
+                <select class="pagination-size-select" id="userPageSizeSelect" onchange="changeUserPageSize(this.value)">
+                  <option value="5" selected>5 tài khoản / trang</option>
+                  <option value="10">10 tài khoản / trang</option>
+                  <option value="20">20 tài khoản / trang</option>
+                  <option value="50">50 tài khoản / trang</option>
+                </select>
+              </div>
+              <div class="pagination-controls" id="userPaginationControls">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -225,7 +239,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="inpFullName">Họ và tên nhân sự</label>
+          <label class="form-label" for="inpFullName" id="lblFullName">Họ và tên nhân sự</label>
           <input type="text" class="form-control" id="inpFullName" placeholder="Nhập họ và tên đầy đủ">
         </div>
 
@@ -247,16 +261,13 @@
         </div>
 
         <div class="form-group" id="branchAssignGroup">
-          <label class="form-label" for="inpBranch">Phân công chi nhánh phụ trách</label>
+          <label class="form-label" for="inpBranch">Chi nhánh làm việc chính</label>
           <select class="form-control" id="inpBranch">
-            <option value="CN01">Chi nhánh 1 - TP. Thủ Đức (CN01)</option>
-            <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
-            <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
-            <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
-            <option value="CN01,CN02">Kiêm nhiệm 2 chi nhánh: CN01 (Thủ Đức) & CN02 (Bình Thạnh)</option>
-            <option value="CN01,CN02,CN03">Kiêm nhiệm 3 chi nhánh: CN01 + CN02 + CN03</option>
-            <option value="ALL">Toàn chuỗi (Không giới hạn)</option>
+            <option value="ALL">Toàn chuỗi (Không giới hạn - Giám đốc & Quản trị)</option>
           </select>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+            * Để phân quyền nâng cao đa chi nhánh theo ma trận, vui lòng chuyển sang menu <a href="/admin/permissions" style="color: var(--primary); text-decoration: underline;">Phạm vi dữ liệu chi nhánh</a>.
+          </div>
         </div>
 
         <div class="form-group" id="statusAssignGroup">
@@ -268,9 +279,12 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-action btn-outline-action" onclick="closeUserModal()">Hủy bỏ</button>
-        <button class="btn-action btn-primary-action" onclick="saveUser()">Lưu thông tin</button>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" id="btnModalDeleteUser" class="btn-action btn-outline-action" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.45); display: none;" onclick="deleteCurrentModalUser()">Xóa tài khoản</button>
+        <div style="display: flex; gap: 8px; margin-left: auto;">
+          <button class="btn-action btn-outline-action" onclick="closeUserModal()">Hủy bỏ</button>
+          <button class="btn-action btn-primary-action" onclick="saveUser()">Lưu thông tin</button>
+        </div>
       </div>
     </div>
   </div>
@@ -285,15 +299,70 @@
     };
     ROLE_LABELS.STAFF = ROLE_LABELS.POS;
 
-    const BRANCH_LABELS = {
-      ALL: 'Toàn chuỗi',
-      CN01: 'CN Thủ Đức (CN01)',
-      CN02: 'CN Bình Thạnh (CN02)',
-      CN03: 'CN Quận 9 (CN03)',
-      CN04: 'CN Gò Vấp (CN04)',
-      'CN01,CN02': 'Kiêm nhiệm: CN01 & CN02',
-      'CN01,CN02,CN03': 'Kiêm nhiệm: CN01, CN02, CN03'
+    let BRANCH_LABELS = {
+      ALL: 'Toàn chuỗi'
     };
+
+    let dbBranches = [];
+
+    // Tải danh sách chi nhánh trực tiếp từ CSDL để cập nhật bộ lọc và gán quyền
+    async function loadBranchesFromDb() {
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/branches', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            dbBranches = data;
+            
+            // Re-populate BRANCH_LABELS dynamically
+            dbBranches.forEach(b => {
+              BRANCH_LABELS[b.branchCode] = `${b.branchName} (${b.branchCode})`;
+            });
+
+            // Populate branchFilterSelect
+            const filterSel = document.getElementById('branchFilterSelect');
+            if (filterSel) {
+              const cur = filterSel.value || 'ALL';
+              let fHtml = `
+                <option value="ALL">Tất cả chi nhánh</option>
+                <option value="ALL_CHAIN">Toàn chuỗi (Không giới hạn)</option>
+              `;
+              dbBranches.forEach(b => {
+                fHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchName)} (${escapeHtml(b.branchCode)})</option>`;
+              });
+              filterSel.innerHTML = fHtml;
+              if (Array.from(filterSel.options).some(o => o.value === cur)) {
+                filterSel.value = cur;
+              }
+            }
+
+            // Populate modal inpBranch
+            const modalBranchSel = document.getElementById('inpBranch');
+            if (modalBranchSel) {
+              const cur = modalBranchSel.value;
+              let mHtml = `<option value="ALL">Toàn chuỗi (Không giới hạn - Giám đốc & Quản trị)</option>`;
+              dbBranches.forEach(b => {
+                mHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchName)} (${escapeHtml(b.branchCode)})</option>`;
+              });
+              modalBranchSel.innerHTML = mHtml;
+              if (cur && Array.from(modalBranchSel.options).some(o => o.value === cur)) {
+                modalBranchSel.value = cur;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải chi nhánh từ CSDL:', e);
+      }
+    }
 
     // Danh sách tài khoản được đồng bộ 100% trực tiếp từ CSDL SQL Server (Bảng users) qua API /api/admin/users
     let cachedUsers = [];
@@ -331,27 +400,58 @@
       applyUserFilters();
     }
 
+    let filteredUsers = [];
+    let userCurrentPage = 1;
+    let userPageSize = 5;
+
     function renderUserTable(users) {
+      applyUserFilters();
+    }
+
+    function renderUserTablePage() {
       const tbody = document.getElementById('userTableBody');
+      const pBar = document.getElementById('userPaginationBar');
+      const pInfo = document.getElementById('userPaginationInfo');
+      const pControls = document.getElementById('userPaginationControls');
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      if (!users || users.length === 0) {
+      const total = filteredUsers.length;
+      if (total === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted);">
-              Không tìm thấy tài khoản người dùng trong cơ sở dữ liệu SQL Server.
+              Không tìm thấy tài khoản người dùng phù hợp bộ lọc.
             </td>
           </tr>
         `;
+        if (pBar) pBar.style.display = 'none';
         const countEl = document.getElementById('userTableCountLabel');
         if (countEl) countEl.innerText = '0 tài khoản trong cơ sở dữ liệu';
         return;
       }
 
-      users.forEach((u, idx) => {
+      if (pBar) pBar.style.display = 'flex';
+
+      const totalPages = Math.ceil(total / userPageSize) || 1;
+      if (userCurrentPage > totalPages) userCurrentPage = totalPages;
+      if (userCurrentPage < 1) userCurrentPage = 1;
+
+      const startIdx = (userCurrentPage - 1) * userPageSize;
+      const endIdx = Math.min(startIdx + userPageSize, total);
+      const pageUsers = filteredUsers.slice(startIdx, endIdx);
+
+      pageUsers.forEach((u, i) => {
+        const globalIdx = startIdx + i + 1;
         const roleInfo = ROLE_LABELS[u.role] || { label: u.role, badge: 'badge-blue' };
-        const branchLabel = BRANCH_LABELS[u.branchCode] || u.branchCode || 'Toàn chuỗi';
+        let branchLabel = 'Toàn chuỗi';
+        if (u.role === 'CUSTOMER') {
+          branchLabel = 'Toàn hệ thống (Khách hàng)';
+        } else if (u.role === 'DIRECTOR' || u.role === 'ADMIN') {
+          branchLabel = 'Toàn chuỗi (Không giới hạn)';
+        } else {
+          branchLabel = BRANCH_LABELS[u.branchCode] || u.branchCode || 'Toàn chuỗi';
+        }
         const isLocked = isUserLocked(u);
         const statusBadge = isLocked
           ? '<span class="clean-kpi-badge badge-amber" style="background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700;">Đã khóa</span>'
@@ -370,7 +470,7 @@
           tr.style.background = 'rgba(239, 68, 68, 0.03)';
         }
         tr.innerHTML = `
-          <td style="text-align: center;">${idx + 1}</td>
+          <td style="text-align: center;">${globalIdx}</td>
           <td><strong>${escapeHtml(u.username)}</strong></td>
           <td>${escapeHtml(u.fullName || '')}</td>
           <td><span class="clean-kpi-badge ${roleInfo.badge}">${roleInfo.label}</span></td>
@@ -380,13 +480,46 @@
           <td style="text-align: right; white-space: nowrap;">
             <button class="btn-action btn-outline-action" onclick="openUserModal('${escapeHtml(u.username)}', '${escapeHtml(u.fullName || '')}', '${escapeHtml(u.role)}', '${escapeHtml(u.branchCode || 'ALL')}', '${escapeHtml(u.phone || '')}', '${escapeHtml(u.status || 'Hoạt động')}')">Sửa</button>
             ${lockBtn}
+            ${u.username && u.username.toLowerCase() !== 'admin' ? `<button class="btn-action btn-outline-action" style="margin-left: 4px; color: #ef4444; border-color: rgba(239, 68, 68, 0.35);" onclick="deleteUserAccount('${escapeHtml(u.username)}')">Xóa</button>` : ''}
           </td>
         `;
         tbody.appendChild(tr);
       });
 
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} tài khoản`;
+      }
       const countEl = document.getElementById('userTableCountLabel');
-      if (countEl) countEl.innerText = `Hiển thị ${users.length} tài khoản trong cơ sở dữ liệu`;
+      if (countEl) {
+        countEl.innerText = `Hiển thị ${total} tài khoản phù hợp bộ lọc`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoUserPage(${userCurrentPage - 1})" ${userCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, userCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === userCurrentPage ? 'active' : ''}" onclick="gotoUserPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoUserPage(${userCurrentPage + 1})" ${userCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoUserPage(p) {
+      userCurrentPage = p;
+      renderUserTablePage();
+    }
+
+    function changeUserPageSize(val) {
+      userPageSize = parseInt(val, 10) || 5;
+      userCurrentPage = 1;
+      renderUserTablePage();
     }
 
     function openUserModal(username, fullname, role, branch, phone, status) {
@@ -395,30 +528,39 @@
       const statusGroup = document.getElementById('statusAssignGroup');
       const inpStatus = document.getElementById('inpStatus');
 
+      const btnDel = document.getElementById('btnModalDeleteUser');
+      if (btnDel) {
+        btnDel.style.display = (username && username.toLowerCase() !== 'admin') ? 'inline-block' : 'none';
+      }
+
       if (username) {
         title.innerText = 'Cập nhật tài khoản: ' + username;
         document.getElementById('inpUsername').value = username;
         document.getElementById('inpUsername').disabled = true;
         document.getElementById('inpFullName').value = fullname || '';
         document.getElementById('inpRole').value = role || 'POS';
-        document.getElementById('inpBranch').value = branch || 'CN01';
+        document.getElementById('inpBranch').value = branch || ((role === 'DIRECTOR' || role === 'ADMIN') ? 'ALL' : (dbBranches[0]?.branchCode || 'CN01'));
         document.getElementById('inpPhone').value = phone || '';
         document.getElementById('inpPassword').value = '';
+        document.getElementById('inpPassword').placeholder = '•••••••• (để trống nếu giữ nguyên mật khẩu cũ)';
         if (inpStatus) {
           inpStatus.value = isUserLocked({ status }) ? 'Bị khóa' : 'Hoạt động';
         }
         if (statusGroup) statusGroup.style.display = 'block';
+        handleRoleChange(role || 'POS');
       } else {
         title.innerText = 'Cấp tài khoản người dùng mới';
         document.getElementById('inpUsername').value = '';
         document.getElementById('inpUsername').disabled = false;
         document.getElementById('inpPassword').value = '';
+        document.getElementById('inpPassword').placeholder = 'Mặc định: Badminton@2026 nếu để trống';
         document.getElementById('inpFullName').value = '';
         document.getElementById('inpPhone').value = '';
         document.getElementById('inpRole').value = 'POS';
-        document.getElementById('inpBranch').value = 'CN01';
+        document.getElementById('inpBranch').value = dbBranches[0]?.branchCode || 'CN01';
         if (inpStatus) inpStatus.value = 'Hoạt động';
         if (statusGroup) statusGroup.style.display = 'none';
+        handleRoleChange('POS');
       }
       modal.classList.add('open');
     }
@@ -427,12 +569,62 @@
       document.getElementById('userModal').classList.remove('open');
     }
 
+    function deleteCurrentModalUser() {
+      const username = document.getElementById('inpUsername').value;
+      if (username) {
+        closeUserModal();
+        deleteUserAccount(username);
+      }
+    }
+
+    async function deleteUserAccount(username) {
+      if (!username) return;
+      if (username.toLowerCase() === 'admin') {
+        if (window.showToast) showToast('Không thể xóa tài khoản Quản trị viên tối cao [admin]!', 'error');
+        return;
+      }
+      if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản [${username}] khỏi hệ thống không?\n\nLưu ý: Hành động này sẽ xóa dữ liệu tài khoản và không thể hoàn tác!`)) {
+        return;
+      }
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/admin/users/${encodeURIComponent(username)}`, {
+          method: 'DELETE',
+          headers: headers
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (window.showToast) showToast(data.message || `Đã xóa tài khoản [${username}] thành công!`, 'success');
+          cachedUsers = cachedUsers.filter(u => u.username !== username);
+          renderUserTable(cachedUsers);
+          applyUserFilters();
+        } else {
+          if (window.showToast) showToast(data.message || 'Lỗi khi xóa tài khoản người dùng!', 'error');
+        }
+      } catch (err) {
+        console.error('Lỗi khi xóa tài khoản:', err);
+        if (window.showToast) showToast('Lỗi kết nối máy chủ khi xóa tài khoản!', 'error');
+      }
+    }
+
     async function saveUser() {
       const username = document.getElementById('inpUsername').value.trim();
       const password = document.getElementById('inpPassword').value.trim();
       const fullName = document.getElementById('inpFullName').value.trim();
       const role = document.getElementById('inpRole').value;
-      const branchCode = document.getElementById('inpBranch').value;
+      let branchCode = 'ALL';
+      if (role === 'CUSTOMER' || role === 'DIRECTOR' || role === 'ADMIN') {
+        branchCode = 'ALL';
+      } else {
+        branchCode = document.getElementById('inpBranch').value || 'CN01';
+      }
       const phone = document.getElementById('inpPhone').value.trim();
       const status = document.getElementById('inpStatus') ? document.getElementById('inpStatus').value : 'Hoạt động';
 
@@ -440,9 +632,20 @@
         if (window.showToast) showToast('Vui lòng nhập tên đăng nhập!', 'error');
         return;
       }
+      if (username.length < 3 || username.length > 30 || !/^[a-zA-Z0-9_.\-]+$/.test(username)) {
+        if (window.showToast) showToast('Tên đăng nhập tối thiểu 3 ký tự và chỉ chứa chữ cái, số, dấu chấm hoặc gạch dưới!', 'warning');
+        return;
+      }
       if (!fullName) {
         if (window.showToast) showToast('Vui lòng nhập họ và tên!', 'error');
         return;
+      }
+      if (phone) {
+        const cleanPhone = phone.replace(/[\s.\-]/g, '');
+        if (!/^(0|\+84)[35789][0-9]{8}$/.test(cleanPhone)) {
+          if (window.showToast) showToast('Số điện thoại không hợp lệ (Phải gồm 10 chữ số di động Việt Nam)!', 'warning');
+          return;
+        }
       }
 
       const payload = { username, fullName, role, branchCode, phone, status };
@@ -551,9 +754,24 @@
     }
 
     function handleRoleChange(role) {
+      const branchGroup = document.getElementById('branchAssignGroup');
       const branchSelect = document.getElementById('inpBranch');
-      if (role === 'DIRECTOR' || role === 'ADMIN') {
+      const lblFullName = document.getElementById('lblFullName');
+
+      if (lblFullName) {
+        lblFullName.innerText = (role === 'CUSTOMER') ? 'Họ và tên khách hàng' : 'Họ và tên nhân sự';
+      }
+
+      if (!branchGroup || !branchSelect) return;
+
+      if (role === 'CUSTOMER' || role === 'DIRECTOR' || role === 'ADMIN') {
+        branchGroup.style.display = 'none';
         branchSelect.value = 'ALL';
+      } else {
+        branchGroup.style.display = 'block';
+        if (branchSelect.value === 'ALL') {
+          branchSelect.value = dbBranches[0]?.branchCode || 'CN01';
+        }
       }
     }
 
@@ -592,34 +810,27 @@
       const qHeader = document.getElementById('userSearchInput');
       const q = ((qTab ? qTab.value : (qHeader ? qHeader.value : '')) || '').toLowerCase().trim();
       const statusFilter = document.getElementById('statusFilterSelect') ? document.getElementById('statusFilterSelect').value : 'ALL';
-      const rows = document.querySelectorAll('#userTableBody tr');
 
-      let visible = 0;
-      rows.forEach(r => {
-        const rowRole = r.getAttribute('data-role') || '';
-        const rowBranch = r.getAttribute('data-branch') || '';
-        const rowStatus = r.getAttribute('data-status') || '';
-        const text = r.innerText.toLowerCase();
+      filteredUsers = (cachedUsers || []).filter(u => {
+        const rowRole = u.role || '';
+        const rowBranch = u.branchCode || 'ALL';
+        const isLocked = isUserLocked(u);
+        const rowStatus = isLocked ? 'LOCKED' : 'ACTIVE';
+        const text = `${u.username || ''} ${u.fullName || ''} ${u.phone || ''} ${u.email || ''}`.toLowerCase();
 
         const matchRole = (currentRoleFilter === 'ALL' || rowRole === currentRoleFilter);
         const matchBranch = (currentBranchFilter === 'ALL') ||
                             (currentBranchFilter === 'ALL_CHAIN' && rowBranch === 'ALL') ||
-                            (rowBranch === currentBranchFilter);
+                            (rowBranch === currentBranchFilter) ||
+                            (rowRole === 'CUSTOMER' && currentBranchFilter === 'ALL');
         const matchStatus = (statusFilter === 'ALL') || (statusFilter === rowStatus);
         const matchQ = !q || text.includes(q);
 
-        if (matchRole && matchBranch && matchStatus && matchQ) {
-          r.style.display = '';
-          visible++;
-        } else {
-          r.style.display = 'none';
-        }
+        return matchRole && matchBranch && matchStatus && matchQ;
       });
 
-      const countLabel = document.getElementById('userTableCountLabel');
-      if (countLabel) {
-        countLabel.textContent = `Hiển thị ${visible} tài khoản phù hợp bộ lọc`;
-      }
+      userCurrentPage = 1;
+      renderUserTablePage();
     }
 
     function toggleSidebar() {
@@ -646,7 +857,11 @@
         .replace(/'/g, '&#039;');
     }
 
-    document.addEventListener('DOMContentLoaded', loadUsers);
+    async function initAdminUsers() {
+      await loadBranchesFromDb();
+      await loadUsers();
+    }
+    document.addEventListener('DOMContentLoaded', initAdminUsers);
   </script>
 
   <script src="/js/global-hub.js"></script>

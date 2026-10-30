@@ -517,6 +517,23 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination-bar" id="courtPaginationBar" style="display: none;">
+            <div class="pagination-info" id="courtPaginationInfo">
+              Hiển thị 1 - 5 trong tổng số 0 sân đấu
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Hiển thị:</span>
+                <select class="pagination-size-select" id="courtPageSizeSelect" onchange="changeCourtPageSize(this.value)">
+                  <option value="5" selected>5 sân / trang</option>
+                  <option value="10">10 sân / trang</option>
+                  <option value="20">20 sân / trang</option>
+                </select>
+              </div>
+              <div class="pagination-controls" id="courtPaginationControls">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -961,6 +978,7 @@
               ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #059669; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Trả sân</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân">Xóa</button>
             </div>
           `;
         } else if (c.status === 'Bảo trì') {
@@ -969,6 +987,7 @@
               ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #10b981; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hoàn tất</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân">Xóa</button>
             </div>
           `;
         } else {
@@ -976,7 +995,8 @@
             <div style="margin-top: 10px; display: flex; gap: 6px;">
               ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Đưa sân vào lịch bảo trì kỹ thuật">Bảo trì</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #d97706; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Đưa sân vào lịch bảo trì kỹ thuật">Bảo trì</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân">Xóa</button>
             </div>
           `;
         }
@@ -1013,16 +1033,44 @@
       }).join('');
     }
 
-    function renderTable(courts) {
+        let filteredCourtsList = [];
+    let courtCurrentPage = 1;
+    let courtPageSize = 5;
+
+    function renderTable(courts, resetPage = false) {
+      filteredCourtsList = courts || [];
+      const totalPages = Math.ceil(filteredCourtsList.length / courtPageSize) || 1;
+      if (resetPage || courtCurrentPage > totalPages || courtCurrentPage < 1) {
+        courtCurrentPage = 1;
+      }
+      renderCourtTablePage();
+    }
+
+    function renderCourtTablePage() {
       const tbody = document.getElementById('courtTableBody');
+      const pBar = document.getElementById('courtPaginationBar');
+      const pInfo = document.getElementById('courtPaginationInfo');
+      const pControls = document.getElementById('courtPaginationControls');
       if (!tbody) return;
 
-      if (!courts || courts.length === 0) {
+      const total = filteredCourtsList.length;
+      if (total === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">Không tìm thấy sân thi đấu nào phù hợp</td></tr>`;
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
-      tbody.innerHTML = courts.map((c, idx) => {
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / courtPageSize) || 1;
+      if (courtCurrentPage > totalPages) courtCurrentPage = totalPages;
+      if (courtCurrentPage < 1) courtCurrentPage = 1;
+
+      const startIdx = (courtCurrentPage - 1) * courtPageSize;
+      const endIdx = Math.min(startIdx + courtPageSize, total);
+      const pageCourts = filteredCourtsList.slice(startIdx, endIdx);
+
+      tbody.innerHTML = pageCourts.map((c, i) => {
+        const globalIdx = startIdx + i + 1;
         let badgeClass = 'badge-green';
         if (c.status === 'Đang sử dụng') badgeClass = 'badge-amber';
         else if (c.status === 'Bảo trì') badgeClass = 'badge-red';
@@ -1037,7 +1085,7 @@
 
         return `
           <tr>
-            <td style="text-align: center;">${idx + 1}</td>
+            <td style="text-align: center;">${globalIdx}</td>
             <td><strong>${c.courtCode}</strong></td>
             <td>
               <div style="display: flex; align-items: center; gap: 8px;">
@@ -1058,15 +1106,47 @@
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
                 ${c.status === 'Đang sử dụng' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #059669; color: #059669;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, trả về sân trống">Trả sân</button>` : ''}
                 ${c.status === 'Bảo trì' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hoàn tất</button>` : ''}
-                ${c.status === 'Trống' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #ef4444; color: #ef4444;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Chuyển sang bảo trì">Bảo trì</button>` : ''}
+                ${c.status === 'Trống' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #d97706; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Chuyển sang bảo trì">Bảo trì</button>` : ''}
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân khỏi hệ thống">Xóa</button>
               </div>
             </td>
           </tr>
         `;
       }).join('');
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} sân đấu`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoCourtPage(${courtCurrentPage - 1})" ${courtCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, courtCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === courtCurrentPage ? 'active' : ''}" onclick="gotoCourtPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoCourtPage(${courtCurrentPage + 1})" ${courtCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
     }
 
-    function filterCourts() {
+    function gotoCourtPage(p) {
+      courtCurrentPage = p;
+      renderCourtTablePage();
+    }
+
+    function changeCourtPageSize(val) {
+      courtPageSize = parseInt(val, 10) || 5;
+      courtCurrentPage = 1;
+      renderCourtTablePage();
+    }
+
+    function filterCourts(isManualReset = false) {
       const kw = (document.getElementById('courtSearchInput')?.value || '').toLowerCase().trim();
       let list = allLoadedCourts;
 
@@ -1093,7 +1173,39 @@
       }
 
       renderVisualGrid(list);
-      renderTable(list);
+      renderTable(list, isManualReset);
+    }
+
+    async function deleteCourt(courtCode, courtName) {
+      if (!courtCode) return;
+      const name = courtName || courtCode;
+      if (!confirm(`Bạn có chắc chắn muốn xóa sân [${courtCode} - ${name}] khỏi hệ thống không?\n\nLưu ý: Thao tác này sẽ loại bỏ sân khỏi danh sách và đồng bộ tức thì tới tất cả các chi nhánh.`)) {
+        return;
+      }
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}`, {
+          method: 'DELETE',
+          headers: headers
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          showToast(data.message || `Đã xóa sân ${courtCode} thành công!`, 'success');
+          await loadCourtsFromApi();
+        } else {
+          showToast(data.message || 'Lỗi khi xóa sân thi đấu!', 'error');
+        }
+      } catch (e) {
+        console.error('Lỗi khi xóa sân:', e);
+        showToast('Lỗi kết nối máy chủ khi xóa sân!', 'error');
+      }
     }
 
     async function quickUpdateStatus(courtCode, newStatus) {
@@ -1223,6 +1335,10 @@
 
       if (!code) {
         showToast('Vui lòng nhập mã sân!', 'warning');
+        return;
+      }
+      if (!rate || isNaN(rate) || Number(rate) <= 0) {
+        showToast('Đơn giá thuê sân mỗi giờ phải lớn hơn 0 (Ví dụ: 90.000 VNĐ)!', 'warning');
         return;
       }
 
@@ -1467,7 +1583,11 @@
       }
     }
 
-    async function loadCourtsFromApi() {
+    async function loadCourtsFromApi(isManual = false) {
+      // Avoid disturbing the user if a modal or input is currently active
+      const activeModal = document.querySelector('.modal[style*="display: flex"], .modal[style*="display: block"]');
+      if (activeModal && !isManual) return;
+
       const branchSel = document.getElementById('courtBranchFilter') || document.getElementById('branchSelectFilter');
       const branch = branchSel ? branchSel.value : (localStorage.getItem('utesport_active_branch') || 'ALL');
       const token = localStorage.getItem('jwt_token') || '';
@@ -1478,33 +1598,34 @@
         const res = await fetch(`/api/courts?branchCode=${encodeURIComponent(branch)}`, { headers });
         if (res.ok) {
           const courts = await res.json();
-          if (Array.isArray(courts) && courts.length > 0) {
-            allLoadedCourts = courts;
-          } else {
-            allLoadedCourts = [];
+          const newCourts = (Array.isArray(courts) && courts.length > 0) ? courts : [];
+          // Smart diff: If data has not changed and DOM is already rendered, do NOT wipe DOM to prevent card and image flickering
+          if (!isManual && allLoadedCourts.length > 0 && JSON.stringify(newCourts) === JSON.stringify(allLoadedCourts)) {
+            return;
           }
-        } else {
+          allLoadedCourts = newCourts;
+        } else if (isManual) {
           allLoadedCourts = [];
         }
       } catch (err) {
         console.warn('API error fetching courts:', err);
-        allLoadedCourts = [];
+        if (isManual) allLoadedCourts = [];
       }
 
       renderKPIs(allLoadedCourts);
-      filterCourts();
+      filterCourts(isManual);
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       await loadBranchesFromDb();
-      await loadCourtsFromApi();
+      await loadCourtsFromApi(true);
 
-      // Realtime polling
+      // Passive smart polling: only updates when data actually changes (never blinks DOM)
       setInterval(() => {
-        loadCourtsFromApi();
-      }, 5000);
+        loadCourtsFromApi(false);
+      }, 30000);
     });
 
     window.addEventListener('badminton:court-event', () => {

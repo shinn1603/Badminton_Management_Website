@@ -871,7 +871,15 @@
     getActiveBranch: () => localStorage.getItem('utesport_active_branch') || (currentUser ? currentUser.branchCode : 'CN01'),
     switchRole: function (roleName) {
       console.warn('Direct role mutation via navigation is disabled. Authenticated session is preserved.');
+    },
+    logout: function (e) {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      localStorage.removeItem('utesport_user');
+      localStorage.removeItem('jwt_token');
+      document.cookie = 'jwt_token=; path=/; max-age=0';
+      window.location.href = '/login';
     }
   };
   window.AuthGuard = window.RBAC;
+  window.logout = window.RBAC.logout;
 })();
