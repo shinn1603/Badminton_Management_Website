@@ -131,4 +131,34 @@ class WarehouseServiceTest {
         verify(productRepository, times(1)).save(grip);
         verify(stockReceiptRepository, times(1)).save(any(StockReceipt.class));
     }
+
+    @Test
+    @DisplayName("XL-05: Huy dich vu hoan tra lai ton kho san pham va giam tien don dat san")
+    void testCancelServiceForBooking_Success() {
+        Product drink = new Product();
+        drink.setProductCode("SP_REVIVE");
+        drink.setProductName("Nước Revive");
+        drink.setUnitPrice(new BigDecimal("15000"));
+        drink.setStockQuantity(10);
+        drink.setUnit("chai");
+
+        Booking booking = new Booking();
+        booking.setBookingCode("DS999999");
+        booking.setTotalPrice(new BigDecimal("130000"));
+
+        when(productRepository.findByProductCode("SP_REVIVE")).thenReturn(Optional.of(drink));
+        when(bookingRepository.findByBookingCode("DS999999")).thenReturn(Optional.of(booking));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Hủy 2 chai Revive -> Trả lại tồn kho 10 + 2 = 12, trừ 30,000đ khỏi đơn
+        Map<String, Object> res = warehouseService.cancelServiceForBooking("DS999999", "SP_REVIVE", 2);
+
+        assertNotNull(res);
+        assertTrue((boolean) res.get("success"));
+        assertEquals(12, drink.getStockQuantity());
+        assertEquals(new BigDecimal("100000"), booking.getTotalPrice());
+        verify(productRepository, times(1)).save(drink);
+        verify(bookingRepository, times(1)).save(booking);
+    }
 }

@@ -89,6 +89,47 @@ public class WarehouseService {
     }
 
     /**
+     * Hoàn trả tồn kho và khấu trừ dịch vụ khi quầy POS giảm hoặc hủy món
+     */
+    public Map<String, Object> cancelServiceForBooking(String bookingCode, String productCode, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Số lượng hủy phải lớn hơn 0!");
+        }
+
+        Product product = productRepository.findByProductCode(productCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sản phẩm có mã: " + productCode));
+
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn đặt sân: " + bookingCode));
+
+        // Hoàn lại tồn kho
+        product.setStockQuantity((product.getStockQuantity() != null ? product.getStockQuantity() : 0) + quantity);
+        productRepository.save(product);
+
+        // Khấu trừ thành tiền khỏi đơn đặt sân
+        BigDecimal itemTotal = product.getUnitPrice().multiply(new BigDecimal(quantity));
+        if (booking.getTotalPrice() != null) {
+            BigDecimal newTotal = booking.getTotalPrice().subtract(itemTotal);
+            booking.setTotalPrice(newTotal.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : newTotal);
+        }
+
+        String itemNote = "Hủy " + quantity + "x " + product.getProductName();
+        booking.setNotes((booking.getNotes() != null ? booking.getNotes() + " | " : "") + "- DV: " + itemNote);
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("bookingCode", bookingCode);
+        result.put("productCode", productCode);
+        result.put("productName", product.getProductName());
+        result.put("quantity", quantity);
+        result.put("remainingStock", product.getStockQuantity());
+        result.put("newBookingTotal", updatedBooking.getTotalPrice());
+        result.put("message", "Đã hoàn trả tồn kho dịch vụ: " + itemNote);
+        return result;
+    }
+
+    /**
      * XL-10: Lap phieu nhap kho hang hoa phu kien & Do uong chi nhanh
      */
     public StockReceipt createStockReceipt(String supplierName, String branchCode, String staffCode,

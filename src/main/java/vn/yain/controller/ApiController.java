@@ -3907,6 +3907,34 @@ public class ApiController {
 
 
 
+    @PostMapping("/bookings/{code}/cancel-service")
+
+    public ResponseEntity<?> cancelService(@PathVariable String code, @RequestBody Map<String, Object> payload) {
+
+        try {
+
+            String productCode = (String) payload.get("productCode");
+
+            int quantity = Integer.parseInt(payload.getOrDefault("quantity", 1).toString());
+
+            Map<String, Object> result = warehouseService.cancelServiceForBooking(code, productCode, quantity);
+
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", sanitizeErrorMessage(e)));
+
+        }
+
+    }
+
+
+
     @GetMapping("/bookings/slots")
     public ResponseEntity<?> getBookedSlots(
             @RequestParam(value = "branchCode", required = false) String branchCode,
@@ -4769,6 +4797,32 @@ public class ApiController {
             String paymentMethod = (String) payload.getOrDefault("paymentMethod", "Tiền mặt");
 
             String staffCode = (String) payload.getOrDefault("staffCode", "NS03");
+
+            // Kiểm tra số lượng tồn kho và tự động trừ kho nếu có danh sách mặt hàng bán lẻ
+            if (payload.get("items") instanceof List<?> itemList) {
+                for (Object itemObj : itemList) {
+                    if (itemObj instanceof Map<?, ?> itemMap) {
+                        String pCode = itemMap.get("productCode") != null ? itemMap.get("productCode").toString() : null;
+                        int qty = itemMap.get("quantity") != null ? Integer.parseInt(itemMap.get("quantity").toString()) : 1;
+                        if (pCode != null && !pCode.isBlank() && qty > 0) {
+                            Optional<Product> prodOpt = productRepository.findByProductCode(pCode);
+                            if (prodOpt.isPresent()) {
+                                Product p = prodOpt.get();
+                                int currentStock = p.getStockQuantity() != null ? p.getStockQuantity() : 0;
+                                if (currentStock < qty) {
+                                    return ResponseEntity.badRequest().body(Map.of(
+                                        "success", false,
+                                        "message", "Số lượng tồn kho không đủ! Sản phẩm " + p.getProductName() +
+                                                   " hiện chỉ còn " + currentStock + " " + (p.getUnit() != null ? p.getUnit() : "món")
+                                    ));
+                                }
+                                p.setStockQuantity(currentStock - qty);
+                                productRepository.save(p);
+                            }
+                        }
+                    }
+                }
+            }
 
 
 

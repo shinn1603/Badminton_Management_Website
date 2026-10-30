@@ -283,4 +283,43 @@ class CashierAndCourtOperationsTest {
             warehouseService.orderServiceForBooking("DS123", "SP_REVIVE", -3);
         });
     }
+
+    @Test
+    @DisplayName("Hủy dịch vụ: Hoàn trả tồn kho và khấu trừ chi phí hợp lệ")
+    void testCancelService_Success() {
+        Product water = new Product();
+        water.setProductCode("SP_WATER");
+        water.setProductName("Nước suối");
+        water.setUnitPrice(new BigDecimal("10000"));
+        water.setStockQuantity(5);
+
+        Booking booking = new Booking();
+        booking.setBookingCode("DS_CANCEL_SVC");
+        booking.setTotalPrice(new BigDecimal("150000"));
+
+        when(productRepository.findByProductCode("SP_WATER")).thenReturn(Optional.of(water));
+        when(bookingRepository.findByBookingCode("DS_CANCEL_SVC")).thenReturn(Optional.of(booking));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Map<String, Object> result = warehouseService.cancelServiceForBooking("DS_CANCEL_SVC", "SP_WATER", 2);
+
+        assertTrue((boolean) result.get("success"));
+        assertEquals(7, water.getStockQuantity()); // 5 + 2 = 7
+        assertEquals(new BigDecimal("130000"), booking.getTotalPrice()); // 150,000 - 20,000 = 130,000
+        verify(productRepository, times(1)).save(water);
+        verify(bookingRepository, times(1)).save(booking);
+    }
+
+    @Test
+    @DisplayName("Hủy dịch vụ: Từ chối khi số lượng hủy <= 0")
+    void testCancelService_InvalidQuantity_ThrowsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            warehouseService.cancelServiceForBooking("DS123", "SP_WATER", 0);
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            warehouseService.cancelServiceForBooking("DS123", "SP_WATER", -2);
+        });
+    }
 }
