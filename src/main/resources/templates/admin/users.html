@@ -191,6 +191,24 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination-bar" id="userPaginationBar" style="display: none;">
+            <div class="pagination-info" id="userPaginationInfo">
+              Hiển thị 1 - 5 trong tổng số 0 tài khoản
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Hiển thị:</span>
+                <select class="pagination-size-select" id="userPageSizeSelect" onchange="changeUserPageSize(this.value)">
+                  <option value="5" selected>5 tài khoản / trang</option>
+                  <option value="10">10 tài khoản / trang</option>
+                  <option value="20">20 tài khoản / trang</option>
+                  <option value="50">50 tài khoản / trang</option>
+                </select>
+              </div>
+              <div class="pagination-controls" id="userPaginationControls">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -382,25 +400,49 @@
       applyUserFilters();
     }
 
+    let filteredUsers = [];
+    let userCurrentPage = 1;
+    let userPageSize = 5;
+
     function renderUserTable(users) {
+      applyUserFilters();
+    }
+
+    function renderUserTablePage() {
       const tbody = document.getElementById('userTableBody');
+      const pBar = document.getElementById('userPaginationBar');
+      const pInfo = document.getElementById('userPaginationInfo');
+      const pControls = document.getElementById('userPaginationControls');
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      if (!users || users.length === 0) {
+      const total = filteredUsers.length;
+      if (total === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="8" style="text-align: center; padding: 36px; color: var(--text-muted);">
-              Không tìm thấy tài khoản người dùng trong cơ sở dữ liệu SQL Server.
+              Không tìm thấy tài khoản người dùng phù hợp bộ lọc.
             </td>
           </tr>
         `;
+        if (pBar) pBar.style.display = 'none';
         const countEl = document.getElementById('userTableCountLabel');
         if (countEl) countEl.innerText = '0 tài khoản trong cơ sở dữ liệu';
         return;
       }
 
-      users.forEach((u, idx) => {
+      if (pBar) pBar.style.display = 'flex';
+
+      const totalPages = Math.ceil(total / userPageSize) || 1;
+      if (userCurrentPage > totalPages) userCurrentPage = totalPages;
+      if (userCurrentPage < 1) userCurrentPage = 1;
+
+      const startIdx = (userCurrentPage - 1) * userPageSize;
+      const endIdx = Math.min(startIdx + userPageSize, total);
+      const pageUsers = filteredUsers.slice(startIdx, endIdx);
+
+      pageUsers.forEach((u, i) => {
+        const globalIdx = startIdx + i + 1;
         const roleInfo = ROLE_LABELS[u.role] || { label: u.role, badge: 'badge-blue' };
         let branchLabel = 'Toàn chuỗi';
         if (u.role === 'CUSTOMER') {
@@ -428,7 +470,7 @@
           tr.style.background = 'rgba(239, 68, 68, 0.03)';
         }
         tr.innerHTML = `
-          <td style="text-align: center;">${idx + 1}</td>
+          <td style="text-align: center;">${globalIdx}</td>
           <td><strong>${escapeHtml(u.username)}</strong></td>
           <td>${escapeHtml(u.fullName || '')}</td>
           <td><span class="clean-kpi-badge ${roleInfo.badge}">${roleInfo.label}</span></td>
@@ -444,8 +486,40 @@
         tbody.appendChild(tr);
       });
 
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} tài khoản`;
+      }
       const countEl = document.getElementById('userTableCountLabel');
-      if (countEl) countEl.innerText = `Hiển thị ${users.length} tài khoản trong cơ sở dữ liệu`;
+      if (countEl) {
+        countEl.innerText = `Hiển thị ${total} tài khoản phù hợp bộ lọc`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoUserPage(${userCurrentPage - 1})" ${userCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, userCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === userCurrentPage ? 'active' : ''}" onclick="gotoUserPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoUserPage(${userCurrentPage + 1})" ${userCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoUserPage(p) {
+      userCurrentPage = p;
+      renderUserTablePage();
+    }
+
+    function changeUserPageSize(val) {
+      userPageSize = parseInt(val, 10) || 5;
+      userCurrentPage = 1;
+      renderUserTablePage();
     }
 
     function openUserModal(username, fullname, role, branch, phone, status) {
@@ -736,34 +810,27 @@
       const qHeader = document.getElementById('userSearchInput');
       const q = ((qTab ? qTab.value : (qHeader ? qHeader.value : '')) || '').toLowerCase().trim();
       const statusFilter = document.getElementById('statusFilterSelect') ? document.getElementById('statusFilterSelect').value : 'ALL';
-      const rows = document.querySelectorAll('#userTableBody tr');
 
-      let visible = 0;
-      rows.forEach(r => {
-        const rowRole = r.getAttribute('data-role') || '';
-        const rowBranch = r.getAttribute('data-branch') || '';
-        const rowStatus = r.getAttribute('data-status') || '';
-        const text = r.innerText.toLowerCase();
+      filteredUsers = (cachedUsers || []).filter(u => {
+        const rowRole = u.role || '';
+        const rowBranch = u.branchCode || 'ALL';
+        const isLocked = isUserLocked(u);
+        const rowStatus = isLocked ? 'LOCKED' : 'ACTIVE';
+        const text = `${u.username || ''} ${u.fullName || ''} ${u.phone || ''} ${u.email || ''}`.toLowerCase();
 
         const matchRole = (currentRoleFilter === 'ALL' || rowRole === currentRoleFilter);
         const matchBranch = (currentBranchFilter === 'ALL') ||
                             (currentBranchFilter === 'ALL_CHAIN' && rowBranch === 'ALL') ||
-                            (rowBranch === currentBranchFilter);
+                            (rowBranch === currentBranchFilter) ||
+                            (rowRole === 'CUSTOMER' && currentBranchFilter === 'ALL');
         const matchStatus = (statusFilter === 'ALL') || (statusFilter === rowStatus);
         const matchQ = !q || text.includes(q);
 
-        if (matchRole && matchBranch && matchStatus && matchQ) {
-          r.style.display = '';
-          visible++;
-        } else {
-          r.style.display = 'none';
-        }
+        return matchRole && matchBranch && matchStatus && matchQ;
       });
 
-      const countLabel = document.getElementById('userTableCountLabel');
-      if (countLabel) {
-        countLabel.textContent = `Hiển thị ${visible} tài khoản phù hợp bộ lọc`;
-      }
+      userCurrentPage = 1;
+      renderUserTablePage();
     }
 
     function toggleSidebar() {

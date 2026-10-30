@@ -373,6 +373,23 @@
                 </tbody>
               </table>
             </div>
+            <div class="table-pagination-bar" id="tournamentsPaginationBar" style="display: none;">
+              <div class="pagination-info" id="tournamentsPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 giải đấu
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="tourPageSizeSelect" onchange="changeTourPageSize(this.value)">
+                    <option value="5" selected>5 giải / trang</option>
+                    <option value="10">10 giải / trang</option>
+                    <option value="20">20 giải / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="tournamentsPaginationControls">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -417,6 +434,23 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="table-pagination-bar" id="membersPaginationBar" style="display: none;">
+              <div class="pagination-info" id="membersPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 hội viên
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="memberPageSizeSelect" onchange="changeMemberPageSize(this.value)">
+                    <option value="5" selected>5 hội viên / trang</option>
+                    <option value="10">10 hội viên / trang</option>
+                    <option value="20">20 hội viên / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="membersPaginationControls">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -683,17 +717,45 @@
       });
     }
 
+    let filteredTournaments = [];
+    let tourCurrentPage = 1;
+    let tourPageSize = 5;
+
+    let filteredMembers = [];
+    let memberCurrentPage = 1;
+    let memberPageSize = 5;
+
     function renderTournaments(tournaments) {
+      filteredTournaments = tournaments || [];
+      tourCurrentPage = 1;
+      renderTournamentsPage();
+    }
+
+    function renderTournamentsPage() {
       const tbody = document.getElementById('tournamentsTableBody');
+      const pBar = document.getElementById('tournamentsPaginationBar');
+      const pInfo = document.getElementById('tournamentsPaginationInfo');
+      const pControls = document.getElementById('tournamentsPaginationControls');
       if (!tbody) return;
 
-      if (!tournaments || tournaments.length === 0) {
+      const total = filteredTournaments.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy giải đấu nào phù hợp</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / tourPageSize) || 1;
+      if (tourCurrentPage > totalPages) tourCurrentPage = totalPages;
+      if (tourCurrentPage < 1) tourCurrentPage = 1;
+
+      const startIdx = (tourCurrentPage - 1) * tourPageSize;
+      const endIdx = Math.min(startIdx + tourPageSize, total);
+      const pageTours = filteredTournaments.slice(startIdx, endIdx);
+
       let html = '';
-      tournaments.forEach(t => {
+      pageTours.forEach(t => {
         const isPending = (t.status === 'Chờ phê duyệt');
         const isUpcoming = (t.status === 'Sắp mở đăng ký');
         const isOpen = (t.status === 'Đang mở đăng ký');
@@ -731,18 +793,17 @@
           actionHtml = `
             <div style="display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap;">
               <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #0284c7; border-color: #7dd3fc;" onclick="changeTournamentStatus(${t.id}, 'Đang diễn ra', '${escapeHtml(t.tournamentName)}')">Bắt đầu đấu</button>
-              <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: var(--primary);" onclick="viewRegistrations('${t.tournamentCode}', '${escapeHtml(t.tournamentName)}')">DS đội (${t.currentParticipants})</button>
+              <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: var(--primary);" onclick="viewRegistrations('${t.tournamentCode}', '${escapeHtml(t.tournamentName)}')">DS Đội (${t.currentParticipants})</button>
             </div>
           `;
         } else if (isRunning) {
           actionHtml = `
             <div style="display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap;">
               <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #16a34a; border-color: #86efac;" onclick="changeTournamentStatus(${t.id}, 'Đã hoàn thành', '${escapeHtml(t.tournamentName)}')">Kết thúc giải</button>
-              <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: var(--primary);" onclick="viewRegistrations('${t.tournamentCode}', '${escapeHtml(t.tournamentName)}')">DS đội (${t.currentParticipants})</button>
+              <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: var(--primary);" onclick="viewRegistrations('${t.tournamentCode}', '${escapeHtml(t.tournamentName)}')">DS Đội (${t.currentParticipants})</button>
             </div>
           `;
         } else {
-          // isDone or isRejected or past date
           actionHtml = `
             <div style="display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap;">
               <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #d97706; border-color: #fde68a;" onclick="openReopenModal(${t.id}, '${escapeHtml(t.tournamentName)}', '${t.startDate || ''}', '${t.endDate || ''}')">Mở lại giải</button>
@@ -802,19 +863,70 @@
         `;
       });
       tbody.innerHTML = html;
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} giải đấu`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoTourPage(${tourCurrentPage - 1})" ${tourCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, tourCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === tourCurrentPage ? 'active' : ''}" onclick="gotoTourPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoTourPage(${tourCurrentPage + 1})" ${tourCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoTourPage(p) {
+      tourCurrentPage = p;
+      renderTournamentsPage();
+    }
+
+    function changeTourPageSize(val) {
+      tourPageSize = parseInt(val, 10) || 5;
+      tourCurrentPage = 1;
+      renderTournamentsPage();
     }
 
     function renderMembers(members) {
+      filteredMembers = members || [];
+      memberCurrentPage = 1;
+      renderMembersPage();
+    }
+
+    function renderMembersPage() {
       const tbody = document.getElementById('membersTableBody');
+      const pBar = document.getElementById('membersPaginationBar');
+      const pInfo = document.getElementById('membersPaginationInfo');
+      const pControls = document.getElementById('membersPaginationControls');
       if (!tbody) return;
 
-      if (!members || members.length === 0) {
+      const total = filteredMembers.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy hội viên nào</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / memberPageSize) || 1;
+      if (memberCurrentPage > totalPages) memberCurrentPage = totalPages;
+      if (memberCurrentPage < 1) memberCurrentPage = 1;
+
+      const startIdx = (memberCurrentPage - 1) * memberPageSize;
+      const endIdx = Math.min(startIdx + memberPageSize, total);
+      const pageMembers = filteredMembers.slice(startIdx, endIdx);
+
       let html = '';
-      members.forEach(m => {
+      pageMembers.forEach(m => {
         let tierStyle = 'background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;';
         let discountTag = 'Tiêu chuẩn';
 
@@ -864,6 +976,37 @@
         `;
       });
       tbody.innerHTML = html;
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} hội viên`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoMemberPage(${memberCurrentPage - 1})" ${memberCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, memberCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === memberCurrentPage ? 'active' : ''}" onclick="gotoMemberPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoMemberPage(${memberCurrentPage + 1})" ${memberCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoMemberPage(p) {
+      memberCurrentPage = p;
+      renderMembersPage();
+    }
+
+    function changeMemberPageSize(val) {
+      memberPageSize = parseInt(val, 10) || 5;
+      memberCurrentPage = 1;
+      renderMembersPage();
     }
 
     function filterActiveTournamentTab() {

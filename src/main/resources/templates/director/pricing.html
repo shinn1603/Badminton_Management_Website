@@ -405,6 +405,23 @@
                 </tbody>
               </table>
             </div>
+            <div class="table-pagination-bar" id="proposalsPaginationBar" style="display: none;">
+              <div class="pagination-info" id="proposalsPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 đề xuất
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="propPageSizeSelect" onchange="changePropPageSize(this.value)">
+                    <option value="5" selected>5 đề xuất / trang</option>
+                    <option value="10">10 đề xuất / trang</option>
+                    <option value="20">20 đề xuất / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="proposalsPaginationControls">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -442,6 +459,23 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="table-pagination-bar" id="promotionsPaginationBar" style="display: none;">
+              <div class="pagination-info" id="promotionsPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 khuyến mãi
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="promoPageSizeSelect" onchange="changePromoPageSize(this.value)">
+                    <option value="5" selected>5 KM / trang</option>
+                    <option value="10">10 KM / trang</option>
+                    <option value="20">20 KM / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="promotionsPaginationControls">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -482,6 +516,23 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="table-pagination-bar" id="rulesPaginationBar" style="display: none;">
+              <div class="pagination-info" id="rulesPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 biểu giá
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="rulesPageSizeSelect" onchange="changeRulesPageSize(this.value)">
+                    <option value="5" selected>5 biểu giá / trang</option>
+                    <option value="10">10 biểu giá / trang</option>
+                    <option value="20">20 biểu giá / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="rulesPaginationControls">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -760,17 +811,49 @@
       }
     }
 
+    let filteredProposals = [];
+    let propCurrentPage = 1;
+    let propPageSize = 5;
+
+    let filteredPromotions = [];
+    let promoCurrentPage = 1;
+    let promoPageSize = 5;
+
+    let filteredRules = [];
+    let rulesCurrentPage = 1;
+    let rulesPageSize = 5;
+
     function renderProposals(proposals) {
+      filteredProposals = proposals || [];
+      propCurrentPage = 1;
+      renderProposalsPage();
+    }
+
+    function renderProposalsPage() {
       const tbody = document.getElementById('proposalsTableBody');
+      const pBar = document.getElementById('proposalsPaginationBar');
+      const pInfo = document.getElementById('proposalsPaginationInfo');
+      const pControls = document.getElementById('proposalsPaginationControls');
       if (!tbody) return;
 
-      if (!proposals || proposals.length === 0) {
+      const total = filteredProposals.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy đề xuất điều chỉnh giá nào</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / propPageSize) || 1;
+      if (propCurrentPage > totalPages) propCurrentPage = totalPages;
+      if (propCurrentPage < 1) propCurrentPage = 1;
+
+      const startIdx = (propCurrentPage - 1) * propPageSize;
+      const endIdx = Math.min(startIdx + propPageSize, total);
+      const pageProposals = filteredProposals.slice(startIdx, endIdx);
+
       let html = '';
-      proposals.forEach(p => {
+      pageProposals.forEach(p => {
         const isPending = (p.status === 'Chờ phê duyệt');
         const isApproved = (p.status === 'Đã phê duyệt');
         const badgeClass = isPending ? 'badge-warning' : (isApproved ? 'badge-success' : 'badge-danger');
@@ -828,19 +911,70 @@
         `;
       });
       tbody.innerHTML = html;
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} đề xuất`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoPropPage(${propCurrentPage - 1})" ${propCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, propCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === propCurrentPage ? 'active' : ''}" onclick="gotoPropPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoPropPage(${propCurrentPage + 1})" ${propCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoPropPage(p) {
+      propCurrentPage = p;
+      renderProposalsPage();
+    }
+
+    function changePropPageSize(val) {
+      propPageSize = parseInt(val, 10) || 5;
+      propCurrentPage = 1;
+      renderProposalsPage();
     }
 
     function renderPromotions(promos) {
+      filteredPromotions = promos || [];
+      promoCurrentPage = 1;
+      renderPromotionsPage();
+    }
+
+    function renderPromotionsPage() {
       const tbody = document.getElementById('promotionsTableBody');
+      const pBar = document.getElementById('promotionsPaginationBar');
+      const pInfo = document.getElementById('promotionsPaginationInfo');
+      const pControls = document.getElementById('promotionsPaginationControls');
       if (!tbody) return;
 
-      if (!promos || promos.length === 0) {
+      const total = filteredPromotions.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy chương trình khuyến mãi nào</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / promoPageSize) || 1;
+      if (promoCurrentPage > totalPages) promoCurrentPage = totalPages;
+      if (promoCurrentPage < 1) promoCurrentPage = 1;
+
+      const startIdx = (promoCurrentPage - 1) * promoPageSize;
+      const endIdx = Math.min(startIdx + promoPageSize, total);
+      const pagePromos = filteredPromotions.slice(startIdx, endIdx);
+
       let html = '';
-      promos.forEach(p => {
+      pagePromos.forEach(p => {
         const isPending = (p.status === 'Chờ phê duyệt');
         const isActive = (p.status === 'Đang áp dụng');
         const badgeClass = isPending ? 'badge-warning' : (isActive ? 'badge-success' : 'badge-danger');
@@ -860,7 +994,7 @@
         } else if (isActive) {
           actionHtml = `
             <div style="display: flex; gap: 6px; justify-content: flex-end;">
-              <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #f59e0b; border-color: #fed7aa;" onclick="togglePromoStatus('${p.promoCode}', 'Tạm ngưng')">Tạm ngưng</button>
+              <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #f59e0b; border-color: #fed7aa;" onclick="togglePromoStatus('${p.promoCode}', 'Tạm ngừng')">Tạm ngừng</button>
               <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444; border-color: #fca5a5;" onclick="deletePromotion('${p.promoCode}')">Xóa</button>
             </div>
           `;
@@ -902,19 +1036,70 @@
         `;
       });
       tbody.innerHTML = html;
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} khuyến mãi`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoPromoPage(${promoCurrentPage - 1})" ${promoCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, promoCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === promoCurrentPage ? 'active' : ''}" onclick="gotoPromoPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoPromoPage(${promoCurrentPage + 1})" ${promoCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoPromoPage(p) {
+      promoCurrentPage = p;
+      renderPromotionsPage();
+    }
+
+    function changePromoPageSize(val) {
+      promoPageSize = parseInt(val, 10) || 5;
+      promoCurrentPage = 1;
+      renderPromotionsPage();
     }
 
     function renderPricingRules(rules) {
+      filteredRules = rules || [];
+      rulesCurrentPage = 1;
+      renderPricingRulesPage();
+    }
+
+    function renderPricingRulesPage() {
       const tbody = document.getElementById('pricingRulesTableBody');
+      const pBar = document.getElementById('rulesPaginationBar');
+      const pInfo = document.getElementById('rulesPaginationInfo');
+      const pControls = document.getElementById('rulesPaginationControls');
       if (!tbody) return;
 
-      if (!rules || rules.length === 0) {
+      const total = filteredRules.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy quy tắc bảng giá nào</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / rulesPageSize) || 1;
+      if (rulesCurrentPage > totalPages) rulesCurrentPage = totalPages;
+      if (rulesCurrentPage < 1) rulesCurrentPage = 1;
+
+      const startIdx = (rulesCurrentPage - 1) * rulesPageSize;
+      const endIdx = Math.min(startIdx + rulesPageSize, total);
+      const pageRules = filteredRules.slice(startIdx, endIdx);
+
       let html = '';
-      rules.forEach(r => {
+      pageRules.forEach(r => {
         const isPeak = (r.slotCode === 'KG03' || (r.slotType && r.slotType.includes('Giờ vàng')));
         const slotBadgeStyle = isPeak 
           ? 'background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa;'
@@ -950,6 +1135,37 @@
         `;
       });
       tbody.innerHTML = html;
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} biểu giá`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoRulesPage(${rulesCurrentPage - 1})" ${rulesCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, rulesCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === rulesCurrentPage ? 'active' : ''}" onclick="gotoRulesPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoRulesPage(${rulesCurrentPage + 1})" ${rulesCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoRulesPage(p) {
+      rulesCurrentPage = p;
+      renderPricingRulesPage();
+    }
+
+    function changeRulesPageSize(val) {
+      rulesPageSize = parseInt(val, 10) || 5;
+      rulesCurrentPage = 1;
+      renderPricingRulesPage();
     }
 
     function filterActiveTab() {

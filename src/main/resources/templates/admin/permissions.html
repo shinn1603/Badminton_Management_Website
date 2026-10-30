@@ -383,6 +383,23 @@
                 </tbody>
               </table>
             </div>
+            <div class="table-pagination-bar" id="permissionsPaginationBar" style="display: none;">
+              <div class="pagination-info" id="permissionsPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 nhân sự
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="permPageSizeSelect" onchange="changePermPageSize(this.value)">
+                    <option value="5" selected>5 nhân sự / trang</option>
+                    <option value="10">10 nhân sự / trang</option>
+                    <option value="20">20 nhân sự / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="permissionsPaginationControls">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -799,18 +816,42 @@
       </span>`;
     }
 
+    let filteredPermUsers = [];
+    let permCurrentPage = 1;
+    let permPageSize = 5;
+
     function renderPermissionsTable(users, branches) {
+      filterPermissionsTable();
+    }
+
+    function renderPermissionsTablePage() {
       const tbody = document.getElementById('permissionsTableBody');
+      const pBar = document.getElementById('permissionsPaginationBar');
+      const pInfo = document.getElementById('permissionsPaginationInfo');
+      const pControls = document.getElementById('permissionsPaginationControls');
       if (!tbody) return;
       tbody.innerHTML = '';
 
+      const branches = systemBranches || [];
       const colSpan = 3 + (branches ? branches.length : 0) + 1;
-      if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; padding: 36px; color: var(--text-muted);">Không tìm thấy dữ liệu nhân sự trong cơ sở dữ liệu SQL Server.</td></tr>`;
+      const total = filteredPermUsers.length;
+
+      if (total === 0) {
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; padding: 36px; color: var(--text-muted);">Không tìm thấy dữ liệu nhân sự phù hợp bộ lọc.</td></tr>`;
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
-      users.forEach(u => {
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / permPageSize) || 1;
+      if (permCurrentPage > totalPages) permCurrentPage = totalPages;
+      if (permCurrentPage < 1) permCurrentPage = 1;
+
+      const startIdx = (permCurrentPage - 1) * permPageSize;
+      const endIdx = Math.min(startIdx + permPageSize, total);
+      const pageUsers = filteredPermUsers.slice(startIdx, endIdx);
+
+      pageUsers.forEach(u => {
         const roleMeta = ROLE_TITLES[u.role] || {
           label: u.role,
           badgeStyle: 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;'
@@ -875,6 +916,37 @@
         `;
         tbody.appendChild(tr);
       });
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} nhân sự`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoPermPage(${permCurrentPage - 1})" ${permCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, permCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === permCurrentPage ? 'active' : ''}" onclick="gotoPermPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoPermPage(${permCurrentPage + 1})" ${permCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoPermPage(p) {
+      permCurrentPage = p;
+      renderPermissionsTablePage();
+    }
+
+    function changePermPageSize(val) {
+      permPageSize = parseInt(val, 10) || 5;
+      permCurrentPage = 1;
+      renderPermissionsTablePage();
     }
 
     // Xử lý khi tick / bỏ tick checkbox "Toàn chuỗi (ALL)"
@@ -1025,17 +1097,19 @@
     function filterPermissionsTable() {
       const q = (document.getElementById('permSearchInput')?.value || '').toLowerCase().trim();
       const roleFilter = (document.getElementById('permRoleFilter')?.value || 'ALL').toUpperCase();
-      const rows = document.querySelectorAll('#permissionsTableBody tr');
 
-      rows.forEach(r => {
-        const searchTarget = r.dataset.search || '';
-        const rowRole = (r.dataset.role || '').toUpperCase();
+      filteredPermUsers = (userPermissions || []).filter(u => {
+        const searchTarget = `${u.fullName || ''} ${u.username || ''} ${u.staffCode || ''} ${u.role || ''}`.toLowerCase();
+        const rowRole = (u.role || '').toUpperCase();
 
         const matchText = !q || searchTarget.includes(q);
         const matchRole = (roleFilter === 'ALL') || (rowRole === roleFilter) || (roleFilter === 'POS' && rowRole === 'STAFF');
 
-        r.style.display = (matchText && matchRole) ? '' : 'none';
+        return matchText && matchRole;
       });
+
+      permCurrentPage = 1;
+      renderPermissionsTablePage();
     }
 
     function toggleTheme() {

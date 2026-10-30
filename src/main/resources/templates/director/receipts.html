@@ -536,6 +536,23 @@
                 </tbody>
               </table>
             </div>
+            <div class="table-pagination-bar" id="dirReceiptsPaginationBar" style="display: none;">
+              <div class="pagination-info" id="dirReceiptsPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 phiếu nhập
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="dirReceiptsPageSizeSelect" onchange="changeDirReceiptsPageSize(this.value)">
+                    <option value="5" selected>5 phiếu / trang</option>
+                    <option value="10">10 phiếu / trang</option>
+                    <option value="20">20 phiếu / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="dirReceiptsPaginationControls">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -588,6 +605,23 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="table-pagination-bar" id="dirSuppliersPaginationBar" style="display: none;">
+              <div class="pagination-info" id="dirSuppliersPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 nhà cung cấp
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="dirSuppliersPageSizeSelect" onchange="changeDirSuppliersPageSize(this.value)">
+                    <option value="5" selected>5 NCC / trang</option>
+                    <option value="10">10 NCC / trang</option>
+                    <option value="20">20 NCC / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="dirSuppliersPaginationControls">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -665,6 +699,23 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div class="table-pagination-bar" id="dirProductsPaginationBar" style="display: none;">
+              <div class="pagination-info" id="dirProductsPaginationInfo">
+                Hiển thị 1 - 5 trong tổng số 0 mặt hàng
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                  <span>Hiển thị:</span>
+                  <select class="pagination-size-select" id="dirProductsPageSizeSelect" onchange="changeDirProductsPageSize(this.value)">
+                    <option value="5" selected>5 mặt hàng / trang</option>
+                    <option value="10">10 mặt hàng / trang</option>
+                    <option value="20">20 mặt hàng / trang</option>
+                  </select>
+                </div>
+                <div class="pagination-controls" id="dirProductsPaginationControls">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1046,16 +1097,38 @@
       if (elBranches) elBranches.textContent = `${uniqueBranches.size} chi nhánh`;
     }
 
+    let filteredDirectorReceipts = [];
+    let dirReceiptsCurrentPage = 1;
+    let dirReceiptsPageSize = 5;
+
     function renderDirectorReceiptsTable(receipts) {
+      filterDirectorReceipts();
+    }
+
+    function renderDirectorReceiptsPage() {
       const tbody = document.getElementById('directorReceiptsTableBody');
+      const pBar = document.getElementById('dirReceiptsPaginationBar');
+      const pInfo = document.getElementById('dirReceiptsPaginationInfo');
+      const pControls = document.getElementById('dirReceiptsPaginationControls');
       if (!tbody) return;
 
-      if (!receipts || receipts.length === 0) {
+      const total = filteredDirectorReceipts.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">Không tìm thấy phiếu nhập nào phù hợp bộ lọc</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
-      tbody.innerHTML = receipts.map(r => `
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / dirReceiptsPageSize) || 1;
+      if (dirReceiptsCurrentPage > totalPages) dirReceiptsCurrentPage = totalPages;
+      if (dirReceiptsCurrentPage < 1) dirReceiptsCurrentPage = 1;
+
+      const startIdx = (dirReceiptsCurrentPage - 1) * dirReceiptsPageSize;
+      const endIdx = Math.min(startIdx + dirReceiptsPageSize, total);
+      const pageReceipts = filteredDirectorReceipts.slice(startIdx, endIdx);
+
+      tbody.innerHTML = pageReceipts.map(r => `
         <tr>
           <td><strong style="color: var(--primary); font-size: 13.5px;">${escapeHtml(r.receiptCode)}</strong></td>
           <td style="text-align: center;">
@@ -1079,6 +1152,37 @@
           </td>
         </tr>
       `).join('');
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} phiếu nhập`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoDirReceiptsPage(${dirReceiptsCurrentPage - 1})" ${dirReceiptsCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, dirReceiptsCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === dirReceiptsCurrentPage ? 'active' : ''}" onclick="gotoDirReceiptsPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoDirReceiptsPage(${dirReceiptsCurrentPage + 1})" ${dirReceiptsCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoDirReceiptsPage(p) {
+      dirReceiptsCurrentPage = p;
+      renderDirectorReceiptsPage();
+    }
+
+    function changeDirReceiptsPageSize(val) {
+      dirReceiptsPageSize = parseInt(val, 10) || 5;
+      dirReceiptsCurrentPage = 1;
+      renderDirectorReceiptsPage();
     }
 
     function filterDirectorReceipts() {
@@ -1086,7 +1190,7 @@
       const bCode = document.getElementById('directorReceiptBranchFilter')?.value || 'ALL';
       const sort = document.getElementById('directorReceiptSort')?.value || 'NEWEST';
 
-      let filtered = allDirectorReceipts.filter(r => {
+      filteredDirectorReceipts = allDirectorReceipts.filter(r => {
         const matchBranch = (bCode === 'ALL' || r.branchCode === bCode);
         const matchText = !q ||
           (r.receiptCode && r.receiptCode.toLowerCase().includes(q)) ||
@@ -1095,7 +1199,7 @@
         return matchBranch && matchText;
       });
 
-      filtered.sort((a, b) => {
+      filteredDirectorReceipts.sort((a, b) => {
         if (sort === 'NEWEST') {
           return (new Date(b.receiptDate || b.createdAt || 0)) - (new Date(a.receiptDate || a.createdAt || 0)) || (b.id - a.id);
         } else if (sort === 'OLDEST') {
@@ -1108,7 +1212,8 @@
         return 0;
       });
 
-      renderDirectorReceiptsTable(filtered);
+      dirReceiptsCurrentPage = 1;
+      renderDirectorReceiptsPage();
     }
 
     // ==========================================
@@ -1134,16 +1239,38 @@
       }
     }
 
+    let filteredDirectorSuppliers = [];
+    let dirSuppliersCurrentPage = 1;
+    let dirSuppliersPageSize = 5;
+
     function renderDirectorSuppliersTable(suppliers) {
+      filterDirectorSuppliers();
+    }
+
+    function renderDirectorSuppliersPage() {
       const tbody = document.getElementById('directorSuppliersTableBody');
+      const pBar = document.getElementById('dirSuppliersPaginationBar');
+      const pInfo = document.getElementById('dirSuppliersPaginationInfo');
+      const pControls = document.getElementById('dirSuppliersPaginationControls');
       if (!tbody) return;
 
-      if (!suppliers || suppliers.length === 0) {
+      const total = filteredDirectorSuppliers.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">Chưa có nhà cung cấp nào phù hợp bộ lọc</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
-      tbody.innerHTML = suppliers.map(s => `
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / dirSuppliersPageSize) || 1;
+      if (dirSuppliersCurrentPage > totalPages) dirSuppliersCurrentPage = totalPages;
+      if (dirSuppliersCurrentPage < 1) dirSuppliersCurrentPage = 1;
+
+      const startIdx = (dirSuppliersCurrentPage - 1) * dirSuppliersPageSize;
+      const endIdx = Math.min(startIdx + dirSuppliersPageSize, total);
+      const pageSuppliers = filteredDirectorSuppliers.slice(startIdx, endIdx);
+
+      tbody.innerHTML = pageSuppliers.map(s => `
         <tr>
           <td><strong style="color: var(--primary); font-size: 13.5px;">${escapeHtml(s.supplierCode || ('NCC' + s.id))}</strong></td>
           <td>
@@ -1169,12 +1296,43 @@
           </td>
         </tr>
       `).join('');
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} nhà cung cấp`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoDirSuppliersPage(${dirSuppliersCurrentPage - 1})" ${dirSuppliersCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, dirSuppliersCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === dirSuppliersCurrentPage ? 'active' : ''}" onclick="gotoDirSuppliersPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoDirSuppliersPage(${dirSuppliersCurrentPage + 1})" ${dirSuppliersCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoDirSuppliersPage(p) {
+      dirSuppliersCurrentPage = p;
+      renderDirectorSuppliersPage();
+    }
+
+    function changeDirSuppliersPageSize(val) {
+      dirSuppliersPageSize = parseInt(val, 10) || 5;
+      dirSuppliersCurrentPage = 1;
+      renderDirectorSuppliersPage();
     }
 
     function filterDirectorSuppliers() {
       const q = (document.getElementById('directorSupplierSearch')?.value || '').toLowerCase().trim();
       const cat = document.getElementById('directorSupplierCategoryFilter')?.value || 'ALL';
-      let filtered = allDirectorSuppliers.filter(s => {
+      filteredDirectorSuppliers = allDirectorSuppliers.filter(s => {
         const matchCat = (cat === 'ALL' || s.category === cat);
         const matchText = !q ||
           (s.supplierName && s.supplierName.toLowerCase().includes(q)) ||
@@ -1183,7 +1341,8 @@
           (s.contactPerson && s.contactPerson.toLowerCase().includes(q));
         return matchCat && matchText;
       });
-      renderDirectorSuppliersTable(filtered);
+      dirSuppliersCurrentPage = 1;
+      renderDirectorSuppliersPage();
     }
 
     function openDirectorSupplierModal() {
@@ -1326,16 +1485,38 @@
       }
     }
 
+    let filteredDirectorProducts = [];
+    let dirProductsCurrentPage = 1;
+    let dirProductsPageSize = 5;
+
     function renderDirectorProductsTable(products) {
+      filterDirectorProducts();
+    }
+
+    function renderDirectorProductsPage() {
       const tbody = document.getElementById('directorProductsTableBody');
+      const pBar = document.getElementById('dirProductsPaginationBar');
+      const pInfo = document.getElementById('dirProductsPaginationInfo');
+      const pControls = document.getElementById('dirProductsPaginationControls');
       if (!tbody) return;
 
-      if (!products || products.length === 0) {
+      const total = filteredDirectorProducts.length;
+      if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 28px; color: var(--text-muted);">Chưa có sản phẩm nào phù hợp bộ lọc</td></tr>';
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
-      tbody.innerHTML = products.map(p => {
+      if (pBar) pBar.style.display = 'flex';
+      const totalPages = Math.ceil(total / dirProductsPageSize) || 1;
+      if (dirProductsCurrentPage > totalPages) dirProductsCurrentPage = totalPages;
+      if (dirProductsCurrentPage < 1) dirProductsCurrentPage = 1;
+
+      const startIdx = (dirProductsCurrentPage - 1) * dirProductsPageSize;
+      const endIdx = Math.min(startIdx + dirProductsPageSize, total);
+      const pageProducts = filteredDirectorProducts.slice(startIdx, endIdx);
+
+      tbody.innerHTML = pageProducts.map(p => {
         const cost = Number(p.costPrice || 0);
         const retail = Number(p.unitPrice || 0);
         const profit = retail - cost;
@@ -1380,6 +1561,37 @@
           </tr>
         `;
       }).join('');
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} mặt hàng`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoDirProductsPage(${dirProductsCurrentPage - 1})" ${dirProductsCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, dirProductsCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === dirProductsCurrentPage ? 'active' : ''}" onclick="gotoDirProductsPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoDirProductsPage(${dirProductsCurrentPage + 1})" ${dirProductsCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoDirProductsPage(p) {
+      dirProductsCurrentPage = p;
+      renderDirectorProductsPage();
+    }
+
+    function changeDirProductsPageSize(val) {
+      dirProductsPageSize = parseInt(val, 10) || 5;
+      dirProductsCurrentPage = 1;
+      renderDirectorProductsPage();
     }
 
     function filterDirectorProducts() {
@@ -1387,7 +1599,7 @@
       const bCode = document.getElementById('directorProductBranchFilter')?.value || 'ALL';
       const cat = document.getElementById('directorProductCategoryFilter')?.value || 'ALL';
 
-      let filtered = allDirectorProducts.filter(p => {
+      filteredDirectorProducts = allDirectorProducts.filter(p => {
         const matchBranch = (bCode === 'ALL' || p.branchCode === bCode);
         const matchCat = (cat === 'ALL' || p.category === cat);
         const matchText = !q ||

@@ -212,6 +212,24 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination-bar" id="auditLogsPaginationBar" style="display: none;">
+            <div class="pagination-info" id="auditLogsPaginationInfo">
+              Hiển thị 1 - 5 trong tổng số 0 bản ghi
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Hiển thị:</span>
+                <select class="pagination-size-select" id="auditPageSizeSelect" onchange="changeAuditPageSize(this.value)">
+                  <option value="5" selected>5 dòng / trang</option>
+                  <option value="10">10 dòng / trang</option>
+                  <option value="20">20 dòng / trang</option>
+                  <option value="50">50 dòng / trang</option>
+                </select>
+              </div>
+              <div class="pagination-controls" id="auditLogsPaginationControls">
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -253,6 +271,23 @@
               </tbody>
             </table>
           </div>
+          <div class="table-pagination-bar" id="backupsPaginationBar" style="display: none;">
+            <div class="pagination-info" id="backupsPaginationInfo">
+              Hiển thị 1 - 5 trong tổng số 0 bản sao lưu
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Hiển thị:</span>
+                <select class="pagination-size-select" id="backupsPageSizeSelect" onchange="changeBackupsPageSize(this.value)">
+                  <option value="5" selected>5 bản / trang</option>
+                  <option value="10">10 bản / trang</option>
+                  <option value="20">20 bản / trang</option>
+                </select>
+              </div>
+              <div class="pagination-controls" id="backupsPaginationControls">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -283,6 +318,9 @@
     }
 
     let allAuditLogs = [];
+    let filteredAuditLogs = [];
+    let auditCurrentPage = 1;
+    let auditPageSize = 5;
 
     async function loadAuditLogs() {
       try {
@@ -304,11 +342,11 @@
           }
         }
         allAuditLogs = [];
-        renderAuditLogsTable([]);
+        filterAuditLogs();
       } catch (e) {
         console.warn('Lỗi khi tải nhật ký hoạt động:', e);
         allAuditLogs = [];
-        renderAuditLogsTable([]);
+        filterAuditLogs();
       }
     }
 
@@ -316,7 +354,7 @@
       const searchKw = (document.getElementById('auditSearchInput')?.value || '').trim().toLowerCase();
       const moduleVal = document.getElementById('auditModuleFilter')?.value || 'ALL';
 
-      let filtered = allAuditLogs.filter(log => {
+      filteredAuditLogs = allAuditLogs.filter(log => {
         if (moduleVal !== 'ALL') {
           const m = (log.module || '').toLowerCase();
           const targetM = moduleVal.toLowerCase();
@@ -333,15 +371,20 @@
         return true;
       });
 
-      renderAuditLogsTable(filtered);
+      auditCurrentPage = 1;
+      renderAuditLogsPage();
     }
 
-    function renderAuditLogsTable(logs) {
+    function renderAuditLogsPage() {
       const tbody = document.getElementById('auditLogsTableBody');
+      const pBar = document.getElementById('auditLogsPaginationBar');
+      const pInfo = document.getElementById('auditLogsPaginationInfo');
+      const pControls = document.getElementById('auditLogsPaginationControls');
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      if (!logs || logs.length === 0) {
+      const total = filteredAuditLogs.length;
+      if (total === 0) {
         tbody.innerHTML = `
           <tr>
             <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">
@@ -349,12 +392,22 @@
             </td>
           </tr>
         `;
+        if (pBar) pBar.style.display = 'none';
         return;
       }
 
-      logs.forEach(log => {
+      if (pBar) pBar.style.display = 'flex';
+
+      const totalPages = Math.ceil(total / auditPageSize) || 1;
+      if (auditCurrentPage > totalPages) auditCurrentPage = totalPages;
+      if (auditCurrentPage < 1) auditCurrentPage = 1;
+
+      const startIdx = (auditCurrentPage - 1) * auditPageSize;
+      const endIdx = Math.min(startIdx + auditPageSize, total);
+      const pageLogs = filteredAuditLogs.slice(startIdx, endIdx);
+
+      pageLogs.forEach(log => {
         const isWarning = (log.status || '').toLowerCase().includes('cảnh báo') || (log.status || '').toLowerCase().includes('thất bại');
-        const badgeClass = isWarning ? 'badge-amber' : 'badge-green';
         const badgeStyle = isWarning ? 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;' : 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;';
         const userDisplay = log.userCode ? `${log.username} (${log.userCode})` : log.username;
 
@@ -377,6 +430,37 @@
         `;
         tbody.appendChild(tr);
       });
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} bản ghi`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoAuditPage(${auditCurrentPage - 1})" ${auditCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, auditCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === auditCurrentPage ? 'active' : ''}" onclick="gotoAuditPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoAuditPage(${auditCurrentPage + 1})" ${auditCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoAuditPage(p) {
+      auditCurrentPage = p;
+      renderAuditLogsPage();
+    }
+
+    function changeAuditPageSize(val) {
+      auditPageSize = parseInt(val, 10) || 5;
+      auditCurrentPage = 1;
+      renderAuditLogsPage();
     }
 
     function getAuthHeaders(isJson = false) {
@@ -415,6 +499,10 @@
       }
     }
 
+    let allBackups = [];
+    let backupsCurrentPage = 1;
+    let backupsPageSize = 5;
+
     async function loadBackupLogs() {
       const tbody = document.getElementById('backupListTable');
       if (!tbody) return;
@@ -422,56 +510,106 @@
         const res = await fetch('/api/admin/database/backups', { credentials: 'include', headers: getAuthHeaders() });
         if (res.ok) {
           const data = await res.json();
-          const backups = data.backups || [];
-          if (backups.length === 0) {
-            tbody.innerHTML = `
-              <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 28px;">
-                  <div style="font-size: 13.5px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px;">Chưa có bản sao lưu nào trong thư mục <code>database/backups/</code></div>
-                  <div style="font-size: 12px; margin-bottom: 12px; color: var(--text-muted);">Bản sao lưu sẽ được lưu cố định trên ổ cứng máy chủ và không bị mất khi thoát trang.</div>
-                  <button class="btn btn-primary" style="padding: 6px 16px; font-size: 12px;" onclick="backupDatabaseNow()">
-                    Sao lưu CSDL ngay
-                  </button>
-                </td>
-              </tr>
-            `;
-            return;
-          }
-          tbody.innerHTML = '';
-          backups.forEach(b => {
-            const timeStr = b.lastModified ? formatDateTime(b.lastModified) : '--';
-            const filename = b.filename;
-            const sizeStr = (b.sizeKb ? b.sizeKb.toLocaleString('vi-VN') + ' KB' : (b.sizeBytes ? Math.round(b.sizeBytes/1024) + ' KB' : '—'));
-            const isBaseBackup = filename.startsWith('init_badminton_backup_');
-            const methodBadge = isBaseBackup 
-              ? '<span class="badge" style="background: #fdf4ff; color: #9333ea;">Snapshot Gốc</span>'
-              : '<span class="badge" style="background: #f0fdfa; color: #0f766e;">Sao lưu CSDL</span>';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td style="font-family: monospace; font-weight: 600; color: var(--text-dark);">${escapeHtml(filename)}</td>
-              <td>${escapeHtml(sizeStr)}</td>
-              <td>${escapeHtml(timeStr)}</td>
-              <td>${methodBadge}</td>
-              <td style="text-align: right;">
-                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="downloadBackup('${escapeHtml(filename)}')">Tải file</button>
-                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444; margin-left: 4px;" onclick="restoreBackup('${escapeHtml(filename)}')">Phục hồi</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
+          allBackups = data.backups || [];
+          backupsCurrentPage = 1;
+          renderBackupsPage();
           return;
         }
       } catch (err) {
         console.warn('Lỗi tải lịch sử sao lưu:', err);
       }
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
-            Chưa có bản sao lưu nào được ghi nhận trong CSDL.
+      allBackups = [];
+      renderBackupsPage();
+    }
+
+    function renderBackupsPage() {
+      const tbody = document.getElementById('backupListTable');
+      const pBar = document.getElementById('backupsPaginationBar');
+      const pInfo = document.getElementById('backupsPaginationInfo');
+      const pControls = document.getElementById('backupsPaginationControls');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const total = allBackups.length;
+      if (total === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 28px;">
+              <div style="font-size: 13.5px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px;">Chưa có bản sao lưu nào trong thư mục <code>database/backups/</code></div>
+              <div style="font-size: 12px; margin-bottom: 12px; color: var(--text-muted);">Bản sao lưu sẽ được lưu cố định trên ổ cứng máy chủ và không bị mất khi thoát trang.</div>
+              <button class="btn btn-primary" style="padding: 6px 16px; font-size: 12px;" onclick="backupDatabaseNow()">
+                Sao lưu CSDL ngay
+              </button>
+            </td>
+          </tr>
+        `;
+        if (pBar) pBar.style.display = 'none';
+        return;
+      }
+
+      if (pBar) pBar.style.display = 'flex';
+
+      const totalPages = Math.ceil(total / backupsPageSize) || 1;
+      if (backupsCurrentPage > totalPages) backupsCurrentPage = totalPages;
+      if (backupsCurrentPage < 1) backupsCurrentPage = 1;
+
+      const startIdx = (backupsCurrentPage - 1) * backupsPageSize;
+      const endIdx = Math.min(startIdx + backupsPageSize, total);
+      const pageBackups = allBackups.slice(startIdx, endIdx);
+
+      pageBackups.forEach(b => {
+        const timeStr = b.lastModified ? formatDateTime(b.lastModified) : '--';
+        const filename = b.filename;
+        const sizeStr = (b.sizeKb ? b.sizeKb.toLocaleString('vi-VN') + ' KB' : (b.sizeBytes ? Math.round(b.sizeBytes/1024) + ' KB' : '-'));
+        const isBaseBackup = filename.startsWith('init_badminton_backup_');
+        const methodBadge = isBaseBackup 
+          ? '<span class="badge" style="background: #fdf4ff; color: #9333ea;">Snapshot Gốc</span>'
+          : '<span class="badge" style="background: #f0fdfa; color: #0f766e;">Sao lưu CSDL</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight: 600; color: var(--text-dark);">${escapeHtml(filename)}</td>
+          <td>${escapeHtml(sizeStr)}</td>
+          <td>${escapeHtml(timeStr)}</td>
+          <td>${methodBadge}</td>
+          <td style="text-align: right;">
+            <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="downloadBackup('${escapeHtml(filename)}')">Tải file</button>
+            <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444; margin-left: 4px;" onclick="restoreBackup('${escapeHtml(filename)}')">Phục hồi</button>
           </td>
-        </tr>
-      `;
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (pInfo) {
+        pInfo.textContent = `Hiển thị ${startIdx + 1} - ${endIdx} trong tổng số ${total} bản sao lưu`;
+      }
+
+      if (pControls) {
+        let btns = '';
+        btns += `<button class="pagination-btn" onclick="gotoBackupsPage(${backupsCurrentPage - 1})" ${backupsCurrentPage === 1 ? 'disabled' : ''} title="Trang trước">&laquo;</button>`;
+
+        let startP = Math.max(1, backupsCurrentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          btns += `<button class="pagination-btn ${p === backupsCurrentPage ? 'active' : ''}" onclick="gotoBackupsPage(${p})">${p}</button>`;
+        }
+
+        btns += `<button class="pagination-btn" onclick="gotoBackupsPage(${backupsCurrentPage + 1})" ${backupsCurrentPage === totalPages ? 'disabled' : ''} title="Trang sau">&raquo;</button>`;
+        pControls.innerHTML = btns;
+      }
+    }
+
+    function gotoBackupsPage(p) {
+      backupsCurrentPage = p;
+      renderBackupsPage();
+    }
+
+    function changeBackupsPageSize(val) {
+      backupsPageSize = parseInt(val, 10) || 5;
+      backupsCurrentPage = 1;
+      renderBackupsPage();
     }
 
     async function syncBaseDatabaseNow() {
