@@ -28,14 +28,32 @@ public class CloudinaryService {
             @Value("${cloudinary.cloud-name:utesport-arena}") String cloudName,
             @Value("${cloudinary.api-key:}") String apiKey,
             @Value("${cloudinary.api-secret:}") String apiSecret) {
-        this.cloudName = (cloudName != null && !cloudName.isBlank()) ? cloudName : "utesport-arena";
-        this.apiKey = apiKey != null ? apiKey : "";
+        this.cloudName = (cloudName != null && !cloudName.isBlank()) ? clean(cloudName) : "utesport-arena";
+        this.apiKey = apiKey != null ? clean(apiKey) : "";
+        String cleanSecret = apiSecret != null ? clean(apiSecret) : "";
         this.cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", this.cloudName,
                 "api_key", this.apiKey,
-                "api_secret", apiSecret,
+                "api_secret", cleanSecret,
                 "secure", true
         ));
+        if (!this.apiKey.isBlank()) {
+            log.info("CloudinaryService initialized successfully for cloud_name: [{}] with API Key: [{}...]", this.cloudName, this.apiKey.substring(0, Math.min(6, this.apiKey.length())));
+        } else {
+            log.warn("CloudinaryService: API Key is empty, running in fallback local storage mode.");
+        }
+    }
+
+    private static String clean(String val) {
+        if (val == null) return "";
+        String trimmed = val.trim();
+        if ((trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+            (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+            if (trimmed.length() >= 2) {
+                trimmed = trimmed.substring(1, trimmed.length() - 1).trim();
+            }
+        }
+        return trimmed;
     }
 
     /**
