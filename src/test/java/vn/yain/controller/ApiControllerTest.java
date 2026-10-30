@@ -53,6 +53,9 @@ class ApiControllerTest {
     @Autowired
     private vn.yain.repository.PromotionRepository promotionRepository;
 
+    @Autowired
+    private vn.yain.repository.UserRepository userRepository;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
@@ -525,5 +528,105 @@ class ApiControllerTest {
         // Clean up
         promotionRepository.findByPromoCode("KM88").ifPresent(promotionRepository::delete);
         branchRepository.findByBranchCode("CN88").ifPresent(branchRepository::delete);
+    }
+
+    @Test
+    @DisplayName("Bao mat phan quyen: Quan ly chi nhanh khong duoc phep dieu chinh gia thue san va bi chan 403")
+    void testManagerCannotAlterCourtPrice() throws Exception {
+        if (userRepository.findByUsername("ql_cn01").isEmpty()) {
+            vn.yain.entity.User u = new vn.yain.entity.User();
+            u.setUsername("ql_cn01");
+            u.setPassword("123456");
+            u.setFullName("Trần Phúc Bảo");
+            u.setRole("MANAGER");
+            u.setBranchCode("CN01");
+            userRepository.save(u);
+        }
+
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "ql_cn01",
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_MANAGER"))
+            )
+        );
+
+        try {
+            // ql_cn01 chi quan ly CN01, san CL01 gia hien hanh la 90000 hoac 120000, co tinh doi sang 50000
+            String payload = """
+                {
+                    "courtCode": "CL01",
+                    "courtName": "Sân Tiêu Chuẩn 1",
+                    "hourlyRate": 50000,
+                    "status": "Trống",
+                    "branchCode": "CN01"
+                }
+                """;
+
+            mockMvc.perform(post("/api/courts")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .content(payload))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success", is(false)))
+                    .andExpect(jsonPath("$.message", containsString("Quản lý chi nhánh không được phép điều chỉnh")));
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    @DisplayName("Bao mat phan quyen: Quan ly chi nhanh bi khoa chi xem san co so minh, khong xem hoac xoa san chi nhanh khac")
+    void testManagerBranchIsolation() throws Exception {
+        if (userRepository.findByUsername("ql_cn01").isEmpty()) {
+            vn.yain.entity.User u = new vn.yain.entity.User();
+            u.setUsername("ql_cn01");
+            u.setPassword("123456");
+            u.setFullName("Trần Phúc Bảo");
+            u.setRole("MANAGER");
+            u.setBranchCode("CN01");
+            userRepository.save(u);
+        }
+
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "ql_cn01",
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_MANAGER"))
+            )
+        );
+
+        try {
+            // 1. Quan ly CN01 co tinh goi lay san CN02 -> Backend ep ve CN01
+            mockMvc.perform(get("/api/courts?branchCode=CN02"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$[0].branchCode", is("CN01")));
+
+            // 2. Quan ly CN01 co tinh xoa san -> Bi chan 403
+            mockMvc.perform(delete("/api/courts/CL01"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success", is(false)))
+                    .andExpect(jsonPath("$.message", containsString("Chỉ Ban Giám Đốc")));
+
+            // 3. Quan ly CN01 cap nhat thong so van hanh giu nguyen don gia hien tai -> Thanh cong 200 OK!
+            BigDecimal currentPrice = courtRepository.findByCourtCode("CL01").get().getHourlyRate();
+            String validUpdate = String.format("""
+                {
+                    "courtCode": "CL01",
+                    "courtName": "Sân Tiêu Chuẩn 1",
+                    "hourlyRate": %s,
+                    "status": "Trống",
+                    "floorCondition": "Thảm thi đấu Taraflex vừa vệ sinh sạch",
+                    "branchCode": "CN01"
+                }
+                """, currentPrice);
+
+            mockMvc.perform(post("/api/courts")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .content(validUpdate))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success", is(true)));
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
     }
 }
