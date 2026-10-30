@@ -627,18 +627,7 @@
         </div>
 
         <div id="receiptContent3" style="display: none;">
-          <div class="policy-callout" style="margin-bottom: 20px;">
-            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 20px; height: 20px; flex-shrink: 0; color: #10b981; margin-top: 2px;" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            <div>
-              <strong style="color: #065f46; font-size: 13.5px;">Chính sách kiểm soát giá vốn của Ban Giám Đốc:</strong>
-              <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">
-                Định mức giá vốn nhập chuẩn (costPrice) được quy định cố định tại đây. Quản lý tại tất cả chi nhánh chỉ được nhập hàng theo giá vốn chuẩn này, đảm bảo tính minh bạch và tránh thất thoát chi phí chuỗi.
-              </div>
-            </div>
-          </div>
+
 
           <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 12px;">
@@ -1473,15 +1462,26 @@
         tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">Đang tải danh mục mặt hàng toàn chuỗi...</td></tr>';
       }
       try {
-        const res = await fetch('/api/products?catalog=true');
+        const token = localStorage.getItem('jwt_token') || '';
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const res = await fetch('/api/products?catalog=true', { headers });
         if (res.ok) {
           allDirectorProducts = await res.json();
-          filterDirectorProducts();
           const badge = document.getElementById('badgeTotalProducts');
-          if (badge) badge.textContent = `${allDirectorProducts.length} mặt hàng`;
+          if (badge) badge.textContent = `${(allDirectorProducts || []).length} mặt hàng`;
+          filterDirectorProducts(false);
+        } else {
+          console.warn('API error /api/products?catalog=true status:', res.status);
+          if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--danger);">Không thể nạp dữ liệu mặt hàng (Lỗi HTTP ' + res.status + ')</td></tr>';
+          }
         }
       } catch (err) {
         console.error('Lỗi fetch mặt hàng:', err);
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--danger);">Lỗi kết nối máy chủ khi nạp danh mục mặt hàng</td></tr>';
+        }
       }
     }
 
@@ -1489,8 +1489,11 @@
     let dirProductsCurrentPage = 1;
     let dirProductsPageSize = 5;
 
-    function renderDirectorProductsTable(products) {
-      filterDirectorProducts();
+    function renderDirectorProductsTable(resetPage = false) {
+      if (resetPage) {
+        dirProductsCurrentPage = 1;
+      }
+      renderDirectorProductsPage();
     }
 
     function renderDirectorProductsPage() {
@@ -1594,12 +1597,12 @@
       renderDirectorProductsPage();
     }
 
-    function filterDirectorProducts() {
+    function filterDirectorProducts(resetPage = true) {
       const q = (document.getElementById('directorProductSearch')?.value || '').toLowerCase().trim();
       const bCode = document.getElementById('directorProductBranchFilter')?.value || 'ALL';
       const cat = document.getElementById('directorProductCategoryFilter')?.value || 'ALL';
 
-      filteredDirectorProducts = allDirectorProducts.filter(p => {
+      filteredDirectorProducts = (allDirectorProducts || []).filter(p => {
         const matchBranch = (bCode === 'ALL' || p.branchCode === bCode);
         const matchCat = (cat === 'ALL' || p.category === cat);
         const matchText = !q ||
@@ -1609,7 +1612,10 @@
         return matchBranch && matchCat && matchText;
       });
 
-      renderDirectorProductsTable(filtered);
+      if (resetPage) {
+        dirProductsCurrentPage = 1;
+      }
+      renderDirectorProductsPage();
     }
 
     function openDirectorProductModal(id) {
