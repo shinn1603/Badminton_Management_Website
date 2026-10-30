@@ -1037,9 +1037,12 @@
     let courtCurrentPage = 1;
     let courtPageSize = 5;
 
-    function renderTable(courts) {
+    function renderTable(courts, resetPage = false) {
       filteredCourtsList = courts || [];
-      courtCurrentPage = 1;
+      const totalPages = Math.ceil(filteredCourtsList.length / courtPageSize) || 1;
+      if (resetPage || courtCurrentPage > totalPages || courtCurrentPage < 1) {
+        courtCurrentPage = 1;
+      }
       renderCourtTablePage();
     }
 
@@ -1143,7 +1146,7 @@
       renderCourtTablePage();
     }
 
-    function filterCourts() {
+    function filterCourts(isManualReset = false) {
       const kw = (document.getElementById('courtSearchInput')?.value || '').toLowerCase().trim();
       let list = allLoadedCourts;
 
@@ -1170,7 +1173,7 @@
       }
 
       renderVisualGrid(list);
-      renderTable(list);
+      renderTable(list, isManualReset);
     }
 
     async function deleteCourt(courtCode, courtName) {
@@ -1580,7 +1583,11 @@
       }
     }
 
-    async function loadCourtsFromApi() {
+    async function loadCourtsFromApi(isManual = false) {
+      // Avoid disturbing the user if a modal or input is currently active
+      const activeModal = document.querySelector('.modal[style*="display: flex"], .modal[style*="display: block"]');
+      if (activeModal && !isManual) return;
+
       const branchSel = document.getElementById('courtBranchFilter') || document.getElementById('branchSelectFilter');
       const branch = branchSel ? branchSel.value : (localStorage.getItem('utesport_active_branch') || 'ALL');
       const token = localStorage.getItem('jwt_token') || '';
@@ -1591,33 +1598,34 @@
         const res = await fetch(`/api/courts?branchCode=${encodeURIComponent(branch)}`, { headers });
         if (res.ok) {
           const courts = await res.json();
-          if (Array.isArray(courts) && courts.length > 0) {
-            allLoadedCourts = courts;
-          } else {
-            allLoadedCourts = [];
+          const newCourts = (Array.isArray(courts) && courts.length > 0) ? courts : [];
+          // Smart diff: If data has not changed and DOM is already rendered, do NOT wipe DOM to prevent card and image flickering
+          if (!isManual && allLoadedCourts.length > 0 && JSON.stringify(newCourts) === JSON.stringify(allLoadedCourts)) {
+            return;
           }
-        } else {
+          allLoadedCourts = newCourts;
+        } else if (isManual) {
           allLoadedCourts = [];
         }
       } catch (err) {
         console.warn('API error fetching courts:', err);
-        allLoadedCourts = [];
+        if (isManual) allLoadedCourts = [];
       }
 
       renderKPIs(allLoadedCourts);
-      filterCourts();
+      filterCourts(isManual);
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const savedTheme = localStorage.getItem('theme') || 'light';
       document.documentElement.setAttribute('data-theme', savedTheme);
       await loadBranchesFromDb();
-      await loadCourtsFromApi();
+      await loadCourtsFromApi(true);
 
-      // Realtime polling
+      // Passive smart polling: only updates when data actually changes (never blinks DOM)
       setInterval(() => {
-        loadCourtsFromApi();
-      }, 5000);
+        loadCourtsFromApi(false);
+      }, 30000);
     });
 
     window.addEventListener('badminton:court-event', () => {
