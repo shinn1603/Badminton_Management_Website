@@ -35,7 +35,7 @@ public class User {
     private String phone;
 
     @Column(nullable = false, length = 30)
-    private String role; // DIRECTOR, MANAGER, POS, CUSTOMER, ADMIN
+    private String role;
 
     @Column(name = "staff_code", length = 20)
     private String staffCode;

@@ -147,7 +147,6 @@ class SystemIntegrationE2ETest {
                 .content(webhookJson))
                 .andReturn();
         int status = result.getResponse().getStatus();
-        // Khong co token hop le -> phai bi tu choi (400/401/403) hoac 404 neu endpoint khong nam trong controller nay
         assertTrue(status == 400 || status == 401 || status == 403 || status == 404,
                 "Webhook khong token phai bi tu choi, nhan: " + status);
     }
@@ -171,7 +170,6 @@ class SystemIntegrationE2ETest {
         MvcResult result = mockMvc.perform(get("/api/admin/users")).andReturn();
         int status = result.getResponse().getStatus();
         // standaloneSetup khong co Spring Security filter, nen 200 hoac 404 cung chap nhan
-        // Muc tieu: xac nhan endpoint ton tai va controller hoat dong dung
         assertTrue(status == 200 || status == 401 || status == 403 || status == 404,
                 "/api/admin/users phai phan hoi, nhan: " + status);
     }

@@ -307,7 +307,6 @@
       </header>
 
       <div class="main-content">
-        <!-- HERO BANNER -->
         <div class="hero-banner" style="margin-bottom: 20px;">
           <div class="hero-banner-content">
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
@@ -319,7 +318,6 @@
           </div>
         </div>
 
-        <!-- TAB NAVIGATION -->
         <div class="tab-navigation-bar">
           <button class="matrix-tab-btn active" id="btnTabScope" onclick="switchMatrixTab('scope')">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
@@ -339,9 +337,6 @@
           </button>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- TAB 1: MA TRẬN PHẠM VI DỮ LIỆU CHI NHÁNH (DATA SCOPE)        -->
-        <!-- ============================================================ -->
         <div id="contentTabScope">
           <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
@@ -352,7 +347,6 @@
                 </div>
               </div>
 
-              <!-- Filter Controls -->
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <div class="search-box" style="margin: 0; min-width: 240px;">
                   <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--text-muted); width: 14px; height: 14px;">
@@ -377,7 +371,6 @@
               </div>
             </div>
 
-            <!-- Notice note -->
             <div style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--primary, #059669); padding: 10px 16px; margin: 0 20px 16px 20px; border-radius: 0 8px 8px 0; font-size: 12px; color: var(--text-dark);">
               <strong>Hướng dẫn vận hành:</strong> Tick chọn từng chi nhánh để cấp quyền tác nghiệp cho Quản lý hoặc Thu ngân. Một Quản lý có thể được gán <strong>nhiều chi nhánh cùng lúc</strong> (ví dụ phụ trách cả CN01 và CN02). Khi chọn <strong>Toàn chuỗi (ALL)</strong>, nhân sự sẽ được xem và quản lý tất cả các cơ sở. Thay đổi sẽ được <strong>tự động lưu vào CSDL</strong> ngay khi tick chọn.
             </div>
@@ -385,19 +378,14 @@
             <div class="table-container">
               <table class="data-table">
                 <thead id="permissionsTableHeader">
-                  <!-- Populated dynamically -->
                 </thead>
                 <tbody id="permissionsTableBody">
-                  <!-- Populated dynamically -->
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- TAB 2: BẢNG TRA CỨU QUYỀN HẠN TÁC NGHIỆP (RBAC MATRIX)       -->
-        <!-- ============================================================ -->
         <div id="contentTabRbac" style="display: none;">
           <div class="card">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -408,7 +396,6 @@
                 </div>
               </div>
 
-              <!-- Legend badges -->
               <div style="display: flex; align-items: center; gap: 14px; font-size: 12px;">
                 <div style="display: inline-flex; align-items: center; gap: 6px;">
                   <span class="rbac-icon-allowed" style="width: 20px; height: 20px;">
@@ -456,7 +443,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- 1. QUẢN LÝ CHI NHÁNH -->
                   <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
                     <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
                       <div style="display: flex; align-items: center; gap: 8px;">
@@ -490,7 +476,6 @@
                     <td style="color: var(--text-muted); font-size: 11.5px;">Chỉ Giám đốc điều hành có thẩm quyền xóa; hệ thống tự động kiểm tra ràng buộc sân bãi và lịch đặt trước khi xóa.</td>
                   </tr>
 
-                  <!-- 2. QUẢN LÝ SÂN BÃI & BIỂU GIÁ -->
                   <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
                     <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
                       <div style="display: flex; align-items: center; gap: 8px;">
@@ -540,7 +525,6 @@
                     <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý có thể tạm ngưng nhận khách trên sân hỏng thảm hoặc bảo trì lưới tại cơ sở mình phụ trách.</td>
                   </tr>
 
-                  <!-- 3. ĐẶT SÂN & QUẦY THU NGÂN POS -->
                   <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
                     <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
                       <div style="display: flex; align-items: center; gap: 8px;">
@@ -574,7 +558,6 @@
                     <td style="color: var(--text-muted); font-size: 11.5px;">Hỗ trợ thu cọc, thanh toán đủ, in hóa đơn nhiệt khổ 80mm tại quầy.</td>
                   </tr>
 
-                  <!-- 4. KHO HÀNG & MẶT HÀNG -->
                   <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
                     <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
                       <div style="display: flex; align-items: center; gap: 8px;">
@@ -600,7 +583,6 @@
                     <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý lập phiếu nhập kho cho cơ sở của mình, số lượng cộng dồn tồn kho tương ứng.</td>
                   </tr>
 
-                  <!-- 5. BÁO CÁO & QUẢN TRỊ TÀI KHOẢN -->
                   <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
                     <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
                       <div style="display: flex; align-items: center; gap: 8px;">

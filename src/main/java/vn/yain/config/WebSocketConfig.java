@@ -12,7 +12,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Pure WebSocket and SockJS fallback endpoint with restricted origins
         String[] allowedOrigins = new String[]{
             "http://localhost:*",
             "http://127.0.0.1:*",
@@ -31,9 +30,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Clients subscribe to /topic/... to receive broadcasts
         registry.enableSimpleBroker("/topic", "/queue");
-        // Messages sent to /app/... are routed to @MessageMapping methods
         registry.setApplicationDestinationPrefixes("/app");
     }
 }

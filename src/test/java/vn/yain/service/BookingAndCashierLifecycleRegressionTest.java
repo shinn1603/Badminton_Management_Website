@@ -102,7 +102,6 @@ class BookingAndCashierLifecycleRegressionTest {
         LocalDate today = LocalDate.now().plusDays(3);
         String slot = "18:00 - 19:00";
 
-        // 1. Khách hàng tạo đơn đặt sân
         Booking booking = new Booking();
         booking.setBookingCode(bookingCode);
         booking.setBranchCode("CN01");
@@ -117,12 +116,10 @@ class BookingAndCashierLifecycleRegressionTest {
         booking.setStatus("Chờ cọc 30%");
         bookingRepository.saveAndFlush(booking);
 
-        // 2. Chống trùng khung giờ (Slot Overlapping)
         assertTrue(bookingService.isSlotOverlapping(slot, "18:00 - 19:00"));
         assertTrue(bookingService.isSlotOverlapping(slot, "17:00 - 19:00"));
         assertFalse(bookingService.isSlotOverlapping(slot, "19:00 - 20:00"));
 
-        // 3. Webhook VietQR xác nhận thanh toán tiền cọc 30%
         Map<String, Object> webhookData = Map.of(
                 "content", "CK " + bookingCode + " TIEN COC 30%",
                 "transferAmount", 30000,
@@ -139,29 +136,23 @@ class BookingAndCashierLifecycleRegressionTest {
         assertFalse(depositPayments.isEmpty());
         assertEquals(0, new BigDecimal("30000").compareTo(depositPayments.get(0).getAmount()));
 
-        // 4. Khách hàng tới sân -> Thu ngân Check-in
         Booking checkedIn = bookingService.checkIn(bookingCode);
         assertEquals("Đang sử dụng", checkedIn.getStatus());
 
-        // 5. Khách gọi dịch vụ phát sinh tại POS: 2 chai nước khoáng (2 * 15,000 = 30,000d)
         int initialStock = drink.getStockQuantity();
         Map<String, Object> serviceOrderRes = warehouseService.orderServiceForBooking(bookingCode, drink.getProductCode(), 2);
         assertTrue((boolean) serviceOrderRes.get("success"));
 
-        // Xác minh kho hàng đã bị trừ chính xác 2 chai
         Product updatedDrink = productRepository.findByProductCode(drink.getProductCode()).orElseThrow();
         assertEquals(initialStock - 2, updatedDrink.getStockQuantity());
 
-        // Xác minh tổng tiền đơn đặt sân tăng từ 100,000 lên 130,000d
         Booking afterService = bookingRepository.findByBookingCode(bookingCode).orElseThrow();
         assertEquals(0, new BigDecimal("130000").compareTo(afterService.getTotalPrice()));
 
-        // 6. Khách xin đổi sang Sân B (Court Transfer)
         Map<String, Object> transferRes = bookingService.transferCourt(bookingCode, court2.getCourtCode(), slot);
         assertNotNull(transferRes);
         assertTrue((boolean) transferRes.get("success"));
 
-        // 7. Check-out và thanh toán nốt số tiền còn lại, xuất hóa đơn
         Invoice invoice = bookingService.checkOut(bookingCode, BigDecimal.ZERO, BigDecimal.ZERO, "Tiền mặt", "NV01");
         assertNotNull(invoice);
         assertNotNull(invoice.getInvoiceCode());
@@ -170,7 +161,6 @@ class BookingAndCashierLifecycleRegressionTest {
         Booking completed = bookingRepository.findByBookingCode(bookingCode).orElseThrow();
         assertTrue(completed.getStatus().contains("Hoàn thành"));
 
-        // 8. Chốt ca thu ngân và đối soát doanh thu ca
         Map<String, Object> shiftSummary = shiftService.getShiftSummary("NV01", "CN01");
         assertNotNull(shiftSummary);
         assertTrue(shiftSummary.containsKey("systemCashTotal"));

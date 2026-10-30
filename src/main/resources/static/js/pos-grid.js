@@ -1,8 +1,4 @@
-/**
- * UTE SPORT - POS GRID REALTIME LOGIC
- * Module: Le tan & Ban hang POS (MH-NVQ01 -> MH-NVQ07)
- * Live Database Integration (No Mock / No Random Data)
- */
+
 
 let appData = {};
 const initialUrlBranch = (typeof window !== 'undefined' && window.location.search)
@@ -113,7 +109,6 @@ function isSlotOverlapping(s1, s2) {
   return Math.max(start1, start2) < Math.min(end1, end2);
 }
 
-// Update modal select dropdowns with real courts from database
 function updateCourtSelectDropdowns() {
   const bSelect = document.getElementById('bookingCourtSelect');
   if (bSelect && realCourts.length > 0) {
@@ -142,7 +137,6 @@ function updateCourtSelectDropdowns() {
   }
 }
 
-// Load all branches dynamically from database
 async function loadBranchesForPos() {
   const branchFilterEl = document.getElementById('branchFilter');
   if (!branchFilterEl) return;
@@ -178,7 +172,6 @@ async function loadBranchesForPos() {
   }
 }
 
-// Load real courts for the active branch with memory cache to prevent flickering
 async function loadCourtsForBranch(branchCode) {
   if (courtsCacheByBranch[branchCode] && courtsCacheByBranch[branchCode].length > 0) {
     realCourts = courtsCacheByBranch[branchCode];
@@ -199,7 +192,6 @@ async function loadCourtsForBranch(branchCode) {
     if (courtsCacheByBranch[branchCode] && courtsCacheByBranch[branchCode].length > 0) {
       realCourts = courtsCacheByBranch[branchCode];
     } else {
-      // Create fallback court with proper prefix matching the branch instead of always CL01..CL08
       realCourts = fallbackCourts.map(c => ({
         ...c,
         courtCode: `${branchCode}_${c.courtCode}`,
@@ -210,7 +202,6 @@ async function loadCourtsForBranch(branchCode) {
   updateCourtSelectDropdowns();
 }
 
-// Render POS timetable grid completely from live backend database
 async function renderGridForDate(dateStr) {
   if (isRenderingGrid) {
     pendingRenderDate = dateStr;
@@ -484,7 +475,6 @@ function toggleTheme() {
   localStorage.setItem('utesport_theme', nxt);
 }
 
-// SEARCH & HIGHLIGHT REAL BOOKINGS
 function handleSearch() {
   const searchInput = document.getElementById('searchInput');
   if (!searchInput) return;
@@ -570,12 +560,10 @@ function highlightExactSlot(courtCode, time) {
   }, 100);
 }
 
-// REAL-TIME INPUT RESTRICTIONS FOR CUSTOMER INFO
 function cleanCustomerNameInput(input) {
   if (!input) return;
   const errorEl = document.getElementById('custNameError');
   const original = input.value;
-  // Block digits and symbols, allow Vietnamese letters, spaces, and hyphens
   const cleaned = original.replace(/[0-9]/g, '').replace(/[^\p{L}\s'-]/gu, '');
   if (original !== cleaned) {
     input.value = cleaned;
@@ -719,7 +707,6 @@ async function submitBookingForm() {
     return;
   }
 
-  // Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0
   const phoneRegex = /^0\d{9}$/;
   if (!phoneRegex.test(phone)) {
     if (typeof showToast === 'function') showToast('Số điện thoại không hợp lệ! Vui lòng nhập đúng 10 chữ số (bắt đầu bằng số 0).', 'warning');
@@ -816,7 +803,6 @@ async function submitBookingForm() {
   }
 }
 
-// DETAIL MODAL & CHECK-IN
 function openDetailModal(element, code, court, time, customer, phone, status, price, deposit = 0, isMaint = false) {
   activeSlotCell = element;
   activeSlotCell.dataset.code = code || 'DS0102';
@@ -847,7 +833,6 @@ function openDetailModal(element, code, court, time, customer, phone, status, pr
   const remainEl = document.getElementById('detailRemainPrice');
   if (remainEl) remainEl.textContent = remainVal.toLocaleString('vi-VN') + ' đ';
 
-  // Xử lý cảnh báo Sân Bảo Trì và Gợi ý Chuyển sân 1-Click
   const maintAlert = document.getElementById('detailMaintenanceAlert');
   const suggestionBox = document.getElementById('quickTransferSuggestion');
   if (maintAlert) {
@@ -987,34 +972,52 @@ async function cancelBookingFromModal() {
   }
 }
 
-// CHECKOUT & POS SERVICES MODAL (DYNAMIC DB INTEGRATED)
 let dbProductsCache = [];
 let currentPosFilterCat = 'all';
 let currentPosSearchTerm = '';
 
+function getProductStockInfo(codeOrName) {
+  if (!codeOrName) return { totalStock: 0, currentQty: 0, remainingStock: 0, prod: null };
+  const prod = dbProductsCache.find(p => p.productCode === codeOrName || p.productName === codeOrName);
+  if (!prod) return { totalStock: 0, currentQty: 0, remainingStock: 0, prod: null };
+
+  const totalStock = (prod.stockQuantity !== undefined && prod.stockQuantity !== null)
+    ? Number(prod.stockQuantity)
+    : ((prod.currentStock !== undefined && prod.currentStock !== null) ? Number(prod.currentStock) : 0);
+
+  const inCart = posItems.find(i => (i.code && i.code === prod.productCode) || i.name === prod.productName);
+  const currentQty = inCart ? (Number(inCart.qty) || 0) : 0;
+  const remainingStock = Math.max(0, totalStock - currentQty);
+
+  return { totalStock, currentQty, remainingStock, prod };
+}
+
 function loadDbProductsForPos() {
-  fetch('/api/products')
+  const branchParam = currentBranch ? `?branchCode=${encodeURIComponent(currentBranch)}` : '';
+  fetch(`/api/products${branchParam}`)
     .then(r => r.json())
     .then(list => {
       if (Array.isArray(list) && list.length > 0) {
         dbProductsCache = list;
       }
       renderPosProductGrid();
+      renderInvoice();
     })
     .catch(err => {
       console.warn('Không tải được danh sách sản phẩm từ CSDL:', err);
       if (!dbProductsCache.length) {
         dbProductsCache = [
-          { productCode: 'P01', productName: 'Nước bù khoáng Revive', category: 'Nước giải khát', price: 15000, currentStock: 80 },
-          { productCode: 'P02', productName: 'Pocari Sweat 500ml', category: 'Nước giải khát', price: 18000, currentStock: 45 },
-          { productCode: 'P03', productName: 'Nước suối Aquafina', category: 'Nước giải khát', price: 10000, currentStock: 120 },
-          { productCode: 'P05', productName: 'Ống Cầu Hải Yến Đỏ (12 quả)', category: 'Dụng cụ', price: 180000, currentStock: 25 },
-          { productCode: 'P06', productName: 'Ống Cầu Yonex AS-50', category: 'Dụng cụ', price: 420000, currentStock: 15 },
-          { productCode: 'P07', productName: 'Thuê Vợt Yonex Astrox', category: 'Dụng cụ', price: 25000, currentStock: 10 },
-          { productCode: 'P08', productName: 'Quấn cán vợt VS xịn', category: 'Phụ kiện', price: 15000, currentStock: 50 }
+          { productCode: 'P01', productName: 'Nước bù khoáng Revive', category: 'Nước giải khát', price: 15000, currentStock: 80, stockQuantity: 80 },
+          { productCode: 'P02', productName: 'Pocari Sweat 500ml', category: 'Nước giải khát', price: 18000, currentStock: 45, stockQuantity: 45 },
+          { productCode: 'P03', productName: 'Nước suối Aquafina', category: 'Nước giải khát', price: 10000, currentStock: 120, stockQuantity: 120 },
+          { productCode: 'P05', productName: 'Ống Cầu Hải Yến Đỏ (12 quả)', category: 'Dụng cụ', price: 180000, currentStock: 25, stockQuantity: 25 },
+          { productCode: 'P06', productName: 'Ống Cầu Yonex AS-50', category: 'Dụng cụ', price: 420000, currentStock: 15, stockQuantity: 15 },
+          { productCode: 'P07', productName: 'Thuê Vợt Yonex Astrox', category: 'Dụng cụ', price: 25000, currentStock: 10, stockQuantity: 10 },
+          { productCode: 'P08', productName: 'Quấn cán vợt VS xịn', category: 'Phụ kiện', price: 15000, currentStock: 50, stockQuantity: 50 }
         ];
       }
       renderPosProductGrid();
+      renderInvoice();
     });
 }
 
@@ -1062,20 +1065,35 @@ function renderPosProductGrid() {
 
   container.innerHTML = filtered.map(p => {
     const rawPrice = (p.unitPrice !== undefined && p.unitPrice !== null) ? p.unitPrice : (p.price || 0);
-    const rawStock = (p.stockQuantity !== undefined && p.stockQuantity !== null) ? p.stockQuantity : (p.currentStock !== undefined ? p.currentStock : null);
     const priceFormatted = Number(rawPrice).toLocaleString('vi-VN') + 'đ';
-    const isOutOfStock = (rawStock !== null && rawStock <= 0);
-    const stockBadge = isOutOfStock 
-      ? `<span style="color: var(--danger); font-size: 10px; font-weight: bold;">Hết hàng</span>`
-      : `<span style="color: var(--text-muted); font-size: 10px;">Kho: ${rawStock ?? 'Sẵn'}</span>`;
+    const { totalStock, currentQty, remainingStock } = getProductStockInfo(p.productCode);
+
+    const isOutOfStockTotal = totalStock <= 0;
+    const isCartMaxed = !isOutOfStockTotal && remainingStock <= 0;
+    const isDisabled = isOutOfStockTotal || isCartMaxed;
+
+    let stockBadge;
+    if (isOutOfStockTotal) {
+      stockBadge = `<span style="color: #ef4444; font-size: 10px; font-weight: 700; background: rgba(239, 68, 68, 0.1); padding: 1px 5px; border-radius: 4px;">Hết hàng (Kho: 0)</span>`;
+    } else if (isCartMaxed) {
+      stockBadge = `<span style="color: #f59e0b; font-size: 10px; font-weight: 700; background: rgba(245, 158, 11, 0.1); padding: 1px 5px; border-radius: 4px;">Đã chọn tối đa (${currentQty}/${totalStock})</span>`;
+    } else {
+      stockBadge = `<span style="color: var(--text-muted); font-size: 10px;">Còn: <b style="color: #10b981;">${remainingStock}</b> / ${totalStock}</span>`;
+    }
 
     const safeName = (p.productName || '').replace(/'/g, "\\'");
+    const disabledAttr = isDisabled ? 'disabled="disabled"' : '';
+    const buttonStyle = isDisabled
+      ? `padding: 8px; font-size: 11.5px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; position: relative; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--surface-subtle); cursor: not-allowed; opacity: 0.6; pointer-events: none;`
+      : `padding: 8px; font-size: 11.5px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; position: relative; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--surface); cursor: pointer; transition: all 0.15s ease;`;
+
     return `
-      <button type="button" class="btn btn-outline" 
-              style="padding: 8px; font-size: 11.5px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; position: relative; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--surface); cursor: pointer; transition: all 0.15s ease;"
-              onclick="quickAddProduct('${p.productCode}', '${safeName}', ${rawPrice}, ${rawStock ?? 999})"
-              title="${p.productName} (${p.productCode})">
-        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-size: 11.5px; color: var(--text-dark);">${p.productName}</strong>
+      <button type="button" class="btn btn-outline pos-prod-btn ${isDisabled ? 'disabled' : ''}" 
+              ${disabledAttr}
+              style="${buttonStyle}"
+              onclick="quickAddProduct('${p.productCode}', '${safeName}', ${rawPrice}, ${totalStock})"
+              title="${p.productName} (${p.productCode}) - Tồn kho: ${totalStock}, Còn có thể chọn: ${remainingStock}">
+        <strong style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-size: 11.5px; color: ${isDisabled ? 'var(--text-muted)' : 'var(--text-dark)'};">${p.productName}</strong>
         <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 4px; align-items: center;">
           <span style="color: var(--primary); font-weight: 700; font-size: 11.5px;">${priceFormatted}</span>
           ${stockBadge}
@@ -1269,32 +1287,34 @@ const productCodeMap = {
   'Quấn cán vợt VS': 'P07'
 };
 
-function removePosItem(name) {
-  const idx = posItems.findIndex(i => i.name === name);
+function syncPosItemsToCurrentSession() {
+  if (currentSessionKey) {
+    bookingServicesStore[currentSessionKey] = [...posItems];
+  }
+  const courtCode = activeSlotCell ? (activeSlotCell.dataset.courtCode || activeSlotCell.dataset.court) : '';
+  if (currentSessionSlots && currentSessionSlots.length > 0) {
+    currentSessionSlots.forEach(s => {
+      s.slot.posItems = [...posItems];
+      if (courtCode) updateDataStore(courtCode, s.time, { posItems: [...posItems] });
+    });
+  } else if (activeSlotCell) {
+    const timeObj = activeSlotCell.dataset.time;
+    updateDataStore(courtCode, timeObj, { posItems: [...posItems] });
+  }
+}
+
+function rollbackPosItem(itemNameOrCode) {
+  const idx = posItems.findIndex(i => (i.code && i.code === itemNameOrCode) || i.name === itemNameOrCode);
   if (idx !== -1) {
     if (posItems[idx].qty > 1) {
       posItems[idx].qty -= 1;
     } else {
       posItems.splice(idx, 1);
     }
+    syncPosItemsToCurrentSession();
+    renderPosProductGrid();
+    renderInvoice();
   }
-
-  if (currentSessionKey) {
-    bookingServicesStore[currentSessionKey] = [...posItems];
-  }
-  if (currentSessionSlots && currentSessionSlots.length > 0) {
-    const courtCode = activeSlotCell ? (activeSlotCell.dataset.courtCode || activeSlotCell.dataset.court) : '';
-    currentSessionSlots.forEach(s => {
-      s.slot.posItems = [...posItems];
-      if (courtCode) updateDataStore(courtCode, s.time, { posItems: [...posItems] });
-    });
-  } else if (activeSlotCell) {
-    const courtCode = activeSlotCell.dataset.courtCode || activeSlotCell.dataset.court;
-    const timeObj = activeSlotCell.dataset.time;
-    updateDataStore(courtCode, timeObj, { posItems: [...posItems] });
-  }
-
-  renderInvoice();
 }
 
 function quickAddProduct(codeOrName, name, price, stock) {
@@ -1302,45 +1322,54 @@ function quickAddProduct(codeOrName, name, price, stock) {
   let itemName = name;
   let itemPrice = price;
 
-  if (arguments.length === 2) {
+  if (arguments.length === 2 || !name) {
     itemName = codeOrName;
     itemPrice = name;
-    const found = dbProductsCache.find(p => p.productName === itemName);
+    const found = dbProductsCache.find(p => p.productName === itemName || p.productCode === itemCode);
     itemCode = found ? found.productCode : (productCodeMap[itemName] || 'P01');
+    if (!itemPrice && found) {
+      itemPrice = found.unitPrice !== undefined ? found.unitPrice : found.price;
+    }
   }
 
-  const existing = posItems.find(i => i.name === itemName);
+  // 1. Kiểm tra giới hạn số lượng tồn kho nghiêm ngặt
+  const stockInfo = getProductStockInfo(itemCode || itemName);
+  if (stockInfo.prod) {
+    if (stockInfo.totalStock <= 0) {
+      const msg = `Sản phẩm [${itemName}] hiện đã hết hàng trong kho CSDL!`;
+      if (typeof showToast === 'function') {
+        showToast(msg, 'error');
+      } else {
+        alert(msg);
+      }
+      return false;
+    }
+
+    if (stockInfo.currentQty >= stockInfo.totalStock) {
+      const unitStr = (stockInfo.prod && stockInfo.prod.unit) ? stockInfo.prod.unit : 'món';
+      const msg = `Không thể chọn quá số tồn kho! Sản phẩm [${itemName}] hiện chỉ còn ${stockInfo.totalStock} ${unitStr} trong kho.`;
+      if (typeof showToast === 'function') {
+        showToast(msg, 'error');
+      } else {
+        alert(msg);
+      }
+      return false;
+    }
+  }
+
+  // 2. Tăng số lượng trong đơn
+  const existing = posItems.find(i => (i.code && i.code === itemCode) || i.name === itemName);
   if (existing) {
     existing.qty += 1;
   } else {
     posItems.push({ code: itemCode, name: itemName, price: Number(itemPrice) || 0, qty: 1 });
   }
 
-  const prodInCache = dbProductsCache.find(p => p.productCode === itemCode || p.productName === itemName);
-  if (prodInCache) {
-    if (typeof prodInCache.stockQuantity === 'number') {
-      prodInCache.stockQuantity = Math.max(0, prodInCache.stockQuantity - 1);
-    } else if (typeof prodInCache.currentStock === 'number') {
-      prodInCache.currentStock = Math.max(0, prodInCache.currentStock - 1);
-    }
-    renderPosProductGrid();
-  }
+  syncPosItemsToCurrentSession();
+  renderPosProductGrid();
+  renderInvoice();
 
-  if (currentSessionKey) {
-    bookingServicesStore[currentSessionKey] = [...posItems];
-  }
-  if (currentSessionSlots && currentSessionSlots.length > 0) {
-    const courtCode = activeSlotCell ? (activeSlotCell.dataset.courtCode || activeSlotCell.dataset.court) : '';
-    currentSessionSlots.forEach(s => {
-      s.slot.posItems = [...posItems];
-      if (courtCode) updateDataStore(courtCode, s.time, { posItems: [...posItems] });
-    });
-  } else if (activeSlotCell) {
-    const courtCode = activeSlotCell.dataset.courtCode || activeSlotCell.dataset.court;
-    const timeObj = activeSlotCell.dataset.time;
-    updateDataStore(courtCode, timeObj, { posItems: [...posItems] });
-  }
-
+  // 3. Nếu là đơn đặt sân có mã bCode, đồng bộ qua API order-service
   if (activeSlotCell) {
     const bCode = activeSlotCell.dataset.code;
     if (bCode) {
@@ -1348,17 +1377,103 @@ function quickAddProduct(codeOrName, name, price, stock) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productCode: itemCode, quantity: 1 })
-      }).then(r => r.json()).then(data => {
-        if (data.success && window.showToast) {
-          showToast(`Đã xuất [${itemName}] và trừ tồn kho CSDL!`, 'info');
+      }).then(r => r.json().then(data => ({ status: r.status, ok: r.ok, data })))
+      .then(res => {
+        if (res.ok && res.data && res.data.success) {
+          if (typeof res.data.remainingStock === 'number' && stockInfo.prod) {
+            stockInfo.prod.stockQuantity = res.data.remainingStock;
+            renderPosProductGrid();
+          }
+          if (typeof showToast === 'function') {
+            showToast(`Đã xuất [${itemName}] và trừ tồn kho CSDL!`, 'info');
+          }
+        } else {
+          const errMsg = (res.data && res.data.message) ? res.data.message : 'Số lượng tồn kho không đủ!';
+          if (typeof showToast === 'function') {
+            showToast(errMsg, 'error');
+          } else {
+            alert(errMsg);
+          }
+          rollbackPosItem(itemName);
         }
-      }).catch(e => console.warn('Lỗi đồng bộ dịch vụ:', e));
+      }).catch(e => {
+        console.warn('Lỗi đồng bộ dịch vụ:', e);
+      });
     }
   } else {
-    if (window.showToast) {
+    if (typeof showToast === 'function') {
       showToast(`Đã thêm: ${itemName}`, 'info');
     }
   }
+  return true;
+}
+
+function increasePosItemQty(nameOrCode) {
+  const item = posItems.find(i => (i.code && i.code === nameOrCode) || i.name === nameOrCode);
+  if (!item) return;
+  quickAddProduct(item.code, item.name, item.price);
+}
+
+function decreasePosItemQty(nameOrCode) {
+  const item = posItems.find(i => (i.code && i.code === nameOrCode) || i.name === nameOrCode);
+  if (!item) return;
+
+  if (activeSlotCell && activeSlotCell.dataset.code) {
+    const bCode = activeSlotCell.dataset.code;
+    fetch(`/api/bookings/${bCode}/cancel-service`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productCode: item.code, quantity: 1 })
+    }).then(r => r.json()).then(data => {
+      if (data && data.success && typeof data.remainingStock === 'number') {
+        const prod = dbProductsCache.find(p => p.productCode === item.code || p.productName === item.name);
+        if (prod) {
+          prod.stockQuantity = data.remainingStock;
+          renderPosProductGrid();
+        }
+      }
+    }).catch(e => console.warn('Lỗi hoàn trả dịch vụ:', e));
+  }
+
+  if (item.qty > 1) {
+    item.qty -= 1;
+  } else {
+    const idx = posItems.indexOf(item);
+    if (idx !== -1) posItems.splice(idx, 1);
+  }
+
+  syncPosItemsToCurrentSession();
+  renderPosProductGrid();
+  renderInvoice();
+}
+
+function removePosItem(nameOrCode) {
+  const item = posItems.find(i => (i.code && i.code === nameOrCode) || i.name === nameOrCode);
+  if (!item) return;
+
+  const removeQty = item.qty;
+  if (activeSlotCell && activeSlotCell.dataset.code) {
+    const bCode = activeSlotCell.dataset.code;
+    fetch(`/api/bookings/${bCode}/cancel-service`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productCode: item.code, quantity: removeQty })
+    }).then(r => r.json()).then(data => {
+      if (data && data.success && typeof data.remainingStock === 'number') {
+        const prod = dbProductsCache.find(p => p.productCode === item.code || p.productName === item.name);
+        if (prod) {
+          prod.stockQuantity = data.remainingStock;
+          renderPosProductGrid();
+        }
+      }
+    }).catch(e => console.warn('Lỗi hoàn trả dịch vụ:', e));
+  }
+
+  const idx = posItems.indexOf(item);
+  if (idx !== -1) posItems.splice(idx, 1);
+
+  syncPosItemsToCurrentSession();
+  renderPosProductGrid();
   renderInvoice();
 }
 
@@ -1430,33 +1545,55 @@ function printReceiptK80() {
 
 function renderInvoice() {
   const tbody = document.getElementById('invoiceBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
   let serviceSubtotal = 0;
 
-  posItems.forEach(item => {
-    const lineTotal = item.price * item.qty;
-    serviceSubtotal += lineTotal;
-    const safeName = (item.name || '').replace(/'/g, "\\'");
-    tbody.innerHTML += `
-      <tr>
-        <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle);">${item.name}</td>
-        <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: center;">${item.qty}</td>
-        <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: right;">${item.price.toLocaleString('vi-VN')} đ</td>
-        <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: right; font-weight: bold;">${lineTotal.toLocaleString('vi-VN')} đ</td>
-        <td style="padding: 6px 4px; border-bottom: 1px solid var(--border-subtle); text-align: center;">
-          <button type="button" class="btn btn-xs btn-outline" style="padding: 3px 6px; color: var(--danger); line-height: 1; border-color: transparent; display: inline-flex; align-items: center; justify-content: center;" onclick="removePosItem('${safeName}')" title="Bớt 1 / Xóa món">
-            <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </td>
-      </tr>
-    `;
-  });
+  if (posItems.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 16px 8px; color: var(--text-muted); font-size: 11.5px;">Chưa chọn dịch vụ / nước uống nào. Bấm vào danh sách bên trên để thêm.</td></tr>`;
+  } else {
+    posItems.forEach(item => {
+      const lineTotal = item.price * item.qty;
+      serviceSubtotal += lineTotal;
+      const safeName = (item.name || '').replace(/'/g, "\\'");
+      const stockInfo = getProductStockInfo(item.code || item.name);
+      const isAtMax = stockInfo.totalStock !== undefined && item.qty >= stockInfo.totalStock;
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); vertical-align: middle;">
+            <div style="font-weight: 600; color: var(--text-dark);">${item.name}</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Kho: ${stockInfo.totalStock} ${stockInfo.prod && stockInfo.prod.unit ? stockInfo.prod.unit : 'món'}</div>
+          </td>
+          <td style="padding: 6px 4px; border-bottom: 1px solid var(--border-subtle); text-align: center; vertical-align: middle;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: var(--surface-subtle); padding: 2px 4px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+              <button type="button" class="btn btn-xs" style="padding: 1px 6px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--text-dark); font-size: 13px;" onclick="decreasePosItemQty('${safeName}')" title="Giảm 1">-</button>
+              <span style="min-width: 18px; text-align: center; font-weight: 700; font-size: 12px; color: var(--primary);">${item.qty}</span>
+              <button type="button" class="btn btn-xs" style="padding: 1px 6px; font-weight: 700; border: none; background: transparent; cursor: ${isAtMax ? 'not-allowed' : 'pointer'}; color: ${isAtMax ? 'var(--text-muted)' : 'var(--text-dark)'}; font-size: 13px;" onclick="increasePosItemQty('${safeName}')" title="${isAtMax ? 'Đã đạt tồn kho tối đa' : 'Tăng 1'}" ${isAtMax ? 'disabled="disabled"' : ''}>+</button>
+            </div>
+          </td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: right; vertical-align: middle;">${item.price.toLocaleString('vi-VN')} đ</td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid var(--border-subtle); text-align: right; font-weight: bold; vertical-align: middle;">${lineTotal.toLocaleString('vi-VN')} đ</td>
+          <td style="padding: 6px 4px; border-bottom: 1px solid var(--border-subtle); text-align: center; vertical-align: middle;">
+            <button type="button" class="btn btn-xs btn-outline" style="padding: 3px 6px; color: var(--danger); line-height: 1; border-color: transparent; display: inline-flex; align-items: center; justify-content: center;" onclick="removePosItem('${safeName}')" title="Xóa món này">
+              <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.2; fill: none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
   const finalTotal = Math.max(0, currentBasePrice + serviceSubtotal - currentDeposit);
-  document.getElementById('coCourtPrice').innerText = currentBasePrice.toLocaleString('vi-VN') + ' đ';
-  document.getElementById('coServicePrice').innerText = serviceSubtotal.toLocaleString('vi-VN') + ' đ';
-  document.getElementById('coDeposit').innerText = '- ' + currentDeposit.toLocaleString('vi-VN') + ' đ';
-  document.getElementById('coTotal').innerText = finalTotal.toLocaleString('vi-VN') + ' đ';
+  const elCourt = document.getElementById('coCourtPrice');
+  const elService = document.getElementById('coServicePrice');
+  const elDeposit = document.getElementById('coDeposit');
+  const elTotal = document.getElementById('coTotal');
+
+  if (elCourt) elCourt.innerText = currentBasePrice.toLocaleString('vi-VN') + ' đ';
+  if (elService) elService.innerText = serviceSubtotal.toLocaleString('vi-VN') + ' đ';
+  if (elDeposit) elDeposit.innerText = '- ' + currentDeposit.toLocaleString('vi-VN') + ' đ';
+  if (elTotal) elTotal.innerText = finalTotal.toLocaleString('vi-VN') + ' đ';
 
   const qrData = `00020101021238540010A00000072701240006970422011009031234560208QRIBFTTA5303704540${finalTotal.toString().length}${finalTotal}5802VN62170813UTESPORT6304`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(qrData)}`;
@@ -1564,15 +1701,26 @@ async function submitCheckout() {
     }
   } else {
     try {
-      await fetch('/api/invoices/retail', {
+      const retailRes = await fetch('/api/invoices/retail', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productFee: serviceSubtotal,
           paymentMethod: payMode,
-          staffCode: posStaffCode
+          staffCode: posStaffCode,
+          items: posItems.map(i => ({ productCode: i.code, productName: i.name, quantity: i.qty }))
         })
       });
+      const retailData = await retailRes.json();
+      if (!retailRes.ok || (retailData && retailData.success === false)) {
+        const msg = (retailData && retailData.message) ? retailData.message : 'Lỗi thanh toán hóa đơn lẻ!';
+        if (typeof showToast === 'function') {
+          showToast(msg, 'error');
+        } else {
+          alert(msg);
+        }
+        return;
+      }
     } catch (e) {
       console.warn('Lỗi lưu hóa đơn lẻ:', e);
     }

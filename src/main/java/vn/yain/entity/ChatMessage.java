@@ -27,7 +27,6 @@ public class ChatMessage {
     @Column(name = "customer_phone", length = 30)
     private String customerPhone;
 
-    // "customer", "staff", "bot", "system"
     @Column(name = "sender", nullable = false, length = 30)
     private String sender;
 

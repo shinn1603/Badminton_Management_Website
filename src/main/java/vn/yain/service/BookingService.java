@@ -136,11 +136,9 @@ public class BookingService {
         if (courtCodeOrName == null || courtCodeOrName.trim().isEmpty()) return null;
         String raw = courtCodeOrName.trim();
 
-        // 1. Direct match by courtCode
         Optional<Court> opt = courtRepository.findByCourtCode(raw);
         if (opt.isPresent()) return opt.get();
 
-        // 2. Search in branch courts if branchCode provided
         List<Court> branchCourts = (branchCode != null && !branchCode.trim().isEmpty() && !"ALL".equalsIgnoreCase(branchCode.trim()))
                 ? courtRepository.findByBranchCode(branchCode.trim())
                 : courtRepository.findAll();
@@ -157,7 +155,6 @@ public class BookingService {
             }
         }
 
-        // 3. Search in all courts
         List<Court> allCourts = courtRepository.findAll();
         for (Court c : allCourts) {
             if (c.getCourtCode().equalsIgnoreCase(raw) || c.getCourtName().equalsIgnoreCase(raw)) return c;
@@ -270,7 +267,6 @@ public class BookingService {
             });
         }
 
-        // Atomic conflict check to prevent race condition double-booking
         boolean conflict = hasBookingConflict(canonicalCourt, booking.getCourtCode(), date, booking.getTimeSlot(), null);
         if (conflict) {
             String cName = (canonicalCourt != null) ? canonicalCourt.getCourtName() : booking.getCourtCode();
@@ -284,13 +280,11 @@ public class BookingService {
             booking.setStatus("Chờ cọc 30%");
         }
         if ((booking.getDepositAmount() == null || booking.getDepositAmount().compareTo(BigDecimal.ZERO) == 0) && booking.getTotalPrice() != null) {
-            // Default 30% deposit calculation
             booking.setDepositAmount(booking.getTotalPrice().multiply(new BigDecimal("0.3")));
         }
 
         Booking saved = bookingRepository.save(booking);
 
-        // Update court status and broadcast
         courtRepository.findByCourtCode(booking.getCourtCode()).ifPresent(court -> {
             if (!"Bảo trì".equalsIgnoreCase(court.getStatus())) {
                 court.setStatus("Đã đặt trước");
@@ -331,7 +325,6 @@ public class BookingService {
             courtCode = canonicalCourt.getCourtCode();
         }
 
-        // Conflict check excluding current booking
         boolean conflict = hasBookingConflict(canonicalCourt, courtCode, date, timeSlot, existing.getBookingCode());
         if (conflict) {
             String cName = (canonicalCourt != null) ? canonicalCourt.getCourtName() : courtCode;
@@ -413,14 +406,12 @@ public class BookingService {
             }
         }
 
-        // Validate that the slot is not already booked (including multi-hour overlaps)
         boolean alreadyBooked = hasBookingConflict(court, courtCode, bookingDate, timeSlot, null);
         if (alreadyBooked) {
             String cName = (court != null) ? court.getCourtName() : courtCode;
             throw new IllegalStateException("Khung giờ " + timeSlot + " của sân " + cName + " đã có người đặt trước!");
         }
 
-        // Duration and pricing
         int duration = 0;
         if (timeSlot.contains(",")) {
             String[] parts = timeSlot.split(",");
@@ -518,7 +509,6 @@ public class BookingService {
         }
         booking.setNotes(noteBuilder.toString());
 
-        // Liên kết mã khách hàng từ cơ sở dữ liệu nếu tồn tại
         String customerEmail = (String) payload.get("customerEmail");
         if (customerEmail == null || customerEmail.isBlank()) {
             customerEmail = (String) payload.get("email");
@@ -603,7 +593,6 @@ public class BookingService {
         booking.setPaymentMethod(paymentMethod != null ? paymentMethod : "VietQR Pro");
         Booking updated = bookingRepository.save(booking);
 
-        // Khóa cố định sân trên hệ thống và hủy bỏ bộ đếm tạm giữ chỗ 10 phút
         if (updated.getCourtCode() != null) {
             courtRepository.findByCourtCode(updated.getCourtCode()).ifPresent(c -> {
                 if (!"Bảo trì".equalsIgnoreCase(c.getStatus())) {
@@ -612,7 +601,6 @@ public class BookingService {
             });
         }
 
-        // Tự động liên kết mã khách hàng & tích lũy điểm thưởng thành viên
         if (customerRepository != null) {
             if (updated.getCustomerCode() == null && updated.getCustomerPhone() != null && !updated.getCustomerPhone().isBlank()) {
                 customerRepository.findByPhone(updated.getCustomerPhone().trim()).ifPresent(c -> {
@@ -649,7 +637,6 @@ public class BookingService {
             }
         }
 
-        // Record payment transaction
         Payment payment = new Payment();
         payment.setPaymentCode(generateUniquePaymentCode());
         payment.setBookingCode(bookingCode);
@@ -772,7 +759,6 @@ public class BookingService {
 
         Invoice savedInvoice = invoiceRepository.save(invoice);
 
-        // Reset court status to "Trống" nếu không đang bảo trì
         courtRepository.findByCourtCode(booking.getCourtCode()).ifPresent(court -> {
             if (!"Bảo trì".equalsIgnoreCase(court.getStatus())) {
                 court.setStatus("Trống");
@@ -818,7 +804,6 @@ public class BookingService {
         boolean isUnpaid = curStatus.contains("Chờ cọc");
         boolean hasDeposit = booking.getDepositAmount() != null && booking.getDepositAmount().compareTo(BigDecimal.ZERO) > 0 && !isUnpaid;
 
-        // Tính thời gian trước giờ chơi (mặc định ngưỡng 4 tiếng theo chính sách)
         boolean isEligibleForRefund = false;
         try {
             int startHour = 18;
@@ -854,7 +839,6 @@ public class BookingService {
             }
         });
 
-        // Ghi AuditLog hủy đặt sân
         if (auditLogRepository != null) {
             try {
                 vn.yain.entity.AuditLog auditLogEntry = new vn.yain.entity.AuditLog();
@@ -957,7 +941,6 @@ public class BookingService {
 
         String effectiveSlot = (newTimeSlot != null && !newTimeSlot.trim().isEmpty()) ? newTimeSlot.trim() : booking.getTimeSlot();
 
-        // Check if target court has conflicting active booking
         List<Booking> conflicts = bookingRepository.findByCourtCodeAndBookingDate(targetCourtCode, booking.getBookingDate());
         boolean hasConflict = conflicts.stream().anyMatch(b -> 
             !b.getBookingCode().equalsIgnoreCase(bookingCode) &&
@@ -968,7 +951,6 @@ public class BookingService {
             throw new IllegalStateException("Sân đích đã được đặt trong khung giờ " + effectiveSlot + "!");
         }
 
-        // Calculate price accurately based on duration
         BigDecimal oldHourly = booking.getHourlyPrice() != null ? booking.getHourlyPrice() : BigDecimal.ZERO;
         BigDecimal newHourly = targetCourt.getHourlyRate() != null ? targetCourt.getHourlyRate() : oldHourly;
         int[] hours = parseSlotHours(effectiveSlot);
@@ -985,7 +967,6 @@ public class BookingService {
                 "Chuyển từ " + oldCourtCode + " sang " + targetCourtCode + " (Chênh lệch: " + priceDifference + "đ)");
         Booking updatedBooking = bookingRepository.save(booking);
 
-        // Update court statuses and broadcast
         courtRepository.findByCourtCode(oldCourtCode).ifPresent(c -> {
             if (!"Bảo trì".equalsIgnoreCase(c.getStatus())) {
                 c.setStatus("Trống");
@@ -1032,7 +1013,6 @@ public class BookingService {
                     messagingTemplate.convertAndSend("/topic/bookings/" + event.getBranchCode(), event);
                 }
             } catch (Exception e) {
-                // Non-blocking fallback if socket broker is initializing
             }
         }
     }

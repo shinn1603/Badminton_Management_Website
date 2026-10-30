@@ -1,13 +1,8 @@
-/**
- * UTE SPORT - STAFF LIVE SUPPORT CHAT MODULE
- * Real-time customer support bridge for POS Cashiers & Branch Managers
- * ZERO EMOJIS - LUXURY SPORT-TECH DESIGN
- */
+
 
 (function () {
   'use strict';
 
-  // Only initialize on staff pages (POS and Manager)
   const path = window.location.pathname.toLowerCase();
   const isStaffPage = path.startsWith('/pos/') || path.startsWith('/manager/') || path.startsWith('/director/');
   if (!isStaffPage) return;
@@ -15,7 +10,6 @@
   function initStaffSupportChat() {
     if (document.getElementById('staff-support-chat-trigger')) return;
 
-    // 1. Inject Stylesheet
     if (!document.getElementById('staff-support-chat-css')) {
       const link = document.createElement('link');
       link.id = 'staff-support-chat-css';
@@ -24,7 +18,6 @@
       document.head.appendChild(link);
     }
 
-    // 2. Identify Staff User
     let staffUser = {
       name: 'Nhân viên trực',
       code: 'STAFF',
@@ -41,7 +34,6 @@
       }
     } catch (e) {}
 
-    // Audio Notification using Web Audio API
     let soundEnabled = true;
     function playNotificationSound() {
       if (!soundEnabled) return;
@@ -54,8 +46,8 @@
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(587.33, now); // D5
-        osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+        osc1.frequency.setValueAtTime(587.33, now);
+        osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15);
         gain1.gain.setValueAtTime(0.12, now);
         gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
 
@@ -66,7 +58,6 @@
       } catch (err) {}
     }
 
-    // 3. Inject Floating Launcher & Modal HTML
     const root = document.createElement('div');
     root.id = 'staff-support-root';
     root.innerHTML = `
@@ -156,7 +147,6 @@
     `;
     document.body.appendChild(root);
 
-    // Elements
     const triggerBtn = document.getElementById('staff-support-chat-trigger');
     const badgeEl = document.getElementById('staff-support-badge');
     const backdropEl = document.getElementById('staff-support-backdrop');
@@ -167,7 +157,6 @@
     const chatViewContainer = document.getElementById('staff-chat-view-container');
     const tabWaitingCount = document.getElementById('staff-tab-waiting-count');
 
-    // State
     let activeTickets = [];
     let selectedTicket = null;
     let activeFilter = 'ALL';
@@ -176,7 +165,6 @@
     let messagePollingTimer = null;
     let lastStaffMsgId = 0;
 
-    // Toggle Modal
     function openModal() {
       backdropEl.classList.add('open');
       pollTickets();
@@ -196,7 +184,6 @@
       if (e.target === backdropEl) closeModal();
     });
 
-    // Sound Toggle
     soundToggleBtn.addEventListener('click', () => {
       soundEnabled = !soundEnabled;
       if (soundEnabled) {
@@ -213,7 +200,6 @@
       }
     });
 
-    // Filter Tabs
     document.querySelectorAll('.staff-filter-tab').forEach(tab => {
       tab.addEventListener('click', function () {
         document.querySelectorAll('.staff-filter-tab').forEach(t => t.classList.remove('active'));
@@ -223,7 +209,6 @@
       });
     });
 
-    // 4. Poll Tickets
     async function pollTickets() {
       try {
         const res = await fetch('/api/support/tickets');
@@ -232,13 +217,11 @@
         const tickets = data.tickets || [];
         const waitingCount = Number(data.waitingCount || 0);
 
-        // Check if new waiting customer arrived
         if (waitingCount > lastWaitingCount) {
           playNotificationSound();
         }
         lastWaitingCount = waitingCount;
 
-        // Update badge
         if (waitingCount > 0) {
           badgeEl.style.display = 'inline-flex';
           badgeEl.textContent = waitingCount;
@@ -252,7 +235,6 @@
         activeTickets = tickets;
         renderTicketList();
 
-        // If currently viewing a ticket, check if it's still present
         if (selectedTicket) {
           const updated = tickets.find(t => t.sessionId === selectedTicket.sessionId);
           if (updated) {
@@ -263,7 +245,6 @@
       } catch (err) {}
     }
 
-    // Render Ticket List in Sidebar
     function renderTicketList() {
       let filtered = activeTickets;
       if (activeFilter === 'WAITING') {
@@ -314,7 +295,6 @@
 
       ticketListContainer.innerHTML = html;
 
-      // Bind click events
       ticketListContainer.querySelectorAll('.staff-ticket-item').forEach(item => {
         item.addEventListener('click', function () {
           const sid = this.getAttribute('data-session');
@@ -324,7 +304,6 @@
       });
     }
 
-    // 5. Select & Open Ticket Chat
     async function selectTicket(ticket) {
       selectedTicket = ticket;
       lastStaffMsgId = 0;
@@ -387,15 +366,12 @@
 
       updateChatHeaderInfo();
 
-      // Bind Accept Button
       const btnAccept = document.getElementById('staff-btn-accept');
       btnAccept.addEventListener('click', acceptTicket);
 
-      // Bind Close Button
       const btnClose = document.getElementById('staff-btn-close');
       btnClose.addEventListener('click', closeSession);
 
-      // Bind Canned Replies
       chatViewContainer.querySelectorAll('.staff-canned-pill').forEach(pill => {
         pill.addEventListener('click', function () {
           const txt = this.getAttribute('data-text');
@@ -405,7 +381,6 @@
         });
       });
 
-      // Bind Send
       const sendBtn = document.getElementById('staff-btn-send');
       const inputField = document.getElementById('staff-input-field');
       sendBtn.addEventListener('click', () => {
@@ -420,7 +395,6 @@
       });
       inputField.focus();
 
-      // Load Messages & Start Polling
       await loadMessages();
       if (messagePollingTimer) clearInterval(messagePollingTimer);
       messagePollingTimer = setInterval(loadMessages, 2000);
@@ -444,7 +418,6 @@
       }
     }
 
-    // Accept Ticket
     async function acceptTicket() {
       if (!selectedTicket) return;
       const greetText = `Xin chào bạn! Tôi là ${staffUser.name} - nhân viên trực ban tại UTE Sport. Tôi có thể hỗ trợ điều gì cho bạn ạ?`;
@@ -455,7 +428,6 @@
       pollTickets();
     }
 
-    // Submit Staff Message
     async function submitStaffMessage(content) {
       if (!selectedTicket || !content.trim()) return;
       const input = document.getElementById('staff-input-field');
@@ -479,7 +451,6 @@
       } catch (err) {}
     }
 
-    // Close Support Session
     async function closeSession() {
       if (!selectedTicket) return;
       const ok = confirm(`Bạn có chắc chắn muốn kết thúc phiên hỗ trợ với khách hàng ${selectedTicket.customerName || ''}?`);
@@ -495,7 +466,6 @@
           })
         });
 
-        // Add closing system message in view
         appendBubbleToStaffView({
           sender: 'system',
           content: `Phiên hỗ trợ đã được kết thúc bởi nhân viên ${staffUser.name}.`,
@@ -508,7 +478,6 @@
       } catch (err) {}
     }
 
-    // Load Messages for Selected Ticket
     async function loadMessages() {
       if (!selectedTicket) return;
       try {
@@ -519,7 +488,6 @@
         const msgList = document.getElementById('staff-msg-list');
         if (!msgList) return;
 
-        // If initial load or list was empty
         if (lastStaffMsgId === 0 || msgList.children.length === 0 || msgList.innerText.includes('Đang tải')) {
           msgList.innerHTML = '';
           messages.forEach(m => appendBubbleToStaffView(m));
@@ -528,7 +496,6 @@
           }
           scrollStaffToBottom();
         } else {
-          // Append only new messages
           let hasNew = false;
           messages.forEach(m => {
             if (m.id > lastStaffMsgId) {
@@ -592,7 +559,6 @@
       }
     }
 
-    // Start background polling for new tickets every 3.5 seconds
     pollTickets();
     ticketPollingTimer = setInterval(pollTickets, 3500);
   }

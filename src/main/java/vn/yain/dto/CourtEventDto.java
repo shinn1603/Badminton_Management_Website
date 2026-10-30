@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CourtEventDto {
-    private String eventType; // COURT_STATUS_CHANGED, COURT_HELD, COURT_RELEASED, COURT_CHECKIN
+    private String eventType;
     private String courtCode;
     private String branchCode;
     private String timeSlot;
-    private String status; // Trống, Đang giữ chỗ, Đang sử dụng, Đã đặt cọc, Bảo trì
+    private String status;
     private String customerName;
     private String bookingCode;
     private Integer holdRemainingSeconds;

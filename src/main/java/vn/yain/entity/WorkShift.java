@@ -25,13 +25,13 @@ public class WorkShift {
     private String branchCode = "CN01";
 
     @Column(name = "day_of_week", length = 10)
-    private String dayOfWeek; // mon, tue, wed, thu, fri, sat, sun
+    private String dayOfWeek;
 
     @Column(name = "shift_type", length = 30)
-    private String shiftType; // morning, night
+    private String shiftType;
 
     @Column(name = "duty", columnDefinition = "NVARCHAR(100)")
-    private String duty; // POS, Thu ngan, Le tan, Ky thuat, Quan ly
+    private String duty;
 
     @Column(name = "icon", length = 30)
     private String icon = "POS";

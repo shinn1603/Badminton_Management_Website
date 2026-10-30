@@ -1529,7 +1529,6 @@
 </head>
 <body>
 
-  <!-- 1. TOP NAVBAR -->
   <header class="cust-navbar">
     <div class="cust-nav-inner">
       <a href="/customer/home" class="cust-brand-wrap">
@@ -1592,7 +1591,6 @@
     </div>
   </header>
 
-  <!-- LUXURY HERO BANNER -->
   <section class="booking-hero-box">
     <div class="booking-hero-inner">
       <div class="hero-badge-tag">
@@ -1607,11 +1605,8 @@
     </div>
   </section>
 
-  <!-- MAIN BOOKING WORKFLOW AREA -->
   <main class="booking-wrapper">
-    <!-- LEFT COLUMN: SELECTION CONTROLS -->
     <div>
-      <!-- STEPPER PROGRESS BAR (MODERN MOBILE & DESKTOP) -->
       <div class="stepper-banner">
         <div class="stepper-track">
           <div class="stepper-step active" id="stepIndicator1">
@@ -1636,7 +1631,6 @@
         </div>
       </div>
 
-      <!-- STEP 1: BRANCH & DATE -->
       <div class="section-card">
         <div class="card-header-row">
           <div class="card-step-title">
@@ -1660,7 +1654,6 @@
         </div>
       </div>
 
-      <!-- STEP 2: CHOOSE COURT -->
       <div class="section-card">
         <div class="card-header-row">
           <div class="card-step-title">
@@ -1712,7 +1705,6 @@
         </div>
       </div>
 
-      <!-- STEP 3: CHOOSE TIME SLOTS -->
       <div class="section-card">
         <div class="card-header-row">
           <div class="card-step-title">
@@ -1725,7 +1717,6 @@
           </div>
         </div>
 
-        <!-- Quick Time Filter Strip on Mobile -->
         <div class="time-slot-filter-strip">
           <button type="button" class="time-filter-pill active" onclick="filterTimeSlots('all', this)" title="Toàn bộ khung giờ (5h-23h)">Tất cả</button>
           <button type="button" class="time-filter-pill" onclick="filterTimeSlots('morning', this)" title="Khung giờ sáng (5h-12h)">Sáng</button>
@@ -1808,7 +1799,6 @@
         </div>
       </div>
 
-      <!-- STEP 4: ADD-ON SERVICES -->
       <div class="section-card">
         <div class="card-header-row">
           <div class="card-step-title">
@@ -1874,7 +1864,6 @@
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: STICKY ORDER SUMMARY -->
     <div>
       <div class="order-summary-panel">
         <div class="summary-title">Tóm Tắt Đơn Đặt Sân</div>
@@ -1912,7 +1901,6 @@
         </div>
         <div id="sumAddonBreakdown" style="display: none; padding: 8px 10px; background: rgba(16, 185, 129, 0.06); border-radius: 8px; font-size: 11.5px; color: var(--cust-text-muted); margin-bottom: 8px; line-height: 1.5; border: 1px dashed rgba(16, 185, 129, 0.3);"></div>
 
-        <!-- Promo discount line -->
         <div class="summary-line" id="promoDiscountLine" style="display: none;">
           <span class="summary-label" style="color: #10b981; font-weight: 700;">Giảm giá khuyến mãi:</span>
           <span class="summary-val" id="sumDiscountPrice" style="color: #10b981; font-weight: 800;">-0 đ</span>
@@ -1925,14 +1913,12 @@
           <span class="summary-val" id="sumTotalPrice" style="font-size: 17px; font-weight: 900; color: var(--cust-text-main);">0 đ</span>
         </div>
 
-        <!-- Deposit highlight -->
         <div class="deposit-highlight-box">
           <div class="deposit-label">Đặt Cọc</div>
           <div class="deposit-val" id="sumDeposit">0 đ</div>
           <div class="deposit-sub" id="depositRemainingText">Còn lại thanh toán khi nhận sân</div>
         </div>
 
-        <!-- Voucher / Promo Code Box -->
         <div style="background: var(--surface-subtle); border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <label style="font-size: 11.5px; font-weight: 700; color: var(--cust-text-main); display: block; margin-bottom: 5px;">Mã Ưu Đãi / Voucher:</label>
           <div style="display: flex; gap: 8px;">
@@ -1943,7 +1929,6 @@
           <div id="activePromosTags" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;"></div>
         </div>
 
-        <!-- Customer Inputs -->
         <div style="background: var(--surface-subtle); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px; margin-bottom: 14px;">
           <div style="margin-bottom: 8px;">
             <label style="font-size: 11.5px; font-weight: 700; color: var(--cust-text-main); display: block; margin-bottom: 4px;">Họ tên người đặt (*):</label>
@@ -1966,7 +1951,6 @@
     </div>
   </main>
 
-  <!-- MOBILE FLOATING STICKY BOOKING ACTION BAR (Shows on phones) -->
   <div class="mobile-booking-floating-bar" id="mobFloatingBookingBar">
     <div class="mob-bar-details">
       <div class="mob-bar-court-tag" id="mobFloatingCourt">Chưa chọn sân</div>
@@ -1981,7 +1965,6 @@
     </button>
   </div>
 
-  <!-- VIETQR DEPOSIT PAYMENT MODAL (APPEARS ONLY AFTER LOCKING) -->
   <div class="slot-modal-overlay" id="bookingVietqrModal">
     <div class="vietqr-modal-card">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
@@ -2043,7 +2026,6 @@
     </div>
   </div>
 
-  <!-- LUXURY FOOTER -->
   <footer class="cust-footer-dark">
     <div class="cust-footer-inner">
       <div>
@@ -3459,7 +3441,6 @@
     }
   </script>
 
-  <!-- COURT DETAIL & CONDITION GALLERY MODAL (MODERN SPORTS DESIGN) -->
   <div id="courtDetailCustomerModal" class="slot-modal-overlay">
     <div class="court-detail-card">
       <div class="court-detail-header">
@@ -3480,7 +3461,6 @@
       </div>
 
       <div class="court-detail-grid">
-        <!-- LEFT: GALLERY & SPECS -->
         <div>
           <div class="gallery-preview-frame">
             <img id="cdmMainImage" src="/images/badminton-court.jpg" alt="Ảnh sân thi đấu">
@@ -3490,10 +3470,8 @@
             <span id="cdmGalleryCount" style="font-size: 11.5px; color: var(--primary); font-weight: 700;">1 ảnh</span>
           </div>
           <div class="gallery-thumbs-strip" id="cdmGalleryStrip">
-            <!-- Dynamic thumbnails -->
           </div>
 
-          <!-- TECHNICAL SPECIFICATIONS CARD (CONFIGURED BY DIRECTOR) -->
           <div class="condition-specs-box">
             <div class="spec-header-title">
               <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; color: var(--primary);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -3531,7 +3509,6 @@
                 </div>
               </div>
 
-              <!-- DYNAMIC COURT DESCRIPTION (DIRECTOR ADDED) -->
               <div class="spec-item-card" id="cdmDescRow" style="display: none;">
                 <div class="spec-item-icon">
                   <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -3545,7 +3522,6 @@
           </div>
         </div>
 
-        <!-- RIGHT: PRICING, LIKE BUTTON, COMMENTS & BOOKING ACTION -->
         <div style="display: flex; flex-direction: column;">
           <div class="court-pricing-card">
             <div>
@@ -3554,7 +3530,6 @@
                 <span id="cdmHourlyRate">90.000</span> <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">đ / giờ</span>
               </div>
             </div>
-            <!-- LIKE BUTTON WITH SVG HEART -->
             <button type="button" class="court-like-btn" id="cdmBtnLike" onclick="handleCourtLikeClick()" title="Yêu thích sân đấu này">
               <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2;">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -3564,13 +3539,11 @@
             </button>
           </div>
 
-          <!-- BOOK COURT CTA BUTTON -->
           <button type="button" class="btn-book-primary-action" id="cdmBtnBookNow" onclick="bookFromDetailModal()">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             <span>Đặt Lịch Sân Này Ngay</span>
           </button>
 
-          <!-- COMMENTS & RATINGS -->
           <div class="court-comments-box">
             <div style="display: flex; align-items: center; justify-content: space-between;">
               <span style="font-size: 13px; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 6px;">
@@ -3584,10 +3557,8 @@
             </div>
 
             <div class="comment-list-scroll" id="cdmCommentsList">
-              <!-- Dynamically populated comments -->
             </div>
 
-            <!-- ADD COMMENT FORM -->
             <form onsubmit="handleCourtCommentSubmit(event)" style="border-top: 1px dashed var(--border-subtle); padding-top: 12px; margin-top: 2px;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                 <label style="font-size: 11.5px; font-weight: 700; color: var(--text-dark);">Gửi nhận xét về tình trạng sân:</label>

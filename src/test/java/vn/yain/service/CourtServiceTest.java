@@ -216,7 +216,7 @@ class CourtServiceTest {
         vn.yain.entity.Booking pastBooking = new vn.yain.entity.Booking();
         pastBooking.setBookingCode("DS001");
         pastBooking.setCourtCode("CL02");
-        pastBooking.setBookingDate(java.time.LocalDate.now(CourtService.VN_ZONE).minusDays(1)); // Đơn hôm qua
+        pastBooking.setBookingDate(java.time.LocalDate.now(CourtService.VN_ZONE).minusDays(1));
         pastBooking.setTimeSlot("18:00 - 20:00");
         pastBooking.setStatus("Đang sử dụng");
 

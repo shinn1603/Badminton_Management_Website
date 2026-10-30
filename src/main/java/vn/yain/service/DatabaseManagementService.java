@@ -32,7 +32,6 @@ public class DatabaseManagementService {
     public static final String BASE_SCRIPT_PATH = "database/init_badminton.sql";
     public static final String BACKUP_DIR_PATH = "database/backups";
 
-    // Danh sách 28 bảng cốt lõi theo đúng thứ tự ràng buộc khóa ngoại (Foreign Key)
     public static final List<String> CORE_TABLES = List.of(
             "branches",
             "courts",
@@ -80,7 +79,6 @@ public class DatabaseManagementService {
         }
         result.put("databaseProduct", dbProduct);
 
-        // Thống kê file script gốc init_badminton.sql
         File baseFile = new File(BASE_SCRIPT_PATH);
         Map<String, Object> baseInfo = new LinkedHashMap<>();
         baseInfo.put("path", BASE_SCRIPT_PATH);
@@ -98,7 +96,6 @@ public class DatabaseManagementService {
         }
         result.put("baseScript", baseInfo);
 
-        // Thống kê số lượng bản ghi của từng bảng trong CSDL
         Map<String, Long> tableCounts = new LinkedHashMap<>();
         long totalRecords = 0;
         for (String table : CORE_TABLES) {
@@ -114,7 +111,6 @@ public class DatabaseManagementService {
         result.put("tableCounts", tableCounts);
         result.put("totalRecords", totalRecords);
 
-        // Số lượng file sao lưu hiện có
         List<Map<String, Object>> backups = listBackups();
         result.put("totalBackups", backups.size());
         result.put("backups", backups);
@@ -132,14 +128,12 @@ public class DatabaseManagementService {
         File baseFile = new File(BASE_SCRIPT_PATH);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
 
-        // 1. Sao lưu file gốc cũ trước khi ghi đè để tuyệt đối an toàn
         if (baseFile.exists()) {
             File safetyBackup = new File(BACKUP_DIR_PATH, "init_badminton_backup_" + timestamp + ".sql");
             Files.copy(baseFile.toPath(), safetyBackup.toPath(), StandardCopyOption.REPLACE_EXISTING);
             log.info("[DATABASE SYNC] Đã tạo bản sao lưu an toàn file gốc cũ tại: {}", safetyBackup.getPath());
         }
 
-        // 2. Trích xuất toàn bộ dữ liệu hiện tại thành khối INSERT
         Map<String, Integer> tableStats = new LinkedHashMap<>();
         int totalRows = 0;
         StringBuilder dataSb = new StringBuilder();
@@ -163,7 +157,6 @@ public class DatabaseManagementService {
         dataSb.append("-- Bật lại ràng buộc toàn vẹn khóa ngoại sau khi nạp dữ liệu xong\n");
         dataSb.append("EXEC sp_MSforeachtable \"ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all\";\nGO\n");
 
-        // 3. Đọc nội dung file gốc hiện tại để giữ lại nguyên vẹn DDL (Phần 1->4) và Indexes/Procedures/Triggers (Phần 6->9)
         String originalContent = "";
         if (baseFile.exists()) {
             originalContent = Files.readString(baseFile.toPath(), StandardCharsets.UTF_8);
@@ -181,16 +174,13 @@ public class DatabaseManagementService {
             String footerPart = originalContent.substring(sec6Index);
             finalContent = headerPart + dataSb.toString() + "\n" + footerPart;
         } else {
-            // Nếu không tìm thấy dấu phân tách, tạo file hoàn chỉnh mới
             finalContent = originalContent + "\n" + dataSb.toString();
         }
 
-        // 4. Ghi đè vào file database/init_badminton.sql với encoding UTF-8
         Files.writeString(baseFile.toPath(), finalContent, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         log.info("[DATABASE SYNC] Đã cập nhật thành công file Database gốc {} ({} bản ghi, kích thước: {} KB)",
                 BASE_SCRIPT_PATH, totalRows, baseFile.length() / 1024);
 
-        // 5. Ghi nhật ký Audit Log hệ thống
         AuditLog auditLog = new AuditLog();
         auditLog.setUsername(adminUsername != null ? adminUsername : "admin");
         auditLog.setActionType("Cập nhật Database gốc");
@@ -226,16 +216,13 @@ public class DatabaseManagementService {
         if (!filename.endsWith(".sql")) {
             filename += ".sql";
         }
-        // Bảo vệ chống Path Traversal
         filename = new File(filename).getName();
 
         File backupFile = new File(BACKUP_DIR_PATH, filename);
 
-        // Sinh nội dung SQL hoàn chỉnh (Bao gồm DDL và DML)
         String fullSqlDump = generateFullSqlDump(adminUsername);
         Files.writeString(backupFile.toPath(), fullSqlDump, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-        // Đếm tổng số bản ghi
         long totalRecords = 0;
         for (String table : CORE_TABLES) {
             try {
@@ -244,7 +231,6 @@ public class DatabaseManagementService {
             } catch (Exception ignored) {}
         }
 
-        // Ghi AuditLog
         AuditLog auditLog = new AuditLog();
         auditLog.setUsername(adminUsername != null ? adminUsername : "admin");
         auditLog.setActionType("Sao lưu cơ sở dữ liệu");
@@ -572,7 +558,6 @@ public class DatabaseManagementService {
                 if (sec5Index >= 0 && sec6Index > sec5Index) {
                     sb.append(baseContent, 0, sec5Index);
 
-                    // Chèn dữ liệu thực tế
                     sb.append("\n-- 5. DỮ LIỆU THỰC TẾ SAO LƯU\n");
                     sb.append("EXEC sp_MSforeachtable \"ALTER TABLE ? NOCHECK CONSTRAINT all\";\nGO\n\n");
                     try (Connection conn = dataSource.getConnection()) {
@@ -593,7 +578,6 @@ public class DatabaseManagementService {
             }
         }
 
-        // Fallback: chỉ xuất dữ liệu DML
         sb.append("EXEC sp_MSforeachtable \"ALTER TABLE ? NOCHECK CONSTRAINT all\";\nGO\n\n");
         try (Connection conn = dataSource.getConnection()) {
             for (String table : CORE_TABLES) {

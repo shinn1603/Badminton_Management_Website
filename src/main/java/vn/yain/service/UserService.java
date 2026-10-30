@@ -53,13 +53,11 @@ public class UserService {
             }
         }
 
-        // 1. Tìm kiếm trong bảng users theo username, phone, hoặc email
         User user = userRepository.findByUsername(identifier)
                 .or(() -> userRepository.findByPhone(identifier))
                 .or(() -> identifier.contains("@") ? userRepository.findByEmail(identifier) : Optional.empty())
                 .orElse(null);
 
-        // 2. Nếu chưa có trong bảng users, tìm trong bảng customers (KH001 - KH006, SĐT, Email)
         if (user == null) {
             Customer cust = customerRepository.findByPhone(identifier)
                     .or(() -> customerRepository.findByCustomerCode(identifier))
@@ -67,14 +65,12 @@ public class UserService {
                     .orElse(null);
 
             if (cust != null) {
-                // Xác thực mật khẩu theo hồ sơ khách hàng
                 String custStoredPass = cust.getPassword();
                 boolean custMatch = false;
                 if (custStoredPass != null && (custStoredPass.startsWith("$2a$") || custStoredPass.startsWith("$2b$") || custStoredPass.startsWith("$2y$"))) {
                     custMatch = passwordEncoder.matches(password.trim(), custStoredPass);
                 } else if (custStoredPass != null && custStoredPass.equals(password.trim())) {
                     custMatch = true;
-                    // Nâng cấp mật khẩu khách hàng lên BCrypt
                     cust.setPassword(passwordEncoder.encode(password.trim()));
                     customerRepository.save(cust);
                 }
@@ -87,7 +83,6 @@ public class UserService {
                     throw new IllegalArgumentException("Tài khoản hoặc mật khẩu không chính xác!");
                 }
 
-                // Tự động tạo và đồng bộ tài khoản người dùng tương ứng
                 String preferredUsername = (cust.getPhone() != null && !cust.getPhone().trim().isEmpty())
                         ? cust.getPhone().trim()
                         : cust.getCustomerCode().toLowerCase();
@@ -111,14 +106,12 @@ public class UserService {
                 throw new IllegalArgumentException("Tài khoản hoặc mật khẩu không chính xác!");
             }
         } else {
-            // Xác thực mật khẩu với bản ghi User
             String storedPassword = user.getPassword();
             boolean isMatch = false;
 
             if (storedPassword != null && (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$"))) {
                 isMatch = passwordEncoder.matches(password.trim(), storedPassword);
             } else {
-                // Legacy plaintext fallback - verify and upgrade to BCrypt immediately
                 if (storedPassword != null && storedPassword.equals(password.trim())) {
                     isMatch = true;
                     user.setPassword(passwordEncoder.encode(password.trim()));
@@ -136,7 +129,6 @@ public class UserService {
             }
         }
 
-        // Reset failed attempts upon successful login
         failedAttempts.remove(userKey);
         lockoutExpiry.remove(userKey);
 
@@ -212,7 +204,6 @@ public class UserService {
         newUser.setCreatedAt(LocalDateTime.now());
         User savedUser = userRepository.save(newUser);
 
-        // Synchronize customer profile table
         try {
             Customer c = new Customer();
             c.setCustomerCode("KH" + String.format("%04d", savedUser.getId()));
@@ -370,7 +361,6 @@ public class UserService {
             user.setRawPassword(newPassword.trim());
             userRepository.save(user);
 
-            // Cập nhật bản ghi customer nếu tồn tại
             if (user.getPhone() != null && !user.getPhone().isBlank()) {
                 customerRepository.findByPhone(user.getPhone().trim()).ifPresent(c -> {
                     c.setPassword(encodedNewPass);
@@ -437,7 +427,6 @@ public class UserService {
         user.setStatus(newStatus);
         User saved = userRepository.save(user);
 
-        // Sync to Customer table if matching customer exists
         customerRepository.findByCustomerCode(cleanUser)
                 .or(() -> customerRepository.findByCustomerCodeIgnoreCase(cleanUser))
                 .or(() -> customerRepository.findByPhone(cleanUser))
@@ -475,7 +464,6 @@ public class UserService {
         c.setCreatedAt(LocalDateTime.now());
         Customer saved = customerRepository.save(c);
 
-        // Sync to User table
         if (!userRepository.findByUsername(cleanPhone).isPresent()) {
             User u = new User();
             u.setUsername(cleanPhone);

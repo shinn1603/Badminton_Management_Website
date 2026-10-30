@@ -1,13 +1,8 @@
-/**
- * UTE SPORT - CONVERSATIONAL AI CHATBOT ASSISTANT
- * Multi-turn dialog state tracking, branch locator, court availability & auto-booking execution
- * ZERO EMOJIS - LUXURY SPORT-TECH DESIGN
- */
+
 
 (function () {
   'use strict';
 
-  // Only initialize on Customer browsing pages (exclude auth / login screens)
   const path = window.location.pathname.toLowerCase();
   const isAuthPage = path.startsWith('/customer/auth') || path.startsWith('/customer/login') || path === '/login';
   const isCustomerPage = path.startsWith('/customer/') || path === '/' || path.startsWith('/booking');
@@ -16,14 +11,12 @@
   function initChatbot() {
     if (document.getElementById('ute-chatbot-toggle')) return;
 
-    // Session ID management for conversational memory
     let sessionId = localStorage.getItem('chatbot_session_id');
     if (!sessionId) {
       sessionId = 'sess_' + Math.random().toString(36).substring(2, 12);
       localStorage.setItem('chatbot_session_id', sessionId);
     }
 
-    // 1. Inject Stylesheet if not present
     if (!document.getElementById('chatbot-widget-css')) {
       const link = document.createElement('link');
       link.id = 'chatbot-widget-css';
@@ -32,7 +25,6 @@
       document.head.appendChild(link);
     }
 
-    // 2. Inject DOM Elements (Clean text, no emojis)
     const container = document.createElement('div');
     container.id = 'ute-chatbot-root';
     container.innerHTML = `
@@ -102,7 +94,6 @@
     `;
     document.body.appendChild(container);
 
-    // Elements
     const toggleBtn = document.getElementById('ute-chatbot-toggle');
     const closeBtn = document.getElementById('chatbot-close');
     const resetBtn = document.getElementById('chatbot-reset-btn');
@@ -255,7 +246,6 @@
       } catch (e) {}
     }
 
-    // Restore state from sessionStorage without flickering
     const savedOpen = sessionStorage.getItem('chatbot_open') === 'true';
     if (savedOpen) {
       chatWin.classList.add('open');
@@ -267,7 +257,6 @@
       }
     }
 
-    // Toggle logic
     function toggleChat() {
       const isOpen = chatWin.classList.toggle('open');
       sessionStorage.setItem('chatbot_open', isOpen ? 'true' : 'false');
@@ -406,7 +395,6 @@
       });
     }
 
-    // Reset Chat logic
     resetBtn.addEventListener('click', async () => {
       if (isLiveSupportMode) {
         await exitLiveSupportMode(true);
@@ -425,7 +413,6 @@
       sendMessage('');
     });
 
-    // Send Message
     async function sendMessage(text) {
       const cleanText = (text || '').trim();
       if (!cleanText && !isFirstOpen && msgList.children.length > 0) return;
@@ -435,7 +422,6 @@
         inputField.value = '';
       }
 
-      // Check if user is in human live support mode
       if (isLiveSupportMode) {
         const lower = cleanText.toLowerCase();
         if (lower.includes('ket thuc') || lower.includes('quay lai bot') || lower.includes('dung chat') || lower.includes('thoat chat')) {
@@ -464,7 +450,6 @@
 
       showTypingIndicator();
 
-      // Retrieve logged-in user and token if available
       const token = localStorage.getItem('jwt_token') || localStorage.getItem('utesport_token');
       let user = null;
       try {
@@ -525,7 +510,6 @@
 
       let html = `<div class="chat-bubble-text">${formatBotText(data.text || '')}</div>`;
 
-      // Render Structured Card for Booking Lookup
       if (data.actionType === 'LOOKUP_RESULT' && data.lookupData) {
         const lk = data.lookupData;
         const statusClass = lk.status && lk.status.includes('Đã cọc') ? 'confirmed' : (lk.status && lk.status.includes('hủy') ? 'cancelled' : 'pending');
@@ -546,11 +530,9 @@
         `;
       }
 
-      // Render Embedded Payment Box if action is OPEN_PAYMENT
       if (data.actionType === 'OPEN_PAYMENT' && data.paymentData) {
         const p = data.paymentData;
 
-        // Save pending booking code into localStorage so history page can reopen it
         try {
           let pending = JSON.parse(localStorage.getItem('ute_pending_bookings') || '[]');
           if (!pending.includes(p.bookingCode)) {
@@ -623,12 +605,10 @@
         }, 50);
       }
 
-      // Action Link
       if (data.actionUrl && data.actionType !== 'OPEN_PAYMENT') {
         html += `<a href="${data.actionUrl}" class="chat-action-btn">${escapeHtml(data.actionText || 'Xem chi tiết')}</a>`;
       }
 
-      // Quick Replies
       if (data.quickReplies && data.quickReplies.length > 0) {
         html += `<div class="chat-quick-replies">`;
         data.quickReplies.forEach(qr => {
@@ -640,7 +620,6 @@
       bubble.innerHTML = html;
       msgList.appendChild(bubble);
 
-      // Bind quick replies
       bubble.querySelectorAll('.chat-quick-pill').forEach(btn => {
         btn.addEventListener('click', function () {
           const query = this.getAttribute('data-query');
@@ -648,7 +627,6 @@
         });
       });
 
-      // Bind Save QR Button
       bubble.querySelectorAll('.chat-save-qr-btn').forEach(btn => {
         btn.addEventListener('click', async function () {
           const qrUrl = this.getAttribute('data-qr-url');
@@ -675,7 +653,6 @@
         });
       });
 
-      // Bind Confirm Payment Button
       if (data.paymentData && data.paymentData.bookingCode) {
         const bCode = data.paymentData.bookingCode;
         const confBtn = bubble.querySelector(`#btn-confirm-pay-${bCode}`);
@@ -770,16 +747,12 @@
     function formatBotText(str) {
       if (!str) return '';
       let clean = escapeHtml(str);
-      // Format **bold**
       clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // Format markdown link [text](url)
       clean = clean.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color: #059669; font-weight: 700; text-decoration: underline;" target="_self">$1</a>');
-      // Format new lines
       clean = clean.replace(/\n/g, '<br>');
       return clean;
     }
 
-    // Input Events
     sendBtn.addEventListener('click', () => {
       const val = inputField.value.trim();
       if (val) sendMessage(val);

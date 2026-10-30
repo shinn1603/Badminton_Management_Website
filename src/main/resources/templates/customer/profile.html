@@ -816,8 +816,6 @@
 </head>
 <body>
 
-  <!-- Customer Header -->
-    <!-- 1. TOP NAVBAR -->
   <header class="cust-navbar">
     <div class="cust-nav-inner">
       <a href="/customer/home" class="cust-brand-wrap">
@@ -858,7 +856,6 @@
       </nav>
 
       <div class="cust-nav-actions">
-        <!-- THEME TOGGLE BUTTON -->
         <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối" style="padding: 8px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;">
           <svg class="svg-icon" id="themeIconSun" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
             <circle cx="12" cy="12" r="5"></circle>
@@ -871,7 +868,6 @@
           </svg>
         </button>
 
-        <!-- DYNAMIC USER AUTH WIDGET -->
         <div id="navUserArea">
           <a href="/customer/auth" class="btn btn-primary" id="btnNavAuth" style="padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600;">
             <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
@@ -881,7 +877,6 @@
       </div>
     </div>
   </header>
-  <!-- MOBILE SEGMENTED CONTROL TABS (Visible only on mobile <= 768px) -->
   <div class="profile-mobile-nav" id="profileMobileNav">
     <button type="button" class="prof-mob-tab active" data-tab="tabInfo" onclick="switchProfMobTab('tabInfo', this)">
       <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -898,9 +893,7 @@
   </div>
 
   <div class="profile-layout">
-    <!-- Left Column: Member Card & Tiers -->
     <div>
-      <!-- Customer Avatar Card (Cloudinary) -->
       <div class="customer-avatar-card">
         <div class="avatar-ring-wrap">
           <img id="profCustomerAvatar" src="https://ui-avatars.com/api/?name=Khach+Hang&background=059669&color=fff&size=128" alt="Avatar" onerror="this.src='https://ui-avatars.com/api/?name=User&background=059669&color=fff&size=128'">
@@ -926,7 +919,6 @@
         </div>
       </div>
 
-      <!-- The Card -->
       <div class="digital-card">
         <div class="card-brand-row">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -962,7 +954,6 @@
         </div>
       </div>
 
-      <!-- Tier Progress -->
       <div class="tier-progress-card" id="profSecTierProgress">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <strong style="font-size: 13.5px; color: var(--cust-text-main);" id="profTierProgressTitle">Tiến Trình Nâng Hạng</strong>
@@ -976,7 +967,6 @@
         </div>
       </div>
 
-      <!-- Tiers Ladder & Benefits -->
       <div class="section-card" id="profSecTierBenefits">
         <div class="card-header">
           <div class="card-title">Quyền Lợi Hạng Thẻ</div>
@@ -1019,7 +1009,6 @@
       </div>
     </div>
 
-    <!-- Right Column: Stats & Edit Profile -->
     <div>
       <div class="stats-card-grid" id="profSecStats">
         <div class="stat-mini-box">
@@ -1047,7 +1036,6 @@
         </div>
       </div>
 
-      <!-- Edit Profile Form -->
       <div class="section-card" id="profSecForm">
         <div class="card-header">
           <div class="card-title">Thông Tin Cá Nhân</div>
@@ -1107,7 +1095,6 @@
         </div>
       </div>
 
-      <!-- Point History Table -->
       <div class="section-card" id="profSecHistory">
         <div class="card-header">
           <div class="card-title">Lịch Sử Hoạt Động & Đặt Sân</div>
@@ -1141,7 +1128,6 @@
     if (!token && !rawUser) {
       window.location.href = '/customer/auth?redirect=' + encodeURIComponent(window.location.pathname);
     }
-
 
     function switchProfMobTab(tabName, btn) {
       document.querySelectorAll('.prof-mob-tab').forEach(b => b.classList.remove('active'));
@@ -1755,11 +1741,9 @@
     document.addEventListener('DOMContentLoaded', loadProfileBranchesFromDb);
   </script>
 
-  <!-- Modal Xác Thực OTP Xem Mật Khẩu -->
   <div class="modal-overlay" id="viewPasswordOtpModal" onclick="if(event.target === this) closeViewPasswordOtpModal()">
     <div class="modal-card">
       
-      <!-- Modal Header -->
       <div class="otp-modal-header" style="padding: 18px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; background: #fafafa;">
         <div style="display: flex; align-items: center; gap: 10px;">
           <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(5, 150, 105, 0.12); color: #059669; display: flex; align-items: center; justify-content: center;">
@@ -1781,7 +1765,6 @@
         </button>
       </div>
 
-      <!-- Modal Body -->
       <div style="padding: 24px;">
         <p style="margin: 0 0 16px; font-size: 13.5px; line-height: 1.55; color: #475569; text-align: center;">
           Hệ thống vừa gửi mã xác thực 6 số đến hộp thư:

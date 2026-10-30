@@ -1,9 +1,3 @@
-/* =========================================================================
-   UTE SPORT - STAFF LIVE SUPPORT CHAT STYLING (ZERO EMOJIS)
-   Luxury Sport-Tech Theme | Dark Slate & Emerald Accents
-   ========================================================================= */
-
-/* Floating Launcher Trigger */
 #staff-support-chat-trigger {
   position: fixed;
   bottom: 24px;
@@ -26,21 +20,18 @@
   letter-spacing: -0.2px;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 #staff-support-chat-trigger:hover {
   transform: translateY(-2px) scale(1.02);
   background: #1e293b;
   border-color: #34d399;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 185, 129, 0.4);
 }
-
 .staff-trigger-icon-wrap {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .staff-trigger-badge {
   display: none;
   align-items: center;
@@ -55,18 +46,14 @@
   font-weight: 800;
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
 }
-
 .staff-trigger-badge.pulse {
   animation: staffBadgePulse 1.4s infinite;
 }
-
 @keyframes staffBadgePulse {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
   70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
-
-/* Modal Backdrop */
 #staff-support-backdrop {
   position: fixed;
   inset: 0;
@@ -81,13 +68,10 @@
   opacity: 0;
   transition: opacity 0.2s ease-out;
 }
-
 #staff-support-backdrop.open {
   display: flex;
   opacity: 1;
 }
-
-/* Modal Window */
 #staff-support-modal {
   width: 960px;
   max-width: 96vw;
@@ -103,13 +87,10 @@
   font-family: 'Inter', -apple-system, sans-serif;
   animation: staffModalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 @keyframes staffModalPop {
   0% { transform: scale(0.95) translateY(12px); opacity: 0; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
-
-/* Header */
 .staff-modal-header {
   height: 62px;
   background: #0f172a;
@@ -120,13 +101,11 @@
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .staff-header-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .staff-header-icon {
   width: 36px;
   height: 36px;
@@ -138,14 +117,12 @@
   align-items: center;
   justify-content: center;
 }
-
 .staff-header-title {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.2px;
   color: #ffffff;
 }
-
 .staff-header-subtitle {
   font-size: 11.5px;
   color: #94a3b8;
@@ -153,13 +130,11 @@
   align-items: center;
   gap: 6px;
 }
-
 .staff-header-right {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .staff-user-chip {
   display: flex;
   align-items: center;
@@ -172,14 +147,12 @@
   font-weight: 600;
   color: #e2e8f0;
 }
-
 .staff-user-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: #10b981;
 }
-
 .staff-header-btn {
   background: none;
   border: none;
@@ -192,21 +165,16 @@
   justify-content: center;
   transition: all 0.15s;
 }
-
 .staff-header-btn:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.12);
 }
-
-/* Modal Body: 2 Columns */
 .staff-modal-body {
   flex: 1;
   display: flex;
   overflow: hidden;
   background: #f8fafc;
 }
-
-/* Column 1: Ticket Sidebar */
 .staff-ticket-sidebar {
   width: 320px;
   border-right: 1px solid #e2e8f0;
@@ -214,14 +182,12 @@
   display: flex;
   flex-direction: column;
 }
-
 .staff-ticket-filters {
   padding: 12px 14px;
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   gap: 6px;
 }
-
 .staff-filter-tab {
   flex: 1;
   padding: 6px 8px;
@@ -235,13 +201,11 @@
   text-align: center;
   transition: all 0.15s;
 }
-
 .staff-filter-tab.active {
   background: #0f172a;
   color: #ffffff;
   border-color: #0f172a;
 }
-
 .staff-ticket-list {
   flex: 1;
   overflow-y: auto;
@@ -250,7 +214,6 @@
   flex-direction: column;
   gap: 6px;
 }
-
 .staff-ticket-item {
   padding: 12px;
   border-radius: 10px;
@@ -262,24 +225,20 @@
   flex-direction: column;
   gap: 6px;
 }
-
 .staff-ticket-item:hover {
   border-color: #cbd5e1;
   background: #f8fafc;
 }
-
 .staff-ticket-item.active {
   border-color: #10b981;
   background: #f0fdf4;
   box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
 }
-
 .staff-ticket-row-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-
 .staff-ticket-cust-name {
   font-size: 13px;
   font-weight: 700;
@@ -289,7 +248,6 @@
   text-overflow: ellipsis;
   max-width: 170px;
 }
-
 .staff-status-badge {
   font-size: 10px;
   font-weight: 800;
@@ -298,25 +256,21 @@
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
-
 .staff-status-badge.waiting {
   background: #fee2e2;
   color: #dc2626;
   border: 1px solid #fecaca;
 }
-
 .staff-status-badge.active {
   background: #dcfce7;
   color: #15803d;
   border: 1px solid #bbf7d0;
 }
-
 .staff-status-badge.closed {
   background: #f1f5f9;
   color: #64748b;
   border: 1px solid #e2e8f0;
 }
-
 .staff-ticket-row-mid {
   font-size: 11.5px;
   color: #64748b;
@@ -324,7 +278,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .staff-ticket-row-bot {
   display: flex;
   align-items: center;
@@ -332,7 +285,6 @@
   font-size: 11px;
   color: #94a3b8;
 }
-
 .staff-ticket-branch {
   font-weight: 600;
   color: #047857;
@@ -340,7 +292,6 @@
   padding: 1px 6px;
   border-radius: 4px;
 }
-
 .staff-unread-count {
   background: #ef4444;
   color: #ffffff;
@@ -354,23 +305,18 @@
   align-items: center;
   justify-content: center;
 }
-
-/* Empty Ticket List State */
 .staff-empty-tickets {
   padding: 40px 16px;
   text-align: center;
   color: #94a3b8;
   font-size: 12.5px;
 }
-
-/* Column 2: Chat Main View */
 .staff-chat-view {
   flex: 1;
   display: flex;
   flex-direction: column;
   background: #f8fafc;
 }
-
 .staff-view-header {
   height: 60px;
   padding: 0 20px;
@@ -380,19 +326,16 @@
   align-items: center;
   justify-content: space-between;
 }
-
 .staff-view-cust-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
 .staff-view-cust-title {
   font-size: 14.5px;
   font-weight: 800;
   color: #0f172a;
 }
-
 .staff-view-cust-sub {
   font-size: 11.5px;
   color: #64748b;
@@ -400,13 +343,11 @@
   align-items: center;
   gap: 8px;
 }
-
 .staff-view-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
 .staff-btn-accept {
   background: #10b981;
   color: #ffffff;
@@ -421,11 +362,9 @@
   gap: 6px;
   transition: all 0.15s;
 }
-
 .staff-btn-accept:hover {
   background: #059669;
 }
-
 .staff-btn-close-session {
   background: #ffffff;
   border: 1px solid #ef4444;
@@ -440,12 +379,9 @@
   gap: 6px;
   transition: all 0.15s;
 }
-
 .staff-btn-close-session:hover {
   background: #fee2e2;
 }
-
-/* Message List */
 .staff-msg-list {
   flex: 1;
   overflow-y: auto;
@@ -454,7 +390,6 @@
   flex-direction: column;
   gap: 12px;
 }
-
 .staff-bubble {
   max-width: 78%;
   padding: 10px 14px;
@@ -463,7 +398,6 @@
   line-height: 1.5;
   word-break: break-word;
 }
-
 .staff-bubble.customer {
   align-self: flex-start;
   background: #ffffff;
@@ -472,7 +406,6 @@
   border-bottom-left-radius: 2px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-
 .staff-bubble.staff {
   align-self: flex-end;
   background: #0f172a;
@@ -480,7 +413,6 @@
   border-bottom-right-radius: 2px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
 }
-
 .staff-bubble.system {
   align-self: center;
   background: #f1f5f9;
@@ -490,7 +422,6 @@
   padding: 5px 12px;
   border-radius: 16px;
 }
-
 .staff-bubble-author {
   font-size: 10.5px;
   font-weight: 700;
@@ -499,23 +430,18 @@
   align-items: center;
   gap: 5px;
 }
-
 .staff-bubble.customer .staff-bubble-author {
   color: #0284c7;
 }
-
 .staff-bubble.staff .staff-bubble-author {
   color: #34d399;
 }
-
 .staff-bubble-time {
   font-size: 10px;
   opacity: 0.7;
   text-align: right;
   margin-top: 4px;
 }
-
-/* Canned Replies Strip */
 .staff-canned-replies {
   background: #ffffff;
   border-top: 1px solid #f1f5f9;
@@ -525,7 +451,6 @@
   gap: 6px;
   overflow-x: auto;
 }
-
 .staff-canned-pill {
   white-space: nowrap;
   font-size: 11.5px;
@@ -538,14 +463,11 @@
   transition: all 0.15s;
   font-weight: 500;
 }
-
 .staff-canned-pill:hover {
   background: #f1f5f9;
   border-color: #94a3b8;
   color: #0f172a;
 }
-
-/* Message Input Area */
 .staff-input-area {
   padding: 12px 16px;
   background: #ffffff;
@@ -554,7 +476,6 @@
   align-items: center;
   gap: 10px;
 }
-
 .staff-input-field {
   flex: 1;
   height: 42px;
@@ -568,13 +489,11 @@
   font-family: inherit;
   transition: all 0.15s;
 }
-
 .staff-input-field:focus {
   border-color: #10b981;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
-
 .staff-btn-send {
   height: 42px;
   padding: 0 18px;
@@ -590,12 +509,9 @@
   gap: 6px;
   transition: all 0.15s;
 }
-
 .staff-btn-send:hover {
   background: #059669;
 }
-
-/* Empty State when no ticket is selected */
 .staff-no-selection {
   flex: 1;
   display: flex;
@@ -605,7 +521,6 @@
   color: #94a3b8;
   gap: 12px;
 }
-
 .staff-no-selection-icon {
   width: 56px;
   height: 56px;
@@ -616,8 +531,6 @@
   justify-content: center;
   color: #cbd5e1;
 }
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
   #staff-support-modal {
     width: 100vw;
@@ -626,16 +539,13 @@
     max-height: 100vh;
     border-radius: 0;
   }
-
   .staff-modal-body {
     flex-direction: column;
   }
-
   .staff-ticket-sidebar {
     width: 100%;
     height: 40%;
   }
-
   .staff-chat-view {
     height: 60%;
   }

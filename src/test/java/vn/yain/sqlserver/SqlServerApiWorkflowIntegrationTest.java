@@ -64,10 +64,6 @@ class SqlServerApiWorkflowIntegrationTest {
         mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     }
 
-    // ==========================================
-    // 1. PHAN HE XAC THUC & PHAN QUYEN RBAC
-    // ==========================================
-
     @Test
     @DisplayName("API SQL 01: Dang nhap 5 vai tro he thong (Director, Manager, POS, Admin, Customer)")
     void testAuthenticationAllRoles() throws Exception {
@@ -112,18 +108,12 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
-        // Kiem tra du lieu thuc te trong bang customers cua SQL Server
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM customers WHERE phone = ?", Integer.class, uniquePhone);
         assertEquals(1, count, "Khach hang phai ton tai trong CSDL SQL Server");
 
-        // Cleanup
         jdbcTemplate.update("DELETE FROM users WHERE username = ?", uniquePhone);
         jdbcTemplate.update("DELETE FROM customers WHERE phone = ?", uniquePhone);
     }
-
-    // ==========================================
-    // 2. PHAN HE DAT SAN TRUC TUYEN & THANH TOAN VIETQR
-    // ==========================================
 
     @Test
     @DisplayName("API SQL 04: Tra cuu danh sach san theo chi nhanh CN01")
@@ -142,10 +132,8 @@ class SqlServerApiWorkflowIntegrationTest {
         LocalDate date = LocalDate.now().plusDays(45);
         String slot = "15:00 - 16:00";
 
-        // Xoa booking cu de bao dam tinh lap lai
         jdbcTemplate.update("DELETE FROM bookings WHERE court_code = ? AND booking_date = ?", court, date.toString());
 
-        // BƯỚC 1: Khóa slot đặt sân trực tuyến qua API REST
         Map<String, Object> lockReq = new HashMap<>();
         lockReq.put("branchCode", "CN01");
         lockReq.put("courtCode", court);
@@ -171,7 +159,6 @@ class SqlServerApiWorkflowIntegrationTest {
 
         assertNotNull(bookingCode);
 
-        // BƯỚC 2: Thử khóa lại cùng slot đó -> Phải bị từ chối 400 Bad Request
         mockMvc.perform(post("/api/bookings/slot-lock")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(lockReq)))
@@ -179,7 +166,6 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.success", is(false)))
                 .andExpect(jsonPath("$.message", containsString("đã có người đặt trước")));
 
-        // BƯỚC 3: Giả lập Webhook VietQR tự động xác nhận đặt cọc
         Map<String, Object> webhookReq = new HashMap<>();
         webhookReq.put("content", "CK " + bookingCode + " THANH TOAN COC SAN");
         webhookReq.put("transferAmount", depositNum.intValue());
@@ -191,17 +177,14 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
-        // Kiểm tra CSDL SQL Server: trạng thái phải là 'Đã cọc 30%'
         String st1 = jdbcTemplate.queryForObject("SELECT status FROM bookings WHERE booking_code = ?", String.class, bookingCode);
         assertEquals("Đã cọc 30%", st1);
 
-        // BƯỚC 4: Check-in nhận sân tại quầy POS
         mockMvc.perform(post("/api/bookings/" + bookingCode + "/checkin"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.booking.status", is("Đang sử dụng")));
 
-        // BƯỚC 5: Gọi dịch vụ F&B (mua 2 chai Lavie) -> Kiểm tra trừ tồn kho trong CSDL
         Integer stockBefore = jdbcTemplate.queryForObject("SELECT stock_quantity FROM products WHERE product_code = 'P01'", Integer.class);
         assertNotNull(stockBefore);
 
@@ -216,7 +199,6 @@ class SqlServerApiWorkflowIntegrationTest {
         Integer stockAfter = jdbcTemplate.queryForObject("SELECT stock_quantity FROM products WHERE product_code = 'P01'", Integer.class);
         assertEquals(stockBefore - 2, stockAfter, "Tồn kho trong SQL Server phải giảm đúng 2");
 
-        // BƯỚC 6: Check-out trả sân & Xuất hóa đơn
         Map<String, Object> checkoutReq = new HashMap<>();
         checkoutReq.put("staffCode", "NS03");
         checkoutReq.put("paymentMethod", "Tiền mặt");
@@ -231,11 +213,9 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.invoice.invoiceCode", startsWith("HD")))
                 .andExpect(jsonPath("$.invoice.status", is("Đã thanh toán")));
 
-        // Kiểm tra trạng thái sân đã được giải phóng sang 'Trống'
         String courtStatus = jdbcTemplate.queryForObject("SELECT status FROM courts WHERE court_code = ?", String.class, court);
         assertEquals("Trống", courtStatus);
 
-        // Dọn dẹp CSDL test
         jdbcTemplate.update("UPDATE products SET stock_quantity = ? WHERE product_code = 'P01'", stockBefore);
         jdbcTemplate.update("DELETE FROM invoices WHERE booking_code = ?", bookingCode);
         jdbcTemplate.update("DELETE FROM payments WHERE booking_code = ?", bookingCode);
@@ -243,9 +223,7 @@ class SqlServerApiWorkflowIntegrationTest {
         jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", bookingCode);
     }
 
-    // ==========================================
     // 3. CHUYEN SAN LINH HOAT & CHUYEN GIO (XL-06)
-    // ==========================================
 
     @Test
     @DisplayName("API SQL 06: Chuyen san linh hoat tu CL01 sang CL02 qua API")
@@ -269,14 +247,11 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.newCourtCode", is("CL02")));
 
-        // Cleanup
         jdbcTemplate.update("DELETE FROM audit_logs WHERE details LIKE ?", "%" + transferCode + "%");
         jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", transferCode);
     }
 
-    // ==========================================
     // 4. PHAN HE KHO HANG & NHAP KHO (XL-10)
-    // ==========================================
 
     @Test
     @DisplayName("API SQL 07: Lap phieu nhap kho tu dong tang so luong ton kho san pham trong SQL Server")
@@ -311,15 +286,12 @@ class SqlServerApiWorkflowIntegrationTest {
         Integer detailCount = jdbcTemplate.queryForObject("SELECT count(*) FROM stock_product_details WHERE receipt_code = ?", Integer.class, rCode);
         assertTrue(detailCount != null && detailCount > 0, "Chi tiet phieu nhap stock_product_details phai duoc luu");
 
-        // Cleanup
         jdbcTemplate.update("UPDATE products SET stock_quantity = ? WHERE product_code = 'P01'", p01Initial);
         jdbcTemplate.update("DELETE FROM stock_product_details WHERE receipt_code = ?", rCode);
         jdbcTemplate.update("DELETE FROM stock_receipts WHERE receipt_code = ?", rCode);
     }
 
-    // ==========================================
     // 5. CA TRUC VA CHOT CA THU NGAN (XL-08)
-    // ==========================================
 
     @Test
     @DisplayName("API SQL 08: Chot ca thu ngan quay POS va kiem ke tien mat")
@@ -338,10 +310,6 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.handoverCode", startsWith("BG")))
                 .andExpect(jsonPath("$.status", is("CLOSED")));
     }
-
-    // ==========================================
-    // 6. GIAI DAU & CHATBOT GEMINI AI
-    // ==========================================
 
     @Test
     @DisplayName("API SQL 09: Dang ky tham gia giai dau GD02 va kiem tra cap nhat so slot")
@@ -364,7 +332,6 @@ class SqlServerApiWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.currentParticipants", notNullValue()));
 
-        // Cleanup
         jdbcTemplate.update("DELETE FROM tournament_registrations WHERE phone = '0908777666'");
     }
 
@@ -389,7 +356,6 @@ class SqlServerApiWorkflowIntegrationTest {
         """, testCode, LocalDate.now().plusDays(2).toString());
 
         try {
-            // Gửi vé với email mới
             Map<String, String> payload = Map.of("email", "new_recipient@gmail.com");
             mockMvc.perform(post("/api/bookings/" + testCode + "/send-ticket-email")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -398,7 +364,6 @@ class SqlServerApiWorkflowIntegrationTest {
                     .andExpect(jsonPath("$.success", is(true)))
                     .andExpect(jsonPath("$.email", is("new_recipient@gmail.com")));
 
-            // Kiểm tra CSDL SQL Server đã cập nhật email
             String savedEmail = jdbcTemplate.queryForObject("SELECT customer_email FROM bookings WHERE booking_code = ?", String.class, testCode);
             assertEquals("new_recipient@gmail.com", savedEmail);
         } finally {
@@ -419,7 +384,6 @@ class SqlServerApiWorkflowIntegrationTest {
         """, testUser, testEmail, testPhone);
 
         try {
-            // Bước 1: Yêu cầu gửi OTP khôi phục mật khẩu qua email
             Map<String, String> forgotReq = Map.of("identifier", testUser);
             mockMvc.perform(post("/api/auth/forgot-password")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -428,7 +392,6 @@ class SqlServerApiWorkflowIntegrationTest {
                     .andExpect(jsonPath("$.success", is(true)))
                     .andExpect(jsonPath("$.email", containsString("@")));
 
-            // Bước 2: Thử reset password không có OTP -> Phải bị từ chối
             Map<String, String> noOtpReq = Map.of("identifier", testUser, "newPassword", "newPassword123");
             mockMvc.perform(post("/api/auth/reset-password")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -436,7 +399,6 @@ class SqlServerApiWorkflowIntegrationTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success", is(false)));
 
-            // Bước 3: Thử reset password với mã OTP sai -> Phải bị từ chối
             Map<String, String> wrongOtpReq = Map.of("identifier", testUser, "newPassword", "newPassword123", "otp", "999999");
             mockMvc.perform(post("/api/auth/reset-password")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -444,7 +406,6 @@ class SqlServerApiWorkflowIntegrationTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.success", is(false)));
 
-            // Bước 4: Lấy OTP hợp lệ từ Map của controller (thông qua reflection)
             java.lang.reflect.Field otpField = ApiController.class.getDeclaredField("forgotPasswordOtpMap");
             otpField.setAccessible(true);
             @SuppressWarnings("unchecked")
@@ -453,7 +414,6 @@ class SqlServerApiWorkflowIntegrationTest {
             assertNotNull(otpInfo, "Phải tìm thấy mã OTP cho user");
             String validOtp = (String) otpInfo.get("otp");
 
-            // Bước 5: Đặt lại mật khẩu với OTP hợp lệ (Dùng phone làm identifier để kiểm tra đa khóa)
             Map<String, String> validResetReq = Map.of("identifier", testPhone, "newPassword", "newPassword123", "otp", validOtp);
             mockMvc.perform(post("/api/auth/reset-password")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -461,7 +421,6 @@ class SqlServerApiWorkflowIntegrationTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success", is(true)));
 
-            // Bước 6: Đăng nhập thử với mật khẩu mới
             Map<String, String> loginReq = Map.of("username", testUser, "password", "newPassword123");
             mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)

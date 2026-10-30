@@ -33,11 +33,9 @@ public class IntentClassificationService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Lưu trữ từ vựng (Vocabulary: Term -> Index)
     private final Map<String, Integer> vocabulary = new HashMap<>();
     private double[] idfWeights;
     
-    // Lưu trữ vector trung tâm (Centroid Vector) của từng Intent: IntentTag -> Unit Vector
     private final Map<String, double[]> intentCentroids = new HashMap<>();
     private final Map<String, String> defaultResponses = new HashMap<>();
 
@@ -101,7 +99,6 @@ public class IntentClassificationService {
                     docTexts.add(raw);
                     docLabels.add(tag);
 
-                    // Bổ sung dạng không dấu để tăng gấp đôi độ bao phủ
                     String noAcc = removeAccents(raw);
                     if (!noAcc.equalsIgnoreCase(raw)) {
                         docTexts.add(noAcc);
@@ -114,7 +111,6 @@ public class IntentClassificationService {
         int totalDocs = docTexts.size();
         if (totalDocs == 0) return;
 
-        // 1. Xây dựng bảng tần số văn bản (Document Frequency - DF)
         Map<String, Integer> docFreq = new HashMap<>();
         List<List<String>> tokenizedDocs = new ArrayList<>();
 
@@ -128,21 +124,18 @@ public class IntentClassificationService {
             }
         }
 
-        // 2. Xây dựng Vocabulary
         vocabulary.clear();
         int idx = 0;
         for (String term : docFreq.keySet()) {
             vocabulary.put(term, idx++);
         }
 
-        // 3. Tính trọng số IDF: idf(t) = ln(1 + (N / (1 + df(t))))
         idfWeights = new double[vocabulary.size()];
         for (Map.Entry<String, Integer> entry : vocabulary.entrySet()) {
             int df = docFreq.get(entry.getKey());
             idfWeights[entry.getValue()] = Math.log(1.0 + ((double) totalDocs / (1.0 + df)));
         }
 
-        // 4. Tính Centroid Vector cho từng Intent
         Map<String, double[]> sumVectors = new HashMap<>();
         Map<String, Integer> countPerIntent = new HashMap<>();
 
@@ -158,7 +151,6 @@ public class IntentClassificationService {
             countPerIntent.put(label, countPerIntent.getOrDefault(label, 0) + 1);
         }
 
-        // Chuẩn hóa vector đơn vị L2 cho mỗi nhãn (Unit Vector)
         intentCentroids.clear();
         for (String label : sumVectors.keySet()) {
             double[] centroid = sumVectors.get(label);
@@ -195,7 +187,6 @@ public class IntentClassificationService {
             }
         }
 
-        // Xử lý các tình huống ngoài phạm vi (Out-Of-Scope)
         boolean isOutOfScope = highestScore < CONFIDENCE_THRESHOLD || bestIntent.startsWith("OUT_OF_SCOPE");
 
         String response;
@@ -225,7 +216,6 @@ public class IntentClassificationService {
         String clean = text.toLowerCase().replaceAll("[^\\p{L}\\p{Nd}\\s]", " ").trim();
         String cleanNoAcc = removeAccents(clean);
 
-        // 1. Word Tokens (Có dấu & Không dấu)
         String[] words = clean.split("\\s+");
         String[] wordsNoAcc = cleanNoAcc.split("\\s+");
 
@@ -236,14 +226,12 @@ public class IntentClassificationService {
             if (!w.isBlank()) features.add("W:" + w);
         }
 
-        // 2. Word Bigrams (Cụm 2 từ liền kề: "thuê sân", "giá cao", "chi nhánh")
         for (int i = 0; i < wordsNoAcc.length - 1; i++) {
             if (!wordsNoAcc[i].isBlank() && !wordsNoAcc[i + 1].isBlank()) {
                 features.add("B:" + wordsNoAcc[i] + "_" + wordsNoAcc[i + 1]);
             }
         }
 
-        // 3. Character 3-Grams (Chống lỗi gõ sai chính tả: "thue" -> "thu", "hue")
         String compact = cleanNoAcc.replaceAll("\\s+", " ");
         if (compact.length() >= 3) {
             for (int i = 0; i <= compact.length() - 3; i++) {
@@ -269,7 +257,6 @@ public class IntentClassificationService {
         for (Map.Entry<String, Integer> entry : termCount.entrySet()) {
             Integer idx = vocabulary.get(entry.getKey());
             if (idx != null) {
-                // Sublinear TF scaling: 1 + ln(count)
                 double tf = 1.0 + Math.log(entry.getValue());
                 vec[idx] = tf * idfWeights[idx];
             }
