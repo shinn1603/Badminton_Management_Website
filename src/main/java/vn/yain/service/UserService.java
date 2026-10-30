@@ -266,7 +266,7 @@ public class UserService {
                     u.setPhone(c.getPhone() != null ? c.getPhone() : "");
                     u.setEmail(c.getEmail() != null ? c.getEmail() : "");
                     u.setRole("CUSTOMER");
-                    u.setBranchCode("CN01");
+                    u.setBranchCode("ALL");
                     u.setStatus(c.getStatus() != null ? c.getStatus() : "Hoạt động");
                     u.setCreatedAt(c.getCreatedAt() != null ? c.getCreatedAt() : LocalDateTime.now());
                     users.add(u);
@@ -301,7 +301,11 @@ public class UserService {
         }
         if (payload.containsKey("fullName")) u.setFullName(payload.get("fullName"));
         if (payload.containsKey("role")) u.setRole(payload.get("role").toUpperCase());
-        if (payload.containsKey("branchCode")) u.setBranchCode(payload.get("branchCode"));
+        if ("CUSTOMER".equalsIgnoreCase(u.getRole()) || "DIRECTOR".equalsIgnoreCase(u.getRole()) || "ADMIN".equalsIgnoreCase(u.getRole())) {
+            u.setBranchCode("ALL");
+        } else if (payload.containsKey("branchCode")) {
+            u.setBranchCode(payload.get("branchCode"));
+        }
         if (payload.containsKey("phone") && payload.get("phone") != null && !payload.get("phone").isBlank()) {
             String ph = payload.get("phone").trim().replaceAll("[\\s.\\-]", "");
             if (!ph.matches("^(0|\\+84)[35789][0-9]{8}$")) {
@@ -511,7 +515,7 @@ public class UserService {
             u.setEmail(saved.getEmail());
             u.setPassword(saved.getPassword());
             u.setRole("CUSTOMER");
-            u.setBranchCode("CN01");
+            u.setBranchCode("ALL");
             u.setStatus("Hoạt động");
             u.setCreatedAt(LocalDateTime.now());
             userRepository.save(u);

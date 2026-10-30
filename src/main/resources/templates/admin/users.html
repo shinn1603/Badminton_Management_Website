@@ -221,7 +221,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="inpFullName">Họ và tên nhân sự</label>
+          <label class="form-label" for="inpFullName" id="lblFullName">Họ và tên nhân sự</label>
           <input type="text" class="form-control" id="inpFullName" placeholder="Nhập họ và tên đầy đủ">
         </div>
 
@@ -243,10 +243,13 @@
         </div>
 
         <div class="form-group" id="branchAssignGroup">
-          <label class="form-label" for="inpBranch">Phân công chi nhánh phụ trách</label>
+          <label class="form-label" for="inpBranch">Chi nhánh làm việc chính</label>
           <select class="form-control" id="inpBranch">
             <option value="ALL">Toàn chuỗi (Không giới hạn - Giám đốc & Quản trị)</option>
           </select>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+            * Để phân quyền nâng cao đa chi nhánh theo ma trận, vui lòng chuyển sang menu <a href="/admin/permissions" style="color: var(--primary); text-decoration: underline;">Phạm vi dữ liệu chi nhánh</a>.
+          </div>
         </div>
 
         <div class="form-group" id="statusAssignGroup">
@@ -399,7 +402,14 @@
 
       users.forEach((u, idx) => {
         const roleInfo = ROLE_LABELS[u.role] || { label: u.role, badge: 'badge-blue' };
-        const branchLabel = BRANCH_LABELS[u.branchCode] || u.branchCode || 'Toàn chuỗi';
+        let branchLabel = 'Toàn chuỗi';
+        if (u.role === 'CUSTOMER') {
+          branchLabel = 'Toàn hệ thống (Khách hàng)';
+        } else if (u.role === 'DIRECTOR' || u.role === 'ADMIN') {
+          branchLabel = 'Toàn chuỗi (Không giới hạn)';
+        } else {
+          branchLabel = BRANCH_LABELS[u.branchCode] || u.branchCode || 'Toàn chuỗi';
+        }
         const isLocked = isUserLocked(u);
         const statusBadge = isLocked
           ? '<span class="clean-kpi-badge badge-amber" style="background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700;">Đã khóa</span>'
@@ -463,6 +473,7 @@
           inpStatus.value = isUserLocked({ status }) ? 'Bị khóa' : 'Hoạt động';
         }
         if (statusGroup) statusGroup.style.display = 'block';
+        handleRoleChange(role || 'POS');
       } else {
         title.innerText = 'Cấp tài khoản người dùng mới';
         document.getElementById('inpUsername').value = '';
@@ -475,6 +486,7 @@
         document.getElementById('inpBranch').value = dbBranches[0]?.branchCode || 'CN01';
         if (inpStatus) inpStatus.value = 'Hoạt động';
         if (statusGroup) statusGroup.style.display = 'none';
+        handleRoleChange('POS');
       }
       modal.classList.add('open');
     }
@@ -533,7 +545,12 @@
       const password = document.getElementById('inpPassword').value.trim();
       const fullName = document.getElementById('inpFullName').value.trim();
       const role = document.getElementById('inpRole').value;
-      const branchCode = document.getElementById('inpBranch').value;
+      let branchCode = 'ALL';
+      if (role === 'CUSTOMER' || role === 'DIRECTOR' || role === 'ADMIN') {
+        branchCode = 'ALL';
+      } else {
+        branchCode = document.getElementById('inpBranch').value || 'CN01';
+      }
       const phone = document.getElementById('inpPhone').value.trim();
       const status = document.getElementById('inpStatus') ? document.getElementById('inpStatus').value : 'Hoạt động';
 
@@ -663,12 +680,24 @@
     }
 
     function handleRoleChange(role) {
+      const branchGroup = document.getElementById('branchAssignGroup');
       const branchSelect = document.getElementById('inpBranch');
-      if (!branchSelect) return;
-      if (role === 'DIRECTOR' || role === 'ADMIN') {
+      const lblFullName = document.getElementById('lblFullName');
+
+      if (lblFullName) {
+        lblFullName.innerText = (role === 'CUSTOMER') ? 'Họ và tên khách hàng' : 'Họ và tên nhân sự';
+      }
+
+      if (!branchGroup || !branchSelect) return;
+
+      if (role === 'CUSTOMER' || role === 'DIRECTOR' || role === 'ADMIN') {
+        branchGroup.style.display = 'none';
         branchSelect.value = 'ALL';
-      } else if (branchSelect.value === 'ALL') {
-        branchSelect.value = dbBranches[0]?.branchCode || 'CN01';
+      } else {
+        branchGroup.style.display = 'block';
+        if (branchSelect.value === 'ALL') {
+          branchSelect.value = dbBranches[0]?.branchCode || 'CN01';
+        }
       }
     }
 

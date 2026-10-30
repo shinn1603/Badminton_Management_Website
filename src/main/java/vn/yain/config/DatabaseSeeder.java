@@ -556,7 +556,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             createUser("admin", "123456", "Trần Biểu Hương", "ADMIN", "ALL", "0908888999", "admin@utesport.vn", null),
 
-            createUser("customer", "123456", "Lê Bá Đạt", "CUSTOMER", "CN01", "0912345678", "khachhang@gmail.com", null),
+            createUser("customer", "123456", "Lê Bá Đạt", "CUSTOMER", "ALL", "0912345678", "khachhang@gmail.com", null),
 
             createUser("nam.vh", "123456", "Võ Hoàng Nam", "DIRECTOR", "ALL", "0901111222", "nam.vh@utesport.vn", "NS01"),
 
