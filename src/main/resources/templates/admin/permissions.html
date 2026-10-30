@@ -6,6 +6,205 @@
   <title>Phân quyền phạm vi dữ liệu theo chi nhánh - UTE Sport</title>
   <link rel="stylesheet" href="/css/main.css">
   <script src="/js/auth-guard.js"></script>
+  <style>
+    /* CSS TABS & MA TRẬN PHÂN QUYỀN CAO CẤP */
+    .tab-navigation-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+      padding-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .matrix-tab-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: var(--surface, #ffffff);
+      color: var(--text-muted, #64748b);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .matrix-tab-btn:hover {
+      color: var(--text-dark, #0f172a);
+      background: var(--bg-hover, #f8fafc);
+      border-color: var(--border-subtle, #cbd5e1);
+    }
+
+    .matrix-tab-btn.active {
+      background: var(--primary, #059669);
+      color: #ffffff;
+      border-color: var(--primary, #059669);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    }
+
+    .matrix-tab-btn .tab-badge {
+      padding: 2.5px 8.5px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(100, 116, 139, 0.12);
+      color: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .matrix-tab-btn.active .tab-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    /* Checkbox & custom controls */
+    .branch-checkbox-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .branch-checkbox-wrap input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--primary, #059669);
+      cursor: pointer;
+      margin: 0;
+      transition: transform 0.15s ease;
+    }
+
+    .branch-checkbox-wrap input[type="checkbox"]:hover:not(:disabled) {
+      transform: scale(1.15);
+    }
+
+    .branch-checkbox-wrap input[type="checkbox"]:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    /* Scope summary badges */
+    .scope-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .scope-badge-all {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .scope-badge-multi {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .scope-badge-single {
+      background: #f0fdfa;
+      color: #0f766e;
+      border: 1px solid #99f6e4;
+    }
+    .scope-badge-none {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    /* Dark theme overrides */
+    [data-theme='dark'] .scope-badge-all {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    [data-theme='dark'] .scope-badge-multi {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    [data-theme='dark'] .scope-badge-single {
+      background: rgba(20, 184, 166, 0.15);
+      color: #2dd4bf;
+      border-color: rgba(20, 184, 166, 0.3);
+    }
+    [data-theme='dark'] .scope-badge-none {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    [data-theme='dark'] .matrix-tab-btn {
+      background: var(--surface);
+      color: #94a3b8;
+      border-color: #334155;
+    }
+    [data-theme='dark'] .matrix-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #f1f5f9;
+    }
+    [data-theme='dark'] .matrix-tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* RBAC matrix table styles */
+    .rbac-table th, .rbac-table td {
+      vertical-align: middle;
+      font-size: 12.5px;
+    }
+    .rbac-icon-allowed {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+    }
+    .rbac-icon-denied {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(100, 116, 139, 0.1);
+      color: #94a3b8;
+    }
+    .rbac-icon-restricted {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.12);
+      color: #d97706;
+    }
+    [data-theme='dark'] .rbac-icon-allowed {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+    }
+    [data-theme='dark'] .rbac-icon-denied {
+      background: rgba(100, 116, 139, 0.2);
+      color: #64748b;
+    }
+    [data-theme='dark'] .rbac-icon-restricted {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+    }
+  </style>
 </head>
 <body>
 
@@ -26,8 +225,6 @@
       </div>
 
       <div class="sidebar-content" id="sidebarContent">
-
-
         <a href="/admin/users" class="menu-item">
           <svg class="svg-icon" viewBox="0 0 24 24">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -104,56 +301,349 @@
               <polyline points="17 21 17 13 7 13 7 21"></polyline>
               <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            <span>Lưu phân quyền</span>
+            <span>Lưu tất cả thay đổi</span>
           </button>
         </div>
       </header>
 
       <div class="main-content">
-        <!-- LUXURY HERO BANNER -->
-        <div class="hero-banner" style="margin-bottom: 24px;">
+        <!-- HERO BANNER -->
+        <div class="hero-banner" style="margin-bottom: 20px;">
           <div class="hero-banner-content">
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11.5px; font-weight: 700; color: #6ee7b7; text-transform: uppercase; margin-bottom: 10px;">
               <span style="display: inline-block; width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span>
-              Ma Trận Phân Quyền & Phạm Vi Dữ Liệu
+              Ma Trận Phân Quyền & Phạm Vi Chi Nhánh Chuỗi
             </div>
-            <h1 class="hero-title" style="margin-bottom: 8px;">Phân Quyền Truy Cập & Giới Hạn Chi Nhánh</h1>
-            <p class="hero-subtitle" style="margin-bottom: 0;">Thiết lập ma trận phân quyền chi tiết cho Ban giám đốc, Quản lý chi nhánh, Thu ngân POS và Kỹ thuật viên</p>
+            <h1 class="hero-title" style="margin-bottom: 8px;">Quản Lý Phân Quyền & Phạm Vi Tác Nghiệp</h1>
+            <p class="hero-subtitle" style="margin-bottom: 0;">Thiết lập phân quyền phạm vi chi nhánh (Data Scope) cho quản lý và nhân sự, tra cứu ma trận phân quyền tác nghiệp (RBAC) theo chức danh.</p>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div>
-              <h2 class="card-title">Ma trận gán quyền truy cập chi nhánh</h2>
-              <div id="permStatusLabel" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
-                Đang nạp dữ liệu chi nhánh và nhân sự trực tiếp từ CSDL SQL Server...
+        <!-- TAB NAVIGATION -->
+        <div class="tab-navigation-bar">
+          <button class="matrix-tab-btn active" id="btnTabScope" onclick="switchMatrixTab('scope')">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>1. Phạm vi dữ liệu chi nhánh (Data Scope)</span>
+            <span class="tab-badge" id="tabBadgeScopeCount">0 nhân sự</span>
+          </button>
+
+          <button class="matrix-tab-btn" id="btnTabRbac" onclick="switchMatrixTab('rbac')">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>2. Bảng tra cứu quyền hạn tác nghiệp (RBAC Matrix)</span>
+            <span class="tab-badge">4 vai trò</span>
+          </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 1: MA TRẬN PHẠM VI DỮ LIỆU CHI NHÁNH (DATA SCOPE)        -->
+        <!-- ============================================================ -->
+        <div id="contentTabScope">
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+              <div>
+                <h2 class="card-title" style="font-size: 16px; font-weight: 700;">Gán phạm vi dữ liệu chi nhánh cho nhân sự</h2>
+                <div id="permStatusLabel" style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">
+                  Đang đồng bộ danh sách chi nhánh và tài khoản nhân sự từ CSDL SQL Server...
+                </div>
+              </div>
+
+              <!-- Filter Controls -->
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="search-box" style="margin: 0; min-width: 240px;">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--text-muted); width: 14px; height: 14px;">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input type="text" placeholder="Tìm tên, username, mã NV..." id="permSearchInput" onkeyup="filterPermissionsTable()">
+                </div>
+
+                <select id="permRoleFilter" onchange="filterPermissionsTable()" style="padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--surface); color: var(--text-dark); font-size: 13px; font-weight: 500; cursor: pointer;">
+                  <option value="ALL">-- Tất cả chức danh --</option>
+                  <option value="DIRECTOR">Ban Giám Đốc</option>
+                  <option value="ADMIN">Quản Trị Hệ Thống</option>
+                  <option value="MANAGER">Quản Lý Chi Nhánh</option>
+                  <option value="POS">Thu Ngân POS</option>
+                </select>
+
+                <button type="button" class="btn btn-primary" onclick="savePermissions()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--primary, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                  <span>Lưu tất cả</span>
+                </button>
               </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <div class="search-box" style="margin: 0; min-width: 260px;">
-                <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--text-muted); width: 14px; height: 14px;">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input type="text" placeholder="Tìm tên nhân sự, tài khoản..." id="permSearchInput" onkeyup="filterPermissionsTable()">
-              </div>
-              <button type="button" class="btn btn-primary" onclick="savePermissions()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--primary, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px; stroke: currentColor;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                <span>Lưu tất cả thay đổi</span>
-              </button>
+
+            <!-- Notice note -->
+            <div style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--primary, #059669); padding: 10px 16px; margin: 0 20px 16px 20px; border-radius: 0 8px 8px 0; font-size: 12px; color: var(--text-dark);">
+              <strong>Hướng dẫn vận hành:</strong> Tick chọn từng chi nhánh để cấp quyền tác nghiệp cho Quản lý hoặc Thu ngân. Một Quản lý có thể được gán <strong>nhiều chi nhánh cùng lúc</strong> (ví dụ phụ trách cả CN01 và CN02). Khi chọn <strong>Toàn chuỗi (ALL)</strong>, nhân sự sẽ được xem và quản lý tất cả các cơ sở. Thay đổi sẽ được <strong>tự động lưu vào CSDL</strong> ngay khi tick chọn.
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead id="permissionsTableHeader">
+                  <!-- Populated dynamically -->
+                </thead>
+                <tbody id="permissionsTableBody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
             </div>
           </div>
+        </div>
 
-          <div class="table-container">
-            <table class="data-table">
-              <thead id="permissionsTableHeader">
-                <!-- Dynamically populated from SQL Server branches table -->
-              </thead>
-              <tbody id="permissionsTableBody">
-                <!-- Dynamically loaded from /api/admin/permissions -->
-              </tbody>
-            </table>
+        <!-- ============================================================ -->
+        <!-- TAB 2: BẢNG TRA CỨU QUYỀN HẠN TÁC NGHIỆP (RBAC MATRIX)       -->
+        <!-- ============================================================ -->
+        <div id="contentTabRbac" style="display: none;">
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h2 class="card-title" style="font-size: 16px; font-weight: 700;">Ma trận quyền hạn tác nghiệp chi tiết theo chức danh (RBAC)</h2>
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">
+                  Bảng quy định chuẩn mực về quyền hạn điều hành, thao tác hệ thống giữa Ban Giám Đốc, Quản Trị Viên, Quản Lý Chi Nhánh và Thu Ngân POS.
+                </div>
+              </div>
+
+              <!-- Legend badges -->
+              <div style="display: flex; align-items: center; gap: 14px; font-size: 12px;">
+                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                  <span class="rbac-icon-allowed" style="width: 20px; height: 20px;">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke-width: 3;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </span>
+                  <span>Toàn quyền</span>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                  <span class="rbac-icon-restricted" style="width: 20px; height: 20px;">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke-width: 2.5;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  </span>
+                  <span>Theo chi nhánh / Cần duyệt</span>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px;">
+                  <span class="rbac-icon-denied" style="width: 20px; height: 20px;">
+                    <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke-width: 3;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </span>
+                  <span>Không được phép</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table rbac-table">
+                <thead>
+                  <tr>
+                    <th style="min-width: 220px;">Phân hệ & Nghiệp vụ tác nghiệp</th>
+                    <th style="text-align: center; width: 140px;">
+                      <div style="color: #1d4ed8; font-weight: 700;">Ban Giám Đốc</div>
+                      <div style="font-size: 10px; font-weight: normal; color: var(--text-muted);">ROLE_DIRECTOR</div>
+                    </th>
+                    <th style="text-align: center; width: 140px;">
+                      <div style="color: #be185d; font-weight: 700;">Quản Trị Viên</div>
+                      <div style="font-size: 10px; font-weight: normal; color: var(--text-muted);">ROLE_ADMIN</div>
+                    </th>
+                    <th style="text-align: center; width: 150px;">
+                      <div style="color: #0f766e; font-weight: 700;">Quản Lý Chi Nhánh</div>
+                      <div style="font-size: 10px; font-weight: normal; color: var(--text-muted);">ROLE_MANAGER</div>
+                    </th>
+                    <th style="text-align: center; width: 140px;">
+                      <div style="color: #475569; font-weight: 700;">Thu Ngân POS</div>
+                      <div style="font-size: 10px; font-weight: normal; color: var(--text-muted);">ROLE_POS</div>
+                    </th>
+                    <th style="min-width: 250px;">Quy tắc vận hành & Ràng buộc bảo mật</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- 1. QUẢN LÝ CHI NHÁNH -->
+                  <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
+                    <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                        <span>1. PHÂN HỆ QUẢN TRỊ CHI NHÁNH & MẠNG LƯỚI CƠ SỞ</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Xem danh sách chi nhánh chuỗi</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed" title="Toàn quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed" title="Toàn quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Xem theo chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Xem theo chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý và POS chỉ xem được các cơ sở nằm trong phạm vi dữ liệu được gán tại Tab 1.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Thêm mới cơ sở chi nhánh</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed" title="Toàn quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Không có quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Không có quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Không có quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Chỉ Giám Đốc có thẩm quyền mở rộng mạng lưới cơ sở mới.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Xóa chi nhánh khỏi chuỗi</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed" title="Toàn quyền xóa"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Không có quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Không có quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Không có quyền"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Chỉ Giám đốc điều hành có thẩm quyền xóa; hệ thống tự động kiểm tra ràng buộc sân bãi và lịch đặt trước khi xóa.</td>
+                  </tr>
+
+                  <!-- 2. QUẢN LÝ SÂN BÃI & BIỂU GIÁ -->
+                  <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
+                    <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path></svg>
+                        <span>2. PHÂN HỆ SÂN BÃI, TÌNH TRẠNG & BIỂU GIÁ THUÊ</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Xem chi tiết sân & tình trạng thảm</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Chỉ sân chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Chỉ sân chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Đã cô lập tuyệt đối dữ liệu: Quản lý đăng nhập chỉ thấy sân thuộc chi nhánh của mình, không thể xem sân chi nhánh khác.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tạo sân mới / Xóa sân</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý chi nhánh không được tự ý tạo hay xóa sân; thao tác bị chặn từ cả giao diện lẫn API backend (HTTP 403).</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Điều chỉnh đơn giá thuê sân theo giờ</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied" title="Đã khóa cứng"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Ô nhập giá bị khóa (disabled) trên giao diện Quản lý; API từ chối nếu có yêu cầu sửa giá không phải từ Giám Đốc.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Đề xuất biểu giá sân lên Giám Đốc</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý được phép tạo tờ trình đề xuất biểu giá gửi Ban Giám Đốc phê duyệt.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Cập nhật trạng thái sân (Hoạt động / Bảo trì)</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Tại chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý có thể tạm ngưng nhận khách trên sân hỏng thảm hoặc bảo trì lưới tại cơ sở mình phụ trách.</td>
+                  </tr>
+
+                  <!-- 3. ĐẶT SÂN & QUẦY THU NGÂN POS -->
+                  <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
+                    <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        <span>3. PHÂN HỆ LƯỚI ĐẶT SÂN, QUẦY POS & THANH TOÁN</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Xem lưới đặt sân & slot theo ngày</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Chi nhánh làm việc"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Lưới đặt sân tự động tải sân và lịch đặt theo đúng cơ sở được gán.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Khóa slot, đặt giữ chỗ tại quầy POS</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Thu ngân và Quản lý thực hiện đặt sân trực tiếp tại quầy, khóa giữ chỗ chống đặt trùng.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Thu tiền, quét VietQR & In hóa đơn K80</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Hỗ trợ thu cọc, thanh toán đủ, in hóa đơn nhiệt khổ 80mm tại quầy.</td>
+                  </tr>
+
+                  <!-- 4. KHO HÀNG & MẶT HÀNG -->
+                  <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
+                    <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        <span>4. PHÂN HỆ VẬT TƯ, KHO HÀNG & NHẬP XUẤT</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tạo sản phẩm chuẩn chuỗi & quy định giá vốn</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Chỉ Giám Đốc có quyền thêm mặt hàng mới vào danh mục hệ thống để đảm bảo tính đồng bộ toàn chuỗi.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Lập phiếu nhập kho vật tư / nước uống</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-restricted" title="Chi nhánh phụ trách"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý lập phiếu nhập kho cho cơ sở của mình, số lượng cộng dồn tồn kho tương ứng.</td>
+                  </tr>
+
+                  <!-- 5. BÁO CÁO & QUẢN TRỊ TÀI KHOẢN -->
+                  <tr style="background: rgba(0,0,0,0.02); font-weight: 700;">
+                    <td colspan="6" style="padding: 10px 16px; color: var(--primary);">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>5. PHÂN HỆ BÁO CÁO DOANH THU & QUẢN TRỊ TÀI KHOẢN</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Báo cáo doanh thu & lợi nhuận toàn chuỗi</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Quản lý chỉ xem được doanh thu cơ sở mình phụ trách; không được xem doanh thu các cơ sở khác.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Quản lý tài khoản người dùng & cấp vai trò</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Thực hiện tại trang <code>/admin/users</code>: Tạo tài khoản, gán chức danh (Role), khóa tài khoản.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Phân quyền phạm vi chi nhánh (Data Scope)</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Thực hiện tại trang <code>/admin/permissions</code> (Tab 1) này: Gán 1 hoặc nhiều cơ sở cho nhân sự.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Nhật ký kiểm toán hệ thống (Audit Logs)</strong></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-allowed"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="text-align: center;"><span class="rbac-icon-denied"><svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></td>
+                    <td style="color: var(--text-muted); font-size: 11.5px;">Ghi vết toàn bộ hành vi: Đổi giá, xóa cơ sở, cấp quyền, đăng nhập để phục vụ đối soát bảo mật.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -166,18 +656,37 @@
       if (sidebar) sidebar.classList.toggle('collapsed');
     }
 
+    // Switch between Tab 1 (Data Scope) and Tab 2 (RBAC Matrix)
+    function switchMatrixTab(tabName) {
+      const btnScope = document.getElementById('btnTabScope');
+      const btnRbac = document.getElementById('btnTabRbac');
+      const contentScope = document.getElementById('contentTabScope');
+      const contentRbac = document.getElementById('contentTabRbac');
+
+      if (tabName === 'scope') {
+        btnScope.classList.add('active');
+        btnRbac.classList.remove('active');
+        contentScope.style.display = 'block';
+        contentRbac.style.display = 'none';
+      } else {
+        btnScope.classList.remove('active');
+        btnRbac.classList.add('active');
+        contentScope.style.display = 'none';
+        contentRbac.style.display = 'block';
+      }
+    }
+
     let userPermissions = [];
     let systemBranches = [];
 
     const ROLE_TITLES = {
-      DIRECTOR: { label: 'Giám đốc chuỗi', badgeStyle: 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;', desc: 'Toàn quyền điều hành chuỗi sân, duyệt giá & giải đấu' },
-      ADMIN: { label: 'Quản trị hệ thống', badgeStyle: 'background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;', desc: 'Quản trị tài khoản, an toàn dữ liệu và sao lưu hệ thống' },
-      MANAGER: { label: 'Quản lý chi nhánh', badgeStyle: 'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;', desc: 'Quản lý sân, kho vật tư và duyệt báo cáo chi nhánh' },
-      POS: { label: 'Thu ngân POS', badgeStyle: 'background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;', desc: 'Đặt sân quầy POS, thu cọc và in hóa đơn tại quầy' },
-      CUSTOMER: { label: 'Khách hàng', badgeStyle: 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;', desc: 'Đặt sân trực tuyến & xem thông tin giải đấu' }
+      DIRECTOR: { label: 'Giám đốc chuỗi', badgeStyle: 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;', priority: 1 },
+      ADMIN: { label: 'Quản trị hệ thống', badgeStyle: 'background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;', priority: 2 },
+      MANAGER: { label: 'Quản lý chi nhánh', badgeStyle: 'background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4;', priority: 3 },
+      POS: { label: 'Thu ngân POS', badgeStyle: 'background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;', priority: 4 },
+      STAFF: { label: 'Thu ngân POS', badgeStyle: 'background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;', priority: 4 },
+      CUSTOMER: { label: 'Khách hàng', badgeStyle: 'background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;', priority: 5 }
     };
-    // Đảm bảo không bao giờ hiện role STAFF lạ mắt, tự động quy về Thu ngân POS
-    ROLE_TITLES.STAFF = ROLE_TITLES.POS;
 
     function escapeHtml(str) {
       if (!str) return '';
@@ -188,7 +697,11 @@
 
     async function loadPermissionsData() {
       try {
-        const token = localStorage.getItem('jwt_token');
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
         const headers = { 'Accept': 'application/json' };
         if (token) headers['Authorization'] = 'Bearer ' + token;
 
@@ -196,11 +709,20 @@
         if (res.ok) {
           const data = await res.json();
           if (data.branches && Array.isArray(data.branches)) {
-            systemBranches = data.branches;
+            systemBranches = data.branches.filter(b => b.branchCode && b.branchCode.toUpperCase() !== 'ALL');
           }
           if (data.users && Array.isArray(data.users)) {
+            // Lọc các tài khoản nội bộ (bỏ tài khoản khách hàng thông thường)
             userPermissions = data.users.filter(u => u.role !== 'CUSTOMER');
             if (userPermissions.length === 0) userPermissions = data.users;
+
+            // Sắp xếp thứ tự phân cấp chức danh: Giám đốc -> Quản trị -> Quản lý -> Thu ngân
+            userPermissions.sort((a, b) => {
+              const pA = (ROLE_TITLES[a.role] || {}).priority || 99;
+              const pB = (ROLE_TITLES[b.role] || {}).priority || 99;
+              if (pA !== pB) return pA - pB;
+              return (a.fullName || a.username || '').localeCompare(b.fullName || b.username || '');
+            });
           }
 
           renderPermissionsHeaders(systemBranches);
@@ -209,6 +731,11 @@
           const statusEl = document.getElementById('permStatusLabel');
           if (statusEl) {
             statusEl.innerText = `Đã đồng bộ ${userPermissions.length} nhân sự & ${systemBranches.length} chi nhánh trực tiếp từ CSDL SQL Server`;
+          }
+
+          const badgeEl = document.getElementById('tabBadgeScopeCount');
+          if (badgeEl) {
+            badgeEl.innerText = `${userPermissions.length} nhân sự • ${systemBranches.length} chi nhánh`;
           }
           return;
         }
@@ -233,8 +760,8 @@
             .replace(/^Chi nhánh \d+\s*-\s*Sân Cầu Lông\s*/i, '')
             .replace(/^Chi nhánh \d+\s*-\s*/i, '');
           return `
-            <th style="text-align: center; white-space: nowrap;">
-              <div>${escapeHtml(b.branchCode)}</div>
+            <th style="text-align: center; white-space: nowrap; min-width: 90px;">
+              <div style="font-weight: 700;">${escapeHtml(b.branchCode)}</div>
               <div style="font-size: 10.5px; font-weight: normal; color: var(--text-muted);">${escapeHtml(shortName || b.branchCode)}</div>
             </th>
           `;
@@ -243,16 +770,51 @@
 
       thead.innerHTML = `
         <tr>
-          <th>Nhân sự & Tài khoản</th>
-          <th>Vai trò chức danh</th>
-          <th style="text-align: center; white-space: nowrap;">
-            <div>Toàn chuỗi (ALL)</div>
+          <th style="min-width: 220px;">Nhân sự & Tài khoản</th>
+          <th style="min-width: 140px;">Vai trò chức danh</th>
+          <th style="text-align: center; white-space: nowrap; min-width: 100px;">
+            <div style="font-weight: 700;">Toàn chuỗi (ALL)</div>
             <div style="font-size: 10.5px; font-weight: normal; color: var(--text-muted);">Không giới hạn</div>
           </th>
           ${branchHeaders}
-          <th>Quyền hạn tác nghiệp</th>
+          <th style="min-width: 160px;">Phạm vi áp dụng (Tóm tắt)</th>
         </tr>
       `;
+    }
+
+    // Helper: phân tích chuỗi branchCode thành mảng
+    function parseActiveBranches(rawBranch, isSuper, allBranches) {
+      if (isSuper) return allBranches.map(b => b.branchCode);
+      const str = (rawBranch || '').trim();
+      if (!str) return [];
+      if (str.toUpperCase() === 'ALL') return allBranches.map(b => b.branchCode);
+      return str.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+    }
+
+    // Helper: tạo badge tóm tắt phạm vi
+    function generateScopeBadgeHtml(activeBranches, isAll, totalBranchesCount) {
+      if (isAll || (totalBranchesCount > 0 && activeBranches.length === totalBranchesCount)) {
+        return `<span class="scope-badge scope-badge-all">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 11px; height: 11px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+          Toàn chuỗi (${totalBranchesCount} CS)
+        </span>`;
+      }
+      if (activeBranches.length === 0) {
+        return `<span class="scope-badge scope-badge-none">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 11px; height: 11px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          Chưa gán chi nhánh
+        </span>`;
+      }
+      if (activeBranches.length === 1) {
+        return `<span class="scope-badge scope-badge-single">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 11px; height: 11px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+          1 cơ sở: ${escapeHtml(activeBranches[0])}
+        </span>`;
+      }
+      return `<span class="scope-badge scope-badge-multi">
+        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 11px; height: 11px;"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+        ${activeBranches.length} cơ sở: ${escapeHtml(activeBranches.join(', '))}
+      </span>`;
     }
 
     function renderPermissionsTable(users, branches) {
@@ -262,70 +824,141 @@
 
       const colSpan = 3 + (branches ? branches.length : 0) + 1;
       if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; padding: 32px; color: var(--text-muted);">Không tìm thấy dữ liệu nhân sự trong cơ sở dữ liệu SQL Server.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align: center; padding: 36px; color: var(--text-muted);">Không tìm thấy dữ liệu nhân sự trong cơ sở dữ liệu SQL Server.</td></tr>`;
         return;
       }
 
       users.forEach(u => {
         const roleMeta = ROLE_TITLES[u.role] || {
           label: u.role,
-          badgeStyle: 'background: #eff6ff; color: #1d4ed8;',
-          desc: 'Tác vụ phân hệ theo chức năng'
+          badgeStyle: 'background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;'
         };
-        const curBranch = u.branchCode || 'ALL';
         const isSuper = (u.role === 'DIRECTOR' || u.role === 'ADMIN');
-        const codeDisplay = u.staffCode ? ` • ID: ${u.staffCode}` : '';
+        const rawBranch = u.branchCode || (isSuper ? 'ALL' : '');
+        const activeBranches = parseActiveBranches(rawBranch, isSuper, branches);
+        const isAll = isSuper || rawBranch.toUpperCase() === 'ALL' || (branches.length > 0 && activeBranches.length === branches.length);
 
+        const codeDisplay = u.staffCode ? ` • ID: ${u.staffCode}` : '';
+        const safeUser = escapeHtml(u.username);
+
+        // Branch Checkboxes
         let branchCells = '';
         if (branches && branches.length > 0) {
           branchCells = branches.map(b => {
-            const isChecked = curBranch === b.branchCode;
+            const isChecked = isAll || activeBranches.includes(b.branchCode);
             return `
               <td style="text-align: center;">
-                <input type="radio" 
-                       name="scope_${escapeHtml(u.username)}" 
-                       value="${escapeHtml(b.branchCode)}" 
-                       ${isChecked ? 'checked' : ''} 
-                       ${isSuper ? 'disabled' : ''} 
-                       onchange="updateUserScopeLive('${escapeHtml(u.username)}', '${escapeHtml(b.branchCode)}', '${escapeHtml(b.branchName)}')"
-                       style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;"
-                       title="Gán quyền cho ${escapeHtml(u.fullName || u.username)} tại ${escapeHtml(b.branchName)}">
+                <label class="branch-checkbox-wrap" title="${isSuper ? 'Toàn quyền chuỗi mặc định theo chức danh' : `Gán quyền tác nghiệp tại ${escapeHtml(b.branchName)}`}">
+                  <input type="checkbox"
+                         class="user-branch-cb cb-${safeUser}"
+                         data-username="${safeUser}"
+                         data-branch="${escapeHtml(b.branchCode)}"
+                         ${isChecked ? 'checked' : ''}
+                         ${isSuper ? 'disabled' : ''}
+                         onchange="handleSingleBranchToggle('${safeUser}', '${escapeHtml(b.branchCode)}', this.checked)">
+                </label>
               </td>
             `;
           }).join('');
         }
 
         const tr = document.createElement('tr');
+        tr.id = `row_perm_${safeUser}`;
+        tr.dataset.role = u.role || '';
+        tr.dataset.search = `${u.fullName || ''} ${u.username || ''} ${u.staffCode || ''} ${u.role || ''}`.toLowerCase();
+
         tr.innerHTML = `
           <td>
-            <div style="font-weight: 600; color: var(--text-dark);">${escapeHtml(u.fullName || u.username)}</div>
-            <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;">${escapeHtml(u.username)}${escapeHtml(codeDisplay)}</div>
+            <div style="font-weight: 700; color: var(--text-dark); font-size: 13px;">${escapeHtml(u.fullName || u.username)}</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-family: monospace; margin-top: 2px;">@${safeUser}${escapeHtml(codeDisplay)}</div>
           </td>
           <td>
             <span class="badge" style="${roleMeta.badgeStyle}">${roleMeta.label}</span>
           </td>
           <td style="text-align: center;">
-            <input type="radio" 
-                   name="scope_${escapeHtml(u.username)}" 
-                   value="ALL" 
-                   ${curBranch === 'ALL' ? 'checked' : ''} 
-                   ${isSuper ? 'disabled checked' : ''} 
-                   onchange="updateUserScopeLive('${escapeHtml(u.username)}', 'ALL', 'Toàn chuỗi')"
-                   style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;"
-                   title="Gán quyền quản lý toàn chuỗi">
+            <label class="branch-checkbox-wrap" title="${isSuper ? 'Toàn quyền chuỗi mặc định theo chức danh' : 'Gán quyền toàn bộ chuỗi'}">
+              <input type="checkbox"
+                     id="all_${safeUser}"
+                     class="user-all-cb"
+                     data-username="${safeUser}"
+                     ${isAll ? 'checked' : ''}
+                     ${isSuper ? 'disabled' : ''}
+                     onchange="handleAllBranchesToggle('${safeUser}', this.checked)">
+            </label>
           </td>
           ${branchCells}
-          <td style="font-size: 12px; color: var(--text-muted);">${roleMeta.desc}</td>
+          <td id="scope_summary_${safeUser}">
+            ${generateScopeBadgeHtml(activeBranches, isAll, branches.length)}
+          </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    async function updateUserScopeLive(username, branchCode, branchTitle) {
-      // Auto-save instantly into SQL Server database on click
+    // Xử lý khi tick / bỏ tick checkbox "Toàn chuỗi (ALL)"
+    async function handleAllBranchesToggle(username, isChecked) {
       const u = userPermissions.find(item => item.username === username);
-      if (u) u.branchCode = branchCode;
+      if (!u) return;
 
+      const branchCheckboxes = document.querySelectorAll(`.cb-${CSS.escape(username)}`);
+      branchCheckboxes.forEach(cb => {
+        cb.checked = isChecked;
+      });
+
+      const newBranchCode = isChecked ? 'ALL' : '';
+      u.branchCode = newBranchCode;
+
+      // Cập nhật badge tóm tắt
+      const activeBranches = isChecked ? systemBranches.map(b => b.branchCode) : [];
+      const summaryEl = document.getElementById(`scope_summary_${username}`);
+      if (summaryEl) {
+        summaryEl.innerHTML = generateScopeBadgeHtml(activeBranches, isChecked, systemBranches.length);
+      }
+
+      await updateUserScopeLive(username, newBranchCode, isChecked ? 'Toàn chuỗi (ALL)' : 'Hủy phân quyền');
+    }
+
+    // Xử lý khi tick / bỏ tick từng chi nhánh đơn lẻ
+    async function handleSingleBranchToggle(username, changedBranch, isChecked) {
+      const u = userPermissions.find(item => item.username === username);
+      if (!u) return;
+
+      const branchCheckboxes = document.querySelectorAll(`.cb-${CSS.escape(username)}`);
+      const checkedBranches = [];
+      branchCheckboxes.forEach(cb => {
+        if (cb.checked) {
+          checkedBranches.push(cb.getAttribute('data-branch'));
+        }
+      });
+
+      const allCb = document.getElementById(`all_${username}`);
+      let newBranchCode = '';
+      let isAll = false;
+
+      if (checkedBranches.length === systemBranches.length && systemBranches.length > 0) {
+        newBranchCode = 'ALL';
+        isAll = true;
+        if (allCb) allCb.checked = true;
+      } else {
+        newBranchCode = checkedBranches.join(',');
+        isAll = false;
+        if (allCb) allCb.checked = false;
+      }
+
+      u.branchCode = newBranchCode;
+
+      // Cập nhật badge tóm tắt
+      const summaryEl = document.getElementById(`scope_summary_${username}`);
+      if (summaryEl) {
+        summaryEl.innerHTML = generateScopeBadgeHtml(checkedBranches, isAll, systemBranches.length);
+      }
+
+      const branchTitle = isAll ? 'Toàn chuỗi (ALL)' : (newBranchCode ? newBranchCode : 'Không có chi nhánh');
+      await updateUserScopeLive(username, newBranchCode, branchTitle);
+    }
+
+    // Lưu ngay thay đổi trực tiếp vào SQL Server CSDL
+    async function updateUserScopeLive(username, branchCode, branchTitle) {
       try {
         let token = localStorage.getItem('jwt_token');
         if (!token && typeof document !== 'undefined' && document.cookie) {
@@ -342,24 +975,33 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          if (window.showToast) showToast(`Đã cập nhật phạm vi "${username}" -> ${branchCode} (${branchTitle}) vào CSDL!`, 'success');
+          if (typeof showToast === 'function') {
+            showToast(`Đã cập nhật phạm vi "${username}" -> [${branchTitle || branchCode}] vào CSDL!`, 'success');
+          }
         } else {
-          if (window.showToast) showToast(data.message || 'Lỗi khi lưu phân quyền', 'error');
+          if (typeof showToast === 'function') {
+            showToast(data.message || 'Lỗi khi lưu phân quyền vào CSDL', 'error');
+          }
         }
       } catch (err) {
         console.error('Lỗi lưu phân quyền:', err);
       }
     }
 
+    // Nút "Lưu tất cả thay đổi"
     async function savePermissions() {
       const updates = [];
       userPermissions.forEach(u => {
         if (u.role === 'DIRECTOR' || u.role === 'ADMIN') {
           updates.push({ username: u.username, branchCode: 'ALL' });
         } else {
-          const selected = document.querySelector(`input[name="scope_${CSS.escape(u.username)}"]:checked`);
-          if (selected) {
-            updates.push({ username: u.username, branchCode: selected.value });
+          const allCb = document.getElementById(`all_${u.username}`);
+          if (allCb && allCb.checked) {
+            updates.push({ username: u.username, branchCode: 'ALL' });
+          } else {
+            const branchCheckboxes = document.querySelectorAll(`.cb-${CSS.escape(u.username)}:checked`);
+            const checkedCodes = Array.from(branchCheckboxes).map(cb => cb.getAttribute('data-branch'));
+            updates.push({ username: u.username, branchCode: checkedCodes.join(',') });
           }
         }
       });
@@ -380,23 +1022,37 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          if (window.showToast) showToast(`Đã lưu thành công ${data.updatedCount || updates.length} phân quyền nhân sự vào CSDL SQL Server!`, 'success');
+          if (typeof showToast === 'function') {
+            showToast(`Đã lưu thành công ${data.updatedCount || updates.length} cấu hình phân quyền nhân sự vào CSDL SQL Server!`, 'success');
+          }
           await loadPermissionsData();
         } else {
-          if (window.showToast) showToast(data.message || 'Lỗi khi lưu phân quyền', 'error');
+          if (typeof showToast === 'function') {
+            showToast(data.message || 'Lỗi khi lưu phân quyền', 'error');
+          }
         }
       } catch (err) {
         console.error('Lỗi khi lưu phân quyền:', err);
-        if (window.showToast) showToast('Đã ghi nhận cấu hình phân quyền chi nhánh', 'info');
+        if (typeof showToast === 'function') {
+          showToast('Đã ghi nhận cấu hình phân quyền chi nhánh', 'info');
+        }
       }
     }
 
+    // Lọc tìm kiếm theo từ khóa và chức danh
     function filterPermissionsTable() {
       const q = (document.getElementById('permSearchInput')?.value || '').toLowerCase().trim();
+      const roleFilter = (document.getElementById('permRoleFilter')?.value || 'ALL').toUpperCase();
       const rows = document.querySelectorAll('#permissionsTableBody tr');
+
       rows.forEach(r => {
-        const text = r.innerText.toLowerCase();
-        r.style.display = (!q || text.includes(q)) ? '' : 'none';
+        const searchTarget = r.dataset.search || '';
+        const rowRole = (r.dataset.role || '').toUpperCase();
+
+        const matchText = !q || searchTarget.includes(q);
+        const matchRole = (roleFilter === 'ALL') || (rowRole === roleFilter) || (roleFilter === 'POS' && rowRole === 'STAFF');
+
+        r.style.display = (matchText && matchRole) ? '' : 'none';
       });
     }
 
@@ -414,6 +1070,3 @@
   <script src="/js/global-hub.js"></script>
 </body>
 </html>
-
-
-
