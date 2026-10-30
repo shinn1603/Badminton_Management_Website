@@ -1515,7 +1515,7 @@
             const prodBranchSel = document.getElementById('dirNewProductBranch');
             if (prodBranchSel) {
               const cur = prodBranchSel.value || 'ALL';
-              let prodBranchHtml = `<option value="ALL">Tất cả ${dbBranches.length} chi nhánh (Chuẩn chuỗi)</option>`;
+              let prodBranchHtml = `<option value="ALL">Tất cả các chi nhánh (${dbBranches.length} cơ sở - Chuẩn chuỗi)</option>`;
               dbBranches.forEach(b => {
                 prodBranchHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
               });
@@ -1597,10 +1597,8 @@
     }
 
     // --- DIRECTOR CREATE PRODUCT FUNCTIONS ---
-    function openDirectorCreateProductModal() {
-      if (!dbBranches || dbBranches.length === 0) {
-        loadDirectorBranchesFromDb();
-      }
+    async function openDirectorCreateProductModal() {
+      await loadDirectorBranchesFromDb();
       document.getElementById('dirNewProductCode').value = '';
       document.getElementById('dirNewProductName').value = '';
       document.getElementById('dirNewProductCategory').value = 'Nước uống';

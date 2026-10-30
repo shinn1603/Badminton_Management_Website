@@ -2867,14 +2867,16 @@
     }
 
     // Load Live Schedule Matrix (Tab 1.5)
-    async function loadMatrixSchedule() {
+    async function loadMatrixSchedule(silent = false) {
       const branchCode = document.getElementById('dashBranchPicker').value || 'CN01';
       const dateInput = document.getElementById('matrixViewDate');
       const date = dateInput && dateInput.value ? dateInput.value : new Date().toISOString().split('T')[0];
       const tbody = document.getElementById('custMatrixBody');
       if (!tbody) return;
 
-      tbody.innerHTML = `<tr><td colspan="14" style="padding: 24px; text-align: center; color: var(--text-muted);">Đang cập nhật lịch sân cho ngày ${date}...</td></tr>`;
+      if (!silent) {
+        tbody.innerHTML = `<tr><td colspan="14" style="padding: 24px; text-align: center; color: var(--text-muted);">Đang cập nhật lịch sân cho ngày ${date}...</td></tr>`;
+      }
 
       try {
         const [courtsRes, slotsData] = await Promise.all([
