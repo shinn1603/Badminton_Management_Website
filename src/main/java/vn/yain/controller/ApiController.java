@@ -3890,7 +3890,12 @@ public class ApiController {
 
         if (effectiveBranch != null && !effectiveBranch.trim().isEmpty() && !"ALL".equalsIgnoreCase(effectiveBranch.trim())) {
 
-            return productRepository.findByBranchCode(effectiveBranch.trim());
+            List<Product> branchProducts = productRepository.findByBranchCode(effectiveBranch.trim());
+            if (!branchProducts.isEmpty()) {
+                return branchProducts;
+            }
+            // Fallback to standard chain products if newly created branch has no specific items yet
+            return productRepository.findByBranchCode("CN01");
 
         }
 

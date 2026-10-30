@@ -758,7 +758,13 @@ public class DatabaseSeeder implements CommandLineRunner {
 
             createProduct("P10", "CN03", "Nước bù khoáng Revive Chanh muối 500ml", "Nước giải khát", "Chai", new BigDecimal("15000"), new BigDecimal("8000"), 90, 20),
 
-            createProduct("P11", "CN04", "Nước bù khoáng Revive Chanh muối 500ml", "Nước giải khát", "Chai", new BigDecimal("15000"), new BigDecimal("8000"), 100, 20)
+            createProduct("P11", "CN04", "Nước bù khoáng Revive Chanh muối 500ml", "Nước giải khát", "Chai", new BigDecimal("15000"), new BigDecimal("8000"), 100, 20),
+
+            createProduct("P12", "CN01", "Thuê Vợt Yonex Astrox", "Dịch vụ", "Cây", new BigDecimal("20000"), new BigDecimal("10000"), 50, 5),
+
+            createProduct("P13", "CN01", "Ống Cầu Yonex Aerosensa (3 quả)", "Cầu lông", "Ống", new BigDecimal("45000"), new BigDecimal("30000"), 60, 10),
+
+            createProduct("P14", "CN01", "Thuê Giày Cầu Lông Chuyên Dụng", "Dịch vụ", "Đôi", new BigDecimal("30000"), new BigDecimal("15000"), 30, 5)
 
         );
 
