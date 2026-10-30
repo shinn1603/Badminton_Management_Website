@@ -149,10 +149,6 @@
               <select class="branch-select" id="branchFilterSelect" onchange="filterTableByBranch(this.value)">
                 <option value="ALL">Tất cả chi nhánh</option>
                 <option value="ALL_CHAIN">Toàn chuỗi (Không giới hạn)</option>
-                <option value="CN01">Chi nhánh Thủ Đức (CN01)</option>
-                <option value="CN02">Chi nhánh Bình Thạnh (CN02)</option>
-                <option value="CN03">Chi nhánh Quận 9 (CN03)</option>
-                <option value="CN04">Chi nhánh Gò Vấp (CN04)</option>
               </select>
 
               <select class="branch-select" id="statusFilterSelect" onchange="applyUserFilters()">
@@ -254,13 +250,7 @@
         <div class="form-group" id="branchAssignGroup">
           <label class="form-label" for="inpBranch">Phân công chi nhánh phụ trách</label>
           <select class="form-control" id="inpBranch">
-            <option value="CN01">Chi nhánh 1 - TP. Thủ Đức (CN01)</option>
-            <option value="CN02">Chi nhánh 2 - Bình Thạnh (CN02)</option>
-            <option value="CN03">Chi nhánh 3 - Quận 9 (CN03)</option>
-            <option value="CN04">Chi nhánh 4 - Gò Vấp (CN04)</option>
-            <option value="CN01,CN02">Kiêm nhiệm 2 chi nhánh: CN01 (Thủ Đức) & CN02 (Bình Thạnh)</option>
-            <option value="CN01,CN02,CN03">Kiêm nhiệm 3 chi nhánh: CN01 + CN02 + CN03</option>
-            <option value="ALL">Toàn chuỗi (Không giới hạn)</option>
+            <option value="ALL">Toàn chuỗi (Không giới hạn - Giám đốc & Quản trị)</option>
           </select>
         </div>
 
@@ -290,15 +280,70 @@
     };
     ROLE_LABELS.STAFF = ROLE_LABELS.POS;
 
-    const BRANCH_LABELS = {
-      ALL: 'Toàn chuỗi',
-      CN01: 'CN Thủ Đức (CN01)',
-      CN02: 'CN Bình Thạnh (CN02)',
-      CN03: 'CN Quận 9 (CN03)',
-      CN04: 'CN Gò Vấp (CN04)',
-      'CN01,CN02': 'Kiêm nhiệm: CN01 & CN02',
-      'CN01,CN02,CN03': 'Kiêm nhiệm: CN01, CN02, CN03'
+    let BRANCH_LABELS = {
+      ALL: 'Toàn chuỗi'
     };
+
+    let dbBranches = [];
+
+    // Tải danh sách chi nhánh trực tiếp từ CSDL để cập nhật bộ lọc và gán quyền
+    async function loadBranchesFromDb() {
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/branches', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            dbBranches = data;
+            
+            // Re-populate BRANCH_LABELS dynamically
+            dbBranches.forEach(b => {
+              BRANCH_LABELS[b.branchCode] = `${b.branchName} (${b.branchCode})`;
+            });
+
+            // Populate branchFilterSelect
+            const filterSel = document.getElementById('branchFilterSelect');
+            if (filterSel) {
+              const cur = filterSel.value || 'ALL';
+              let fHtml = `
+                <option value="ALL">Tất cả chi nhánh</option>
+                <option value="ALL_CHAIN">Toàn chuỗi (Không giới hạn)</option>
+              `;
+              dbBranches.forEach(b => {
+                fHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchName)} (${escapeHtml(b.branchCode)})</option>`;
+              });
+              filterSel.innerHTML = fHtml;
+              if (Array.from(filterSel.options).some(o => o.value === cur)) {
+                filterSel.value = cur;
+              }
+            }
+
+            // Populate modal inpBranch
+            const modalBranchSel = document.getElementById('inpBranch');
+            if (modalBranchSel) {
+              const cur = modalBranchSel.value;
+              let mHtml = `<option value="ALL">Toàn chuỗi (Không giới hạn - Giám đốc & Quản trị)</option>`;
+              dbBranches.forEach(b => {
+                mHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchName)} (${escapeHtml(b.branchCode)})</option>`;
+              });
+              modalBranchSel.innerHTML = mHtml;
+              if (cur && Array.from(modalBranchSel.options).some(o => o.value === cur)) {
+                modalBranchSel.value = cur;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Lỗi khi tải chi nhánh từ CSDL:', e);
+      }
+    }
 
     // Danh sách tài khoản được đồng bộ 100% trực tiếp từ CSDL SQL Server (Bảng users) qua API /api/admin/users
     let cachedUsers = [];
@@ -406,7 +451,7 @@
         document.getElementById('inpUsername').disabled = true;
         document.getElementById('inpFullName').value = fullname || '';
         document.getElementById('inpRole').value = role || 'POS';
-        document.getElementById('inpBranch').value = branch || 'CN01';
+        document.getElementById('inpBranch').value = branch || ((role === 'DIRECTOR' || role === 'ADMIN') ? 'ALL' : (dbBranches[0]?.branchCode || 'CN01'));
         document.getElementById('inpPhone').value = phone || '';
         document.getElementById('inpPassword').value = '';
         if (inpStatus) {
@@ -421,7 +466,7 @@
         document.getElementById('inpFullName').value = '';
         document.getElementById('inpPhone').value = '';
         document.getElementById('inpRole').value = 'POS';
-        document.getElementById('inpBranch').value = 'CN01';
+        document.getElementById('inpBranch').value = dbBranches[0]?.branchCode || 'CN01';
         if (inpStatus) inpStatus.value = 'Hoạt động';
         if (statusGroup) statusGroup.style.display = 'none';
       }
@@ -557,8 +602,11 @@
 
     function handleRoleChange(role) {
       const branchSelect = document.getElementById('inpBranch');
+      if (!branchSelect) return;
       if (role === 'DIRECTOR' || role === 'ADMIN') {
         branchSelect.value = 'ALL';
+      } else if (branchSelect.value === 'ALL') {
+        branchSelect.value = dbBranches[0]?.branchCode || 'CN01';
       }
     }
 
@@ -651,7 +699,11 @@
         .replace(/'/g, '&#039;');
     }
 
-    document.addEventListener('DOMContentLoaded', loadUsers);
+    async function initAdminUsers() {
+      await loadBranchesFromDb();
+      await loadUsers();
+    }
+    document.addEventListener('DOMContentLoaded', initAdminUsers);
   </script>
 
   <script src="/js/global-hub.js"></script>

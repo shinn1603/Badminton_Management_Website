@@ -982,6 +982,7 @@
               ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #059669; color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Trả sân</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân">Xóa</button>
             </div>
           `;
         } else if (c.status === 'Bảo trì') {
@@ -990,6 +991,7 @@
               ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
               <button type="button" class="btn btn-success" style="flex: 1; padding: 6px 6px; font-size: 11px; background: #10b981; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')">Hoàn tất</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân">Xóa</button>
             </div>
           `;
         } else {
@@ -997,7 +999,8 @@
             <div style="margin-top: 10px; display: flex; gap: 6px;">
               ${photoBtnHtml}
               <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
-              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Đưa sân vào lịch bảo trì kỹ thuật">Bảo trì</button>
+              <button type="button" class="btn btn-outline" style="flex: 1; padding: 6px 6px; font-size: 11px; border-color: #d97706; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Đưa sân vào lịch bảo trì kỹ thuật">Bảo trì</button>
+              <button type="button" class="btn btn-outline" style="padding: 6px 6px; font-size: 11px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân">Xóa</button>
             </div>
           `;
         }
@@ -1079,7 +1082,8 @@
                 <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px;" onclick="openCourtModal('${c.courtCode}', '${safeName}', '${safeType}', ${c.hourlyRate}, '${c.status}', '${imgSrc}')">Sửa</button>
                 ${c.status === 'Đang sử dụng' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #059669; color: #059669;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Khách đánh xong, trả về sân trống">Trả sân</button>` : ''}
                 ${c.status === 'Bảo trì' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #10b981; color: #10b981;" onclick="quickUpdateStatus('${c.courtCode}', 'Trống')" title="Chuyển về trạng thái Trống">Hoàn tất</button>` : ''}
-                ${c.status === 'Trống' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #ef4444; color: #ef4444;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Chuyển sang bảo trì">Bảo trì</button>` : ''}
+                ${c.status === 'Trống' ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #d97706; color: #d97706;" onclick="quickUpdateStatus('${c.courtCode}', 'Bảo trì')" title="Chuyển sang bảo trì">Bảo trì</button>` : ''}
+                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; border-color: #ef4444; color: #ef4444;" onclick="deleteCourt('${c.courtCode}', '${safeName}')" title="Xóa sân khỏi hệ thống">Xóa</button>
               </div>
             </td>
           </tr>
@@ -1115,6 +1119,38 @@
 
       renderVisualGrid(list);
       renderTable(list);
+    }
+
+    async function deleteCourt(courtCode, courtName) {
+      if (!courtCode) return;
+      const name = courtName || courtCode;
+      if (!confirm(`Bạn có chắc chắn muốn xóa sân [${courtCode} - ${name}] khỏi hệ thống không?\n\nLưu ý: Thao tác này sẽ loại bỏ sân khỏi danh sách và đồng bộ tức thì tới tất cả các chi nhánh.`)) {
+        return;
+      }
+      try {
+        let token = localStorage.getItem('jwt_token');
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}`, {
+          method: 'DELETE',
+          headers: headers
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          showToast(data.message || `Đã xóa sân ${courtCode} thành công!`, 'success');
+          await loadCourtsFromApi();
+        } else {
+          showToast(data.message || 'Lỗi khi xóa sân thi đấu!', 'error');
+        }
+      } catch (e) {
+        console.error('Lỗi khi xóa sân:', e);
+        showToast('Lỗi kết nối máy chủ khi xóa sân!', 'error');
+      }
     }
 
     async function quickUpdateStatus(courtCode, newStatus) {
