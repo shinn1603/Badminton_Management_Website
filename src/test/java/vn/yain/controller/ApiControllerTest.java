@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,6 +46,9 @@ class ApiControllerTest {
 
     @Autowired
     private vn.yain.repository.ProductRepository productRepository;
+
+    @Autowired
+    private vn.yain.repository.BranchRepository branchRepository;
 
     @BeforeEach
     void setUp() {
@@ -424,5 +428,25 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$.trends.customerTrend", notNullValue()))
                 .andExpect(jsonPath("$.chart.labels", notNullValue()))
                 .andExpect(jsonPath("$.donut.labels", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("Director: Xoa chi nhanh thanh cong DELETE /api/director/branches/{branchCode}")
+    void testDirectorDeleteBranch() throws Exception {
+        // Create branch CN99 first
+        vn.yain.entity.Branch b = new vn.yain.entity.Branch();
+        b.setBranchCode("CN99");
+        b.setBranchName("Chi nhánh Test 99");
+        b.setAddress("99 Vo Van Ngan, Thu Duc");
+        b.setPhone("0909999999");
+        b.setTotalCourts(4);
+        b.setStatus("Hoạt động");
+        branchRepository.save(b);
+
+        mockMvc.perform(delete("/api/director/branches/CN99"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
+
+        org.junit.jupiter.api.Assertions.assertTrue(branchRepository.findByBranchCode("CN99").isEmpty());
     }
 }

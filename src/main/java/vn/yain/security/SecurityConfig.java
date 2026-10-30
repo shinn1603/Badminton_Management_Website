@@ -90,7 +90,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/shifts", "/api/shifts/**").permitAll()
                 .requestMatchers("/api/pricing/**", "/api/promotions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/branches/**", "/api/director/stats", "/api/director/branches/**", "/api/manager/stats", "/api/manager/reports/**", "/api/manager/reports", "/api/policy/**").permitAll()
-                .requestMatchers("/api/director/pricing/**", "/api/director/tournaments/**", "/api/manager/pricing/**").permitAll()
+                .requestMatchers("/api/director/branches", "/api/director/branches/**", "/api/director/pricing/**", "/api/director/tournaments/**", "/api/manager/pricing/**").permitAll()
                 .requestMatchers("/api/tournaments/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings", "/api/bookings/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/bookings", "/api/bookings/**").permitAll()
