@@ -382,7 +382,7 @@ public class ApiController {
 
 
     private static final Map<String, Map<String, Object>> forgotPasswordOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
-
+    private static final Map<String, Map<String, Object>> registerOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 
 
     // ==========================================
@@ -526,52 +526,151 @@ public class ApiController {
 
 
     @PostMapping("/auth/register")
-
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
-
         try {
-
             String username = payload.get("username");
-
             String password = payload.get("password");
-
             String fullName = payload.get("fullName");
-
             String phone = payload.get("phone");
-
             String email = payload.get("email");
 
-
-
             if ((username == null || username.trim().isEmpty()) && phone != null) {
-
                 username = phone.trim();
-
             }
 
+            if (username == null || username.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập tên đăng nhập hoặc số điện thoại!"));
+            }
+            if (password == null || password.trim().length() < 6) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mật khẩu phải có ít nhất 6 ký tự!"));
+            }
+            if (email == null || email.isBlank() || !email.contains("@")) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập địa chỉ email hợp lệ để nhận mã xác thực OTP!"));
+            }
 
+            String cleanUsername = username.trim();
+            String cleanEmail = email.trim().toLowerCase();
+            String cleanPhone = phone != null ? phone.trim() : "";
 
-            Map<String, Object> registerResult = userService.registerCustomer(username, password, fullName, phone, email);
+            if (userRepository.findByUsername(cleanUsername).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tên đăng nhập đã tồn tại!"));
+            }
+            if (!cleanPhone.isEmpty() && userRepository.findByPhone(cleanPhone).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Số điện thoại này đã được đăng ký!"));
+            }
+            if (userRepository.findByEmail(cleanEmail).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Email này đã được sử dụng cho một tài khoản khác!"));
+            }
 
-            registerResult.put("success", true);
+            String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+            Map<String, Object> pendingUser = new HashMap<>();
+            pendingUser.put("username", cleanUsername);
+            pendingUser.put("password", password);
+            pendingUser.put("fullName", fullName != null ? fullName.trim() : cleanUsername);
+            pendingUser.put("phone", cleanPhone);
+            pendingUser.put("email", cleanEmail);
+            pendingUser.put("otp", otp);
+            pendingUser.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000);
 
-            registerResult.put("message", "Đăng ký tài khoản thành công!");
+            registerOtpMap.put(cleanEmail, pendingUser);
 
-            return ResponseEntity.ok(registerResult);
+            if (emailService != null) {
+                emailService.sendRegistrationOtpEmail(cleanEmail, (String) pendingUser.get("fullName"), otp);
+            }
+            log.info("[OTP REGISTER] Mã xác nhận OTP tạo tài khoản cho {} ({}): {}", cleanUsername, cleanEmail, otp);
 
+            String masked = maskEmail(cleanEmail);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "requireOtp", true,
+                    "email", cleanEmail,
+                    "maskedEmail", masked,
+                    "message", "Mã OTP đã được gửi đến email " + masked + ". Vui lòng xác thực để hoàn tất đăng ký!"
+            ));
         } catch (IllegalArgumentException e) {
-
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
-
         } catch (Exception e) {
-
             return ResponseEntity.status(500).body(Map.of("success", false, "message", sanitizeErrorMessage(e)));
-
         }
-
     }
 
+    @PostMapping("/auth/verify-register-otp")
+    public ResponseEntity<?> verifyRegisterOtp(@RequestBody Map<String, String> payload) {
+        try {
+            String email = payload.get("email");
+            String otp = payload.get("otp");
 
+            if (email == null || email.isBlank() || otp == null || otp.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập đầy đủ email và mã OTP!"));
+            }
+
+            String cleanEmail = email.trim().toLowerCase();
+            Map<String, Object> pendingUser = registerOtpMap.get(cleanEmail);
+
+            if (pendingUser == null) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Yêu cầu đăng ký không tồn tại hoặc đã hết hạn. Vui lòng đăng ký lại!"));
+            }
+
+            long expiry = (long) pendingUser.get("expiry");
+            if (System.currentTimeMillis() > expiry) {
+                registerOtpMap.remove(cleanEmail);
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã OTP đã hết hạn (quá 10 phút). Vui lòng thực hiện đăng ký lại!"));
+            }
+
+            String expectedOtp = (String) pendingUser.get("otp");
+            if (!expectedOtp.equals(otp.trim())) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã xác nhận OTP không chính xác. Vui lòng kiểm tra lại!"));
+            }
+
+            registerOtpMap.remove(cleanEmail);
+
+            String username = (String) pendingUser.get("username");
+            String password = (String) pendingUser.get("password");
+            String fullName = (String) pendingUser.get("fullName");
+            String phone = (String) pendingUser.get("phone");
+
+            userService.registerCustomer(username, password, fullName, phone, cleanEmail);
+
+            Map<String, Object> authResult = userService.authenticate(username, password);
+            authResult.put("success", true);
+            authResult.put("message", "Xác thực OTP và tạo tài khoản thành công!");
+            authResult.put("redirectUrl", "/customer/home");
+
+            return ResponseEntity.ok(authResult);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", sanitizeErrorMessage(e)));
+        }
+    }
+
+    @PostMapping("/auth/resend-register-otp")
+    public ResponseEntity<?> resendRegisterOtp(@RequestBody Map<String, String> payload) {
+        try {
+            String email = payload.get("email");
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Không tìm thấy địa chỉ email!"));
+            }
+            String cleanEmail = email.trim().toLowerCase();
+            Map<String, Object> pendingUser = registerOtpMap.get(cleanEmail);
+            if (pendingUser == null) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Phiên đăng ký đã hết hạn, vui lòng quay lại trang đăng ký!"));
+            }
+
+            String newOtp = String.format("%06d", new java.util.Random().nextInt(1000000));
+            pendingUser.put("otp", newOtp);
+            pendingUser.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000);
+
+            if (emailService != null) {
+                emailService.sendRegistrationOtpEmail(cleanEmail, (String) pendingUser.get("fullName"), newOtp);
+            }
+            log.info("[OTP REGISTER RESEND] Mã OTP mới cho {}: {}", cleanEmail, newOtp);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Đã gửi lại mã OTP mới đến email của bạn!"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", sanitizeErrorMessage(e)));
+        }
+    }
 
     @PostMapping("/auth/forgot-password")
 
@@ -678,7 +777,7 @@ public class ApiController {
             // Lưu đa khóa để người dùng nhập bất kỳ định danh nào (username, phone, email, customerCode) đều khớp OTP
 
             forgotPasswordOtpMap.put(cleanId.toLowerCase(), otpInfo);
-
+            
             if (user != null) {
 
                 if (user.getUsername() != null) forgotPasswordOtpMap.put(user.getUsername().trim().toLowerCase(), otpInfo);

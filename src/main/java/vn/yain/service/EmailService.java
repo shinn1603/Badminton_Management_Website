@@ -579,7 +579,49 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
+    
+    public void sendRegistrationOtpEmail(String toEmail, String fullName, String otpCode) {
+        String safeName = (fullName != null && !fullName.isBlank()) ? fullName : "Quý khách";
+        String subject = "[UTE Sport] Mã xác thực kích hoạt tài khoản hội viên: " + otpCode;
 
+        String html = """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #1e293b;">
+                <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+                    <div style="background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 28px 24px; text-align: center; border-bottom: 3px solid #10b981;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">UTE SPORT BADMINTON ARENA</h1>
+                        <p style="color: #94a3b8; margin: 6px 0 0; font-size: 13px;">Hệ Thống Quản Lý Chuỗi Trung Tâm Thể Thao Cao Cấp</p>
+                    </div>
+                    <div style="padding: 28px 24px;">
+                        <h2 style="color: #0f172a; font-size: 18px; margin-top: 0;">Xác Thực Tài Khoản Đăng Ký</h2>
+                        <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+                            Xin chào <strong>%s</strong>,<br>
+                            Cảm ơn bạn đã đăng ký tài khoản tại UTE Sport! Để hoàn tất quá trình tạo tài khoản và kích hoạt các quyền lợi hội viên, vui lòng nhập mã xác nhận bên dưới:
+                        </p>
+                        <div style="margin: 24px 0; text-align: center;">
+                            <div style="display: inline-block; background: #f8fafc; border: 2px dashed #10b981; border-radius: 12px; padding: 14px 32px; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #047857;">
+                                %s
+                            </div>
+                            <p style="font-size: 12px; color: #64748b; margin: 8px 0 0;">Mã xác thực có hiệu lực trong vòng <strong>10 phút</strong>.</p>
+                        </div>
+                        <p style="font-size: 13px; line-height: 1.6; color: #64748b; background: #f0fdf4; border-left: 4px solid #10b981; padding: 10px 14px; border-radius: 4px;">
+                            <strong>Lưu ý bảo mật:</strong> Không chia sẻ mã OTP này cho bất kỳ ai. Nếu bạn không thực hiện đăng ký tài khoản này tại UTE Sport, vui lòng bỏ qua email này.
+                        </p>
+                    </div>
+                    <div style="background: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
+                        © 2026 UTE Sport Badminton Club | Chi nhánh chính: 01 Võ Văn Ngân, TP. Thủ Đức<br>
+                        Hotline hỗ trợ: 0903.123.456 - Website: utesport.vn
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(safeName, otpCode);
+
+        sendHtmlEmailAsync(toEmail, subject, html);
+    }
+    
     // =========================================================================
     // 2. GỬI PHIẾU XÁC NHẬN ĐẶT SÂN & VÉ ĐIỆN TỬ (E-TICKET BM-KH02)
     // =========================================================================
