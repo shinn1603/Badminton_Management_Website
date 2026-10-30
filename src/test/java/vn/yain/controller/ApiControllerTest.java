@@ -629,4 +629,36 @@ class ApiControllerTest {
             org.springframework.security.core.context.SecurityContextHolder.clearContext();
         }
     }
+
+    @Test
+    @DisplayName("Admin API Permissions: Lay ma tran va cap nhat pham vi da chi nhanh (CN01,CN02)")
+    void testAdminPermissionsGetAndPostMultiBranch() throws Exception {
+        // 1. GET /api/admin/permissions tra ve danh sach chi nhanh va nhan su
+        mockMvc.perform(get("/api/admin/permissions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.branches", notNullValue()))
+                .andExpect(jsonPath("$.users", notNullValue()));
+
+        // 2. POST /api/admin/permissions gan da chi nhanh cho manager (CN01,CN02)
+        String payload = """
+            [
+                {
+                    "username": "manager",
+                    "branchCode": "CN01,CN02"
+                }
+            ]
+            """;
+
+        mockMvc.perform(post("/api/admin/permissions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
+
+        // Kiem tra trong CSDL tai khoan manager duoc cap nhat chinh xac CN01,CN02
+        vn.yain.entity.User updatedManager = userRepository.findByUsername("manager").orElse(null);
+        org.junit.jupiter.api.Assertions.assertNotNull(updatedManager);
+        assertEquals("CN01,CN02", updatedManager.getBranchCode());
+    }
 }
