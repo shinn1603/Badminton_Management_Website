@@ -337,10 +337,10 @@
             </svg>
           </button>
 
-          <button type="button" class="btn btn-primary" onclick="openCourtModal()">
-            <svg class="svg-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Thêm Sân Mới</span>
-          </button>
+          <a href="/manager/pricing" class="btn btn-outline" style="font-size: 12px; gap: 6px; display: inline-flex; align-items: center;" title="Quản lý chi nhánh không trực tiếp sửa giá. Bấm để gửi Đề xuất biểu giá sân tới Ban Giám Đốc">
+            <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Đề xuất biểu giá sân</span>
+          </a>
 
           <div class="user-pill-header" onclick="window.location.href='/login'">
             <div class="user-avatar" style="width: 28px; height: 28px; font-size: 11px;">QL</div>
@@ -521,8 +521,11 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div class="form-group">
-            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Đơn giá thuê (VNĐ/giờ) *</label>
-            <input type="number" class="form-control" id="inpHourlyRate" value="90000" step="10000">
+            <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">
+              Đơn giá thuê (VNĐ/giờ) <span style="font-size: 10px; font-weight: 700; color: #d97706; margin-left: 4px; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.25);">Khóa • Ban Giám Đốc quản lý</span>
+            </label>
+            <input type="number" class="form-control" id="inpHourlyRate" value="90000" step="10000" readonly disabled style="background: var(--surface-subtle); color: var(--text-muted); cursor: not-allowed; font-weight: 700;">
+            <div style="margin-top: 4px; font-size: 11px; color: var(--text-muted); line-height: 1.3;">Quản lý chi nhánh không được phép điều chỉnh giá thuê. Vui lòng vào trang Đề Xuất Giá nếu muốn thay đổi.</div>
           </div>
           <div class="form-group">
             <label class="form-label" style="font-weight: 700; font-size: 12px; margin-bottom: 4px; display: block;">Trạng thái vận hành *</label>
@@ -706,48 +709,85 @@
 
     async function loadBranchesFromDb() {
       try {
-        const res = await fetch('/api/branches');
+        let token = localStorage.getItem('jwt_token') || '';
+        if (!token && typeof document !== 'undefined' && document.cookie) {
+          const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
+          if (match) token = match[1];
+        }
+        const headers = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        // Tải chi nhánh phân công cho tài khoản đang đăng nhập (chống xem chéo cơ sở)
+        const res = await fetch('/api/user/my-branches', { headers, credentials: 'include' });
+        let list = [];
+        let isDirectorOrAdmin = false;
         if (res.ok) {
-          const list = await res.json();
-          if (Array.isArray(list) && list.length > 0) {
-            dbBranches = list.filter(b => b.branchCode && b.branchCode.toUpperCase() !== 'ALL');
-            branchNameMap = {};
+          const data = await res.json();
+          if (data && data.branches && data.branches.length > 0) {
+            list = data.branches;
+            if (data.role === 'DIRECTOR' || data.role === 'ADMIN') {
+              isDirectorOrAdmin = true;
+            }
+          }
+        }
+        if (!list || list.length === 0) {
+          const fallbackRes = await fetch('/api/branches');
+          if (fallbackRes.ok) list = await fallbackRes.json();
+        }
+
+        if (Array.isArray(list) && list.length > 0) {
+          dbBranches = list.filter(b => b.branchCode && b.branchCode.toUpperCase() !== 'ALL');
+          branchNameMap = {};
+          dbBranches.forEach(b => {
+            branchNameMap[b.branchCode] = b.branchName;
+          });
+
+          // Đối với Quản lý chi nhánh: TUYỆT ĐỐI KHÔNG có option "ALL", chỉ hiện các chi nhánh được phân công
+          let filterHtml = '';
+          if (isDirectorOrAdmin) {
+            filterHtml += '<option value="ALL">Tất cả chi nhánh (Toàn chuỗi)</option>';
+          }
+          dbBranches.forEach(b => {
+            filterHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
+          });
+
+          const headerSel = document.getElementById('branchSelectFilter');
+          const courtSel = document.getElementById('courtBranchFilter');
+          let savedBranch = localStorage.getItem('utesport_active_branch');
+
+          // Nếu savedBranch là 'ALL' hoặc không nằm trong danh sách chi nhánh được quản lý, reset về chi nhánh đầu tiên
+          if (!savedBranch || savedBranch === 'ALL' || !dbBranches.some(b => b.branchCode === savedBranch)) {
+            savedBranch = dbBranches[0] ? dbBranches[0].branchCode : 'CN01';
+            localStorage.setItem('utesport_active_branch', savedBranch);
+          }
+
+          if (headerSel) {
+            headerSel.innerHTML = filterHtml;
+            headerSel.value = savedBranch;
+            if (dbBranches.length <= 1) {
+              headerSel.disabled = true;
+              headerSel.style.cursor = 'default';
+            }
+          }
+          if (courtSel) {
+            courtSel.innerHTML = filterHtml;
+            courtSel.value = savedBranch;
+            if (dbBranches.length <= 1) {
+              courtSel.disabled = true;
+              courtSel.style.cursor = 'default';
+            }
+          }
+
+          // Populate modal select
+          const modalSel = document.getElementById('inpBranchCode');
+          if (modalSel) {
+            let modalHtml = '';
             dbBranches.forEach(b => {
-              branchNameMap[b.branchCode] = b.branchName;
+              modalHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
             });
-
-            // Populate filter dropdowns
-            let filterHtml = '<option value="ALL">Tất cả chi nhánh (Toàn chuỗi)</option>';
-            dbBranches.forEach(b => {
-              filterHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
-            });
-
-            const headerSel = document.getElementById('branchSelectFilter');
-            const courtSel = document.getElementById('courtBranchFilter');
-            const savedBranch = localStorage.getItem('utesport_active_branch') || getActiveBranchCode() || 'CN01';
-
-            if (headerSel) {
-              headerSel.innerHTML = filterHtml;
-              if (Array.from(headerSel.options).some(o => o.value === savedBranch)) {
-                headerSel.value = savedBranch;
-              }
-            }
-            if (courtSel) {
-              courtSel.innerHTML = filterHtml;
-              if (Array.from(courtSel.options).some(o => o.value === savedBranch)) {
-                courtSel.value = savedBranch;
-              }
-            }
-
-            // Populate modal select
-            const modalSel = document.getElementById('inpBranchCode');
-            if (modalSel) {
-              let modalHtml = '';
-              dbBranches.forEach(b => {
-                modalHtml += `<option value="${escapeHtml(b.branchCode)}">${escapeHtml(b.branchCode)} - ${escapeHtml(b.branchName)}</option>`;
-              });
-              modalSel.innerHTML = modalHtml;
-            }
+            modalSel.innerHTML = modalHtml;
+            modalSel.value = savedBranch;
+            modalSel.disabled = true; // Khóa chi nhánh khi xem/sửa sân
           }
         }
       } catch (err) {
@@ -756,6 +796,9 @@
     }
 
     function onCourtBranchFilterChange(val) {
+      if (!dbBranches.some(b => b.branchCode === val)) {
+        val = dbBranches[0] ? dbBranches[0].branchCode : 'CN01';
+      }
       localStorage.setItem('utesport_active_branch', val);
       const headerSel = document.getElementById('branchSelectFilter');
       if (headerSel && headerSel.value !== val) headerSel.value = val;
@@ -764,9 +807,7 @@
 
       const subTitle = document.getElementById('courtsVisualSubtitle');
       if (subTitle) {
-        subTitle.textContent = val === 'ALL'
-          ? 'Hệ thống sân thảm thi đấu chuẩn BWF toàn chuỗi UTE Sport'
-          : `Hệ thống sân thảm thi đấu chuẩn BWF tại ${getBranchName(val)}`;
+        subTitle.textContent = `Hệ thống sân thảm thi đấu chuẩn BWF tại ${getBranchName(val)}`;
       }
 
       loadCourtsFromApi();
@@ -1096,48 +1137,37 @@
     }
 
     function openCourtModal(code, name, type, rate, status, imageUrl) {
+      if (!code) {
+        showToast('Chỉ Ban Giám Đốc mới có thẩm quyền thêm sân mới vào hệ thống chuỗi!', 'warning');
+        return;
+      }
       const modal = document.getElementById('courtModal');
       const prevWrap = document.getElementById('modalCoverPreviewWrap');
       const prevImg = document.getElementById('modalCoverPreviewImg');
       const courtObj = allLoadedCourts.find(c => c.courtCode === code);
 
-      if (code) {
-        document.getElementById('modalTitle').innerText = 'Cập nhật thông tin sân ' + code;
-        document.getElementById('inpCourtCode').value = code;
-        document.getElementById('inpCourtCode').disabled = true;
-        document.getElementById('inpCourtName').value = name || ('Sân ' + code);
-        document.getElementById('inpCourtType').value = type || 'Cầu lông tiêu chuẩn';
-        document.getElementById('inpHourlyRate').value = rate || 90000;
-        document.getElementById('inpStatus').value = status || 'Trống';
-        document.getElementById('inpBranchCode').value = courtObj?.branchCode || getActiveBranchCode() || 'CN01';
-        document.getElementById('inpFloorCondition').value = courtObj?.floorCondition || 'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu';
-        document.getElementById('inpLightingCondition').value = courtObj?.lightingCondition || 'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF';
-        document.getElementById('inpNetCondition').value = courtObj?.netCondition || 'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn';
-        document.getElementById('inpCourtDescription').value = courtObj?.description || '';
-        document.getElementById('inpImageUrl').value = imageUrl || '';
-        if (imageUrl) {
-          prevImg.src = imageUrl;
-          prevWrap.style.display = 'block';
-        } else {
-          prevWrap.style.display = 'none';
-        }
-      } else {
-        document.getElementById('modalTitle').innerText = 'Thêm sân mới vào hệ thống';
-        const nextNum = allLoadedCourts.length + 1;
-        document.getElementById('inpCourtCode').value = 'CL0' + (nextNum < 10 ? nextNum : nextNum);
-        document.getElementById('inpCourtCode').disabled = false;
-        document.getElementById('inpCourtName').value = '';
-        document.getElementById('inpCourtType').value = 'Cầu lông tiêu chuẩn';
-        document.getElementById('inpHourlyRate').value = 90000;
-        document.getElementById('inpStatus').value = 'Trống';
-        document.getElementById('inpBranchCode').value = getActiveBranchCode() || 'CN01';
-        document.getElementById('inpFloorCondition').value = 'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu';
-        document.getElementById('inpLightingCondition').value = 'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF';
-        document.getElementById('inpNetCondition').value = 'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn';
-        document.getElementById('inpCourtDescription').value = '';
-        document.getElementById('inpImageUrl').value = '/images/badminton-court.jpg';
-        prevImg.src = '/images/badminton-court.jpg';
+      document.getElementById('modalTitle').innerText = 'Cập nhật thông số vận hành sân ' + code;
+      document.getElementById('inpCourtCode').value = code;
+      document.getElementById('inpCourtCode').disabled = true;
+      document.getElementById('inpCourtName').value = name || ('Sân ' + code);
+      document.getElementById('inpCourtType').value = type || 'Cầu lông tiêu chuẩn';
+      // Khóa cứng đơn giá đối với Quản lý chi nhánh
+      const officialRate = courtObj ? courtObj.hourlyRate : (rate || 90000);
+      document.getElementById('inpHourlyRate').value = officialRate;
+      document.getElementById('inpHourlyRate').disabled = true;
+      document.getElementById('inpStatus').value = status || 'Trống';
+      document.getElementById('inpBranchCode').value = courtObj?.branchCode || getActiveBranchCode() || 'CN01';
+      document.getElementById('inpBranchCode').disabled = true;
+      document.getElementById('inpFloorCondition').value = courtObj?.floorCondition || 'Thảm PVC Enlio 4.5mm chống trơn trượt tiêu chuẩn thi đấu';
+      document.getElementById('inpLightingCondition').value = courtObj?.lightingCondition || 'Hệ thống đèn LED chống chói 500 Lux chuẩn BWF';
+      document.getElementById('inpNetCondition').value = courtObj?.netCondition || 'Lưới thi đấu BWF căng mới, cột nhôm chắc chắn';
+      document.getElementById('inpCourtDescription').value = courtObj?.description || '';
+      document.getElementById('inpImageUrl').value = imageUrl || '';
+      if (imageUrl) {
+        prevImg.src = imageUrl;
         prevWrap.style.display = 'block';
+      } else {
+        prevWrap.style.display = 'none';
       }
       modal.classList.add('open');
     }
@@ -1185,19 +1215,21 @@
       const code = document.getElementById('inpCourtCode').value.trim();
       const name = document.getElementById('inpCourtName').value.trim() || ('Sân ' + code);
       const type = document.getElementById('inpCourtType').value;
-      const rate = document.getElementById('inpHourlyRate').value;
       const status = document.getElementById('inpStatus').value;
       const imageUrl = document.getElementById('inpImageUrl').value.trim() || '/images/badminton-court.jpg';
-      const branch = document.getElementById('inpBranchCode')?.value || getActiveBranchCode() || 'CN01';
       const floorCondition = document.getElementById('inpFloorCondition').value.trim();
       const lightingCondition = document.getElementById('inpLightingCondition').value.trim();
       const netCondition = document.getElementById('inpNetCondition').value.trim();
       const description = document.getElementById('inpCourtDescription').value.trim();
 
-      if (!code) {
-        showToast('Vui lòng nhập mã sân!', 'warning');
+      const courtObj = allLoadedCourts.find(c => c.courtCode === code);
+      if (!courtObj) {
+        showToast('Không tìm thấy dữ liệu sân cần cập nhật!', 'error');
         return;
       }
+      // Giữ nguyên tuyệt đối đơn giá thuê và cơ sở phân bổ từ CSDL, không để quản lý can thiệp
+      const branch = courtObj.branchCode;
+      const currentRate = courtObj.hourlyRate;
 
       const token = localStorage.getItem('jwt_token') || '';
       const headers = { 'Content-Type': 'application/json' };
@@ -1211,7 +1243,7 @@
             courtCode: code,
             courtName: name,
             courtType: type,
-            hourlyRate: Number(rate),
+            hourlyRate: currentRate,
             status: status,
             imageUrl: imageUrl,
             branchCode: branch,
@@ -1223,7 +1255,7 @@
         });
         const data = await res.json();
         if (data.success || res.ok) {
-          showToast(`Đã lưu sân ${code} (${name}) - ${Number(rate).toLocaleString('vi-VN')} đ/h vào cơ sở dữ liệu!`, 'success');
+          showToast(`Đã lưu thông số vận hành sân ${code} (${name}) thành công!`, 'success');
           closeCourtModal();
           await loadCourtsFromApi();
         } else {
@@ -1255,6 +1287,11 @@
     }
 
     async function openCourtMediaModal(courtCode) {
+      const courtObj = allLoadedCourts.find(c => c.courtCode === courtCode);
+      if (courtObj && dbBranches.length > 0 && !dbBranches.some(b => b.branchCode === courtObj.branchCode)) {
+        showToast('Bạn không có quyền quản lý sân thuộc chi nhánh khác!', 'error');
+        return;
+      }
       currentMediaCourt = courtCode;
       document.getElementById('curMediaCourtCode').value = courtCode;
       document.getElementById('mediaModalTitle').innerText = `Quản lý hình ảnh & Tình trạng sân ${courtCode}`;
@@ -1262,7 +1299,10 @@
       switchMediaTab('cover');
 
       try {
-        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`);
+        let token = localStorage.getItem('jwt_token') || '';
+        const headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const res = await fetch(`/api/courts/${encodeURIComponent(courtCode)}/detail`, { headers });
         if (res.ok) {
           const data = await res.json();
           document.getElementById('mediaModalSubtitle').innerText = `${data.courtName} • ${data.courtType} • Chi nhánh ${data.branchCode}`;
@@ -1443,7 +1483,12 @@
 
     async function loadCourtsFromApi() {
       const branchSel = document.getElementById('courtBranchFilter') || document.getElementById('branchSelectFilter');
-      const branch = branchSel ? branchSel.value : (localStorage.getItem('utesport_active_branch') || getActiveBranchCode());
+      let branch = branchSel ? branchSel.value : (localStorage.getItem('utesport_active_branch') || getActiveBranchCode());
+      if (branch === 'ALL' && dbBranches.length > 0 && !dbBranches.some(b => b.branchCode === 'ALL')) {
+        branch = dbBranches[0].branchCode;
+        if (branchSel) branchSel.value = branch;
+        localStorage.setItem('utesport_active_branch', branch);
+      }
       const token = localStorage.getItem('jwt_token') || '';
       const headers = {};
       if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -1452,17 +1497,17 @@
         const res = await fetch(`/api/courts?branchCode=${encodeURIComponent(branch)}`, { headers });
         if (res.ok) {
           const courts = await res.json();
-          if (Array.isArray(courts) && courts.length > 0) {
-            allLoadedCourts = courts;
+          if (Array.isArray(courts)) {
+            allLoadedCourts = courts.filter(c => !branch || branch === 'ALL' || c.branchCode === branch);
           } else {
-            allLoadedCourts = fallbackCourts;
+            allLoadedCourts = [];
           }
         } else {
-          allLoadedCourts = fallbackCourts;
+          allLoadedCourts = [];
         }
       } catch (err) {
-        console.warn('API error, using cached fallback data', err);
-        allLoadedCourts = fallbackCourts;
+        console.warn('API error loading courts:', err);
+        allLoadedCourts = [];
       }
 
       renderKPIs(allLoadedCourts);

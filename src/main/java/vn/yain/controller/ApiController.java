@@ -137,10 +137,31 @@ public class ApiController {
 
      */
 
-    private String resolveEffectiveBranchCode(String requestedBranchCode) {
-        if (requestedBranchCode != null && !requestedBranchCode.isBlank()) {
-            return requestedBranchCode.trim();
+    private boolean isUserAuthorizedForBranch(String branchCode) {
+        if (branchCode == null || branchCode.isBlank()) return false;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return false;
         }
+        boolean isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
+                a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+        if (isDirectorOrAdmin) return true;
+
+        String username = auth.getName();
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            User u = userOpt.get();
+            String assigned = u.getBranchCode() != null ? u.getBranchCode().trim() : "";
+            List<String> allowedBranches = Arrays.stream(assigned.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            return allowedBranches.contains("ALL") || allowedBranches.contains(branchCode.trim().toUpperCase());
+        }
+        return false;
+    }
+
+    private String resolveEffectiveBranchCode(String requestedBranchCode) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             boolean isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
@@ -148,15 +169,37 @@ public class ApiController {
             boolean isCustomer = auth.getAuthorities().stream().anyMatch(a ->
                     a.getAuthority().equals("ROLE_CUSTOMER") || a.getAuthority().equals("CUSTOMER"));
 
-            if (!isDirectorOrAdmin && !isCustomer) {
-                String username = auth.getName();
-                Optional<User> userOpt = userRepository.findByUsername(username);
-                if (userOpt.isPresent()) {
-                    if (userOpt.get().getBranchCode() != null && !userOpt.get().getBranchCode().isBlank()) {
-                        return userOpt.get().getBranchCode().trim();
+            if (isDirectorOrAdmin || isCustomer) {
+                if (requestedBranchCode != null && !requestedBranchCode.isBlank()) {
+                    return requestedBranchCode.trim();
+                }
+                return isDirectorOrAdmin ? "ALL" : "CN01";
+            }
+
+            // Quản lý chi nhánh (ROLE_MANAGER) hoặc nhân viên: Khóa chặt vào các chi nhánh được phân công
+            String username = auth.getName();
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (userOpt.isPresent()) {
+                User u = userOpt.get();
+                String assigned = u.getBranchCode() != null ? u.getBranchCode().trim() : "CN01";
+                List<String> allowedBranches = Arrays.stream(assigned.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.toList());
+
+                if (requestedBranchCode != null && !requestedBranchCode.isBlank() && !"ALL".equalsIgnoreCase(requestedBranchCode.trim())) {
+                    String req = requestedBranchCode.trim().toUpperCase();
+                    if (allowedBranches.contains("ALL") || allowedBranches.contains(req)) {
+                        return req;
                     }
                 }
+                // Nếu yêu cầu "ALL" hoặc chi nhánh không được phép quản lý -> ép buộc về chi nhánh chính
+                return allowedBranches.isEmpty() || allowedBranches.contains("ALL") ? "CN01" : allowedBranches.get(0);
             }
+        }
+
+        if (requestedBranchCode != null && !requestedBranchCode.isBlank()) {
+            return requestedBranchCode.trim();
         }
         return "CN01";
     }
@@ -2870,65 +2913,119 @@ public class ApiController {
 
 
     @PostMapping("/courts/status")
-
     public ResponseEntity<?> updateCourtStatus(@RequestBody Map<String, String> payload) {
-
         try {
-
             String courtCode = payload.get("courtCode");
-
             String status = payload.get("status");
+            if (courtCode == null || courtCode.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã sân không được để trống!"));
+            }
+
+            Optional<Court> courtOpt = courtRepository.findByCourtCode(courtCode.trim());
+            if (courtOpt.isPresent()) {
+                Court c = courtOpt.get();
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                boolean isDirectorOrAdmin = auth != null && auth.isAuthenticated() && auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                if (!isDirectorOrAdmin && !isUserAuthorizedForBranch(c.getBranchCode())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                            "success", false,
+                            "message", "Bạn không có quyền thay đổi trạng thái sân của chi nhánh " + c.getBranchCode() + "!"
+                    ));
+                }
+            }
 
             Court updated = courtService.updateCourtStatus(courtCode, status);
-
             return ResponseEntity.ok(Map.of("success", true, "court", updated));
-
         } catch (Exception e) {
-
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
-
         }
-
     }
-
-
 
     @PostMapping("/courts")
-
     public ResponseEntity<?> saveCourt(@RequestBody Court court) {
-
         try {
+            if (court.getCourtCode() == null || court.getCourtCode().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã sân không được để trống!"));
+            }
+            String courtCode = court.getCourtCode().trim();
+            Optional<Court> existingOpt = courtRepository.findByCourtCode(courtCode);
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            boolean isDirectorOrAdmin = false;
+            boolean isManagerOrStaff = false;
+
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                isManagerOrStaff = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_MANAGER") || a.getAuthority().equals("ROLE_POS") || a.getAuthority().equals("ROLE_STAFF"));
+            }
+
+            // Phân quyền 1: Thêm sân mới hoàn toàn (Chỉ Giám Đốc / Admin)
+            if (existingOpt.isEmpty()) {
+                if (!isDirectorOrAdmin) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                            "success", false,
+                            "message", "Chỉ Ban Giám Đốc mới có thẩm quyền tạo mới sân thi đấu trong hệ thống!"
+                    ));
+                }
+            } else {
+                // Phân quyền 2: Sửa sân đã tồn tại
+                Court existing = existingOpt.get();
+
+                if (isManagerOrStaff && !isDirectorOrAdmin) {
+                    // Kiểm tra chi nhánh phụ trách
+                    if (!isUserAuthorizedForBranch(existing.getBranchCode())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                                "success", false,
+                                "message", "Bạn không có quyền chỉnh sửa sân thuộc chi nhánh " + existing.getBranchCode() + "!"
+                        ));
+                    }
+
+                    // QUYỀN ĐIỀU CHỈNH GIÁ: Quản lý chi nhánh tuyệt đối KHÔNG ĐƯỢC điều chỉnh giá thuê!
+                    if (court.getHourlyRate() != null && existing.getHourlyRate() != null &&
+                            court.getHourlyRate().compareTo(existing.getHourlyRate()) != 0) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                                "success", false,
+                                "message", "Quản lý chi nhánh không được phép điều chỉnh đơn giá thuê sân! Vui lòng gửi Đề xuất giá tới Ban Giám Đốc."
+                        ));
+                    }
+
+                    // Khóa giữ nguyên đơn giá và chi nhánh gốc cho quản lý
+                    court.setBranchCode(existing.getBranchCode());
+                    court.setHourlyRate(existing.getHourlyRate());
+                }
+            }
 
             Court saved = courtService.saveCourt(court);
-
             return ResponseEntity.ok(Map.of("success", true, "court", saved, "message", "Đã lưu thông tin sân thành công!"));
-
         } catch (Exception e) {
-
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
-
         }
-
     }
 
-
-
     @DeleteMapping("/courts/{courtCode}")
-
     public ResponseEntity<?> deleteCourt(@PathVariable String courtCode) {
-
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            boolean isDirectorOrAdmin = false;
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+            }
+            if (!isDirectorOrAdmin) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                        "success", false,
+                        "message", "Chỉ Ban Giám Đốc mới có thẩm quyền xóa sân thi đấu khỏi hệ thống!"
+                ));
+            }
 
             courtService.deleteCourt(courtCode);
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa sân " + courtCode + " thành công!"));
-
         } catch (Exception e) {
-
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
-
         }
-
     }
 
     // --- CLOUDINARY & COURT DETAIL / CONDITIONS / INTERACTION API ---
@@ -2938,6 +3035,22 @@ public class ApiController {
         try {
             Court court = courtRepository.findByCourtCode(courtCode)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân: " + courtCode));
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                boolean isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                boolean isManagerOrStaff = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_MANAGER") || a.getAuthority().equals("ROLE_POS") || a.getAuthority().equals("ROLE_STAFF"));
+                if (isManagerOrStaff && !isDirectorOrAdmin) {
+                    if (!isUserAuthorizedForBranch(court.getBranchCode())) {
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                                "success", false,
+                                "message", "Bạn không có quyền xem thông tin chi tiết sân thuộc chi nhánh " + court.getBranchCode() + "!"
+                        ));
+                    }
+                }
+            }
 
             List<String> conditionImagesList = parseConditionImagesList(court.getConditionImages());
             List<Map<String, Object>> commentsList = parseCommentsList(court.getComments());
@@ -2979,6 +3092,18 @@ public class ApiController {
             Court court = courtRepository.findByCourtCode(courtCode)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân với mã: " + courtCode));
 
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                boolean isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                if (!isDirectorOrAdmin && !isUserAuthorizedForBranch(court.getBranchCode())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                            "success", false,
+                            "message", "Bạn không có quyền cập nhật ảnh sân của chi nhánh " + court.getBranchCode() + "!"
+                    ));
+                }
+            }
+
             // Upload to Cloudinary under folder 'badminton_courts'
             String secureUrl = cloudinaryService.uploadImage(file, "badminton_courts");
 
@@ -3019,6 +3144,18 @@ public class ApiController {
 
             Court court = courtRepository.findByCourtCode(courtCode)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sân với mã: " + courtCode));
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                boolean isDirectorOrAdmin = auth.getAuthorities().stream().anyMatch(a ->
+                        a.getAuthority().equals("ROLE_DIRECTOR") || a.getAuthority().equals("ROLE_ADMIN"));
+                if (!isDirectorOrAdmin && !isUserAuthorizedForBranch(court.getBranchCode())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                            "success", false,
+                            "message", "Bạn không có quyền xóa ảnh sân của chi nhánh " + court.getBranchCode() + "!"
+                    ));
+                }
+            }
 
             List<String> list = parseConditionImagesList(court.getConditionImages());
             list.removeIf(u -> u.trim().equalsIgnoreCase(imageUrl.trim()));
