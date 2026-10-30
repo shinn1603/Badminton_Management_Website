@@ -7110,55 +7110,46 @@ public class ApiController {
 
 
 
-    @DeleteMapping("/director/branches/{branchCode}")
-
-    public ResponseEntity<?> deleteBranch(@PathVariable String branchCode) {
-
+    @DeleteMapping({"/director/branches/{branchCode}", "/branches/{branchCode}"})
+    public ResponseEntity<?> deleteBranch(
+            @PathVariable String branchCode,
+            @RequestParam(required = false, defaultValue = "false") boolean force) {
         try {
-
             Optional<Branch> opt = branchRepository.findByBranchCode(branchCode);
-
             if (opt.isEmpty()) {
-
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", "Không tìm thấy chi nhánh: " + branchCode));
-
             }
-
             Branch b = opt.get();
-
             long bookingCount = bookingRepository.findAll().stream()
-
                     .filter(bk -> branchCode.equalsIgnoreCase(bk.getBranchCode()))
-
                     .count();
-
-            if (bookingCount > 0) {
-
+            if (bookingCount > 0 && !force) {
                 b.setStatus("Tạm ngưng");
-
                 branchRepository.save(b);
-
-                return ResponseEntity.ok(Map.of("success", true, "message", "Chi nhánh đã có dữ liệu đặt sân trong hệ thống nên đã chuyển trạng thái thành 'Tạm ngưng'!"));
-
+                return ResponseEntity.ok(Map.of("success", true, "action", "suspended", "message", "Chi nhánh [" + branchCode + "] đang có " + bookingCount + " dữ liệu đơn đặt sân. Để đảm bảo an toàn lịch sử kế toán, hệ thống đã chuyển trạng thái chi nhánh thành 'Tạm ngưng' thay vì xóa vĩnh viễn!"));
             } else {
-
                 List<Court> courts = courtRepository.findByBranchCode(branchCode);
-
-                courtRepository.deleteAll(courts);
-
+                if (courts != null && !courts.isEmpty()) {
+                    courtRepository.deleteAll(courts);
+                }
+                if (force && bookingCount > 0) {
+                    List<Booking> bookings = bookingRepository.findAll().stream()
+                            .filter(bk -> branchCode.equalsIgnoreCase(bk.getBranchCode()))
+                            .toList();
+                    bookingRepository.deleteAll(bookings);
+                }
+                List<Product> prods = productRepository.findByBranchCode(branchCode);
+                if (prods != null && !prods.isEmpty()) {
+                    productRepository.deleteAll(prods);
+                }
                 branchRepository.delete(b);
-
-                return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa chi nhánh và dữ liệu sân liên quan thành công!"));
-
+                return ResponseEntity.ok(Map.of("success", true, "action", "deleted", "message", "Đã xóa chi nhánh [" + branchCode + "] và toàn bộ dữ liệu sân liên quan thành công!"));
             }
-
         } catch (Exception e) {
-
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Lỗi: " + e.getMessage()));
-
         }
-
     }
+
 
 
 

@@ -256,7 +256,7 @@
                   <th style="text-align: center;">Quy mô sân</th>
                   <th>Giờ hoạt động</th>
                   <th style="text-align: center;">Trạng thái</th>
-                  <th style="text-align: right; width: 180px;">Thao tác</th>
+                  <th style="text-align: right; width: 230px;">Thao tác</th>
                 </tr>
               </thead>
               <tbody id="branchTableBody">
@@ -337,14 +337,20 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeBranchModal()">Hủy</button>
-        <button class="btn btn-primary" onclick="saveBranch()" id="btnSaveBranch">
-          <svg class="svg-icon" viewBox="0 0 24 24">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <span>Lưu chi nhánh</span>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn btn-outline" id="btnModalDeleteBranch" style="display: none; color: #ef4444; border-color: #fca5a5; padding: 6px 14px; font-size: 12.5px; align-items: center; gap: 6px;" onclick="deleteCurrentEditBranch()" title="Xóa chi nhánh này khỏi hệ thống">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke: #ef4444;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span>Xóa chi nhánh này</span>
         </button>
+        <div style="display: flex; gap: 10px; margin-left: auto;">
+          <button class="btn btn-outline" onclick="closeBranchModal()">Hủy</button>
+          <button class="btn btn-primary" onclick="saveBranch()" id="btnSaveBranch">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Lưu chi nhánh</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -474,6 +480,10 @@
                 <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: ${isAct ? '#f59e0b' : '#10b981'}; border-color: ${isAct ? '#fde68a' : '#a7f3d0'};" onclick="toggleBranchStatus('${b.branchCode}', '${statusText}')" title="${isAct ? 'Tạm ngưng chi nhánh' : 'Kích hoạt lại'}">
                   ${isAct ? 'Ngưng' : 'Mở'}
                 </button>
+                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: #ef4444; border-color: #fca5a5; display: inline-flex; align-items: center; gap: 3px;" onclick="deleteBranch('${b.branchCode}', '${(b.branchName || '').replace(/'/g, "\\'")}')" title="Xóa chi nhánh ${b.branchCode}">
+                  <svg class="svg-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; stroke: #ef4444;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>Xóa</span>
+                </button>
               </div>
             </td>
           </tr>
@@ -499,6 +509,8 @@
     function openBranchModal() {
       document.getElementById('modalBranchTitle').textContent = 'Thêm chi nhánh mới';
       document.getElementById('isEditMode').value = 'false';
+      const btnDel = document.getElementById('btnModalDeleteBranch');
+      if (btnDel) btnDel.style.display = 'none';
       const inpCode = document.getElementById('inpBranchCode');
       inpCode.value = '';
       inpCode.disabled = false;
@@ -518,6 +530,8 @@
 
       document.getElementById('modalBranchTitle').textContent = 'Chỉnh sửa thông tin chi nhánh ' + code;
       document.getElementById('isEditMode').value = 'true';
+      const btnDel = document.getElementById('btnModalDeleteBranch');
+      if (btnDel) btnDel.style.display = 'inline-flex';
       const inpCode = document.getElementById('inpBranchCode');
       inpCode.value = b.branchCode;
       inpCode.disabled = true;
@@ -651,6 +665,53 @@
         }
       } catch (e) {
         console.error('Error toggling branch status:', e);
+      }
+    }
+
+    async function deleteBranch(code, name) {
+      if (!code) return;
+      const displayName = name || code;
+
+      const confirmMsg = `Bạn có chắc chắn muốn xóa chi nhánh [${code} - ${displayName}] khỏi hệ thống?\n\nLưu ý:\n- Chi nhánh và toàn bộ cụm sân thi đấu trực thuộc sẽ bị xóa khỏi hệ thống.\n- Nếu chi nhánh đã có dữ liệu đơn đặt sân, hệ thống sẽ tự động chuyển trạng thái sang 'Tạm ngưng' để bảo toàn lịch sử kế toán.`;
+
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch(`/api/director/branches/${encodeURIComponent(code)}`, {
+          method: 'DELETE',
+          headers: headers
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          if (typeof showToast === 'function') {
+            showToast(data.message || `Đã xóa chi nhánh ${code} thành công!`, 'success');
+          } else {
+            alert(data.message || `Đã xóa chi nhánh ${code} thành công!`);
+          }
+          closeBranchModal();
+          await loadDirectorBranches();
+        } else {
+          const errMsg = data.message || 'Lỗi khi xóa chi nhánh!';
+          if (typeof showToast === 'function') showToast(errMsg, 'error');
+          else alert(errMsg);
+        }
+      } catch (err) {
+        console.error('Error deleting branch:', err);
+        if (typeof showToast === 'function') showToast('Lỗi kết nối máy chủ khi xóa chi nhánh: ' + err.message, 'error');
+        else alert('Lỗi kết nối máy chủ khi xóa chi nhánh: ' + err.message);
+      }
+    }
+
+    function deleteCurrentEditBranch() {
+      const code = document.getElementById('inpBranchCode').value.trim();
+      const name = document.getElementById('inpBranchName').value.trim();
+      if (code) {
+        deleteBranch(code, name);
       }
     }
 
