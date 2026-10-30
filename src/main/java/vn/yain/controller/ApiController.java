@@ -5664,7 +5664,13 @@ public class ApiController {
 
             Map<String, Object> schedule = (Map<String, Object>) payload.get("schedule");
 
-            String branchCode = (String) payload.getOrDefault("branchCode", "CN01");
+            String branchCode = (String) payload.get("branchCode");
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = (String) payload.get("branch");
+            }
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = "CN01";
+            }
 
             shiftService.saveWeeklySchedule(schedule, branchCode);
 
@@ -7323,6 +7329,68 @@ public class ApiController {
 
 
 
+    private boolean isPromotionApplicableForBranch(Promotion p, String branchCode) {
+        if (p == null) return false;
+        String scope = p.getScope();
+        if (scope == null || scope.isBlank() || "Toàn chuỗi".equalsIgnoreCase(scope.trim()) || "All".equalsIgnoreCase(scope.trim())) {
+            return true;
+        }
+        if (branchCode == null || branchCode.isBlank()) {
+            return false;
+        }
+        String cleanCode = branchCode.trim();
+        String cleanScope = scope.trim();
+
+        // 1. Direct code match or containment
+        if (cleanScope.equalsIgnoreCase(cleanCode) || cleanScope.toUpperCase().contains(cleanCode.toUpperCase())) {
+            return true;
+        }
+
+        // 2. Look up branch in DB
+        Optional<Branch> bOpt = branchRepository.findByBranchCode(cleanCode);
+        if (bOpt.isEmpty()) {
+            bOpt = branchRepository.findAll().stream()
+                    .filter(b -> b.getBranchName() != null && b.getBranchName().equalsIgnoreCase(cleanCode))
+                    .findFirst();
+        }
+
+        if (bOpt.isPresent()) {
+            Branch b = bOpt.get();
+            String bCode = b.getBranchCode() != null ? b.getBranchCode().trim() : "";
+            String bName = b.getBranchName() != null ? b.getBranchName().trim() : "";
+
+            if (!bCode.isEmpty() && cleanScope.toUpperCase().contains(bCode.toUpperCase())) {
+                return true;
+            }
+
+            if (!bName.isEmpty()) {
+                String bNameLower = bName.toLowerCase();
+                String scopeLower = cleanScope.toLowerCase();
+
+                if (scopeLower.contains(bNameLower) || bNameLower.contains(scopeLower)) {
+                    return true;
+                }
+
+                String strippedBName = bNameLower.replaceAll("(?i)chi nhánh \\d+\\s*-\\s*", "")
+                                                 .replaceAll("(?i)chi nhánh\\s*", "")
+                                                 .replaceAll("(?i)sân cầu lông\\s*", "")
+                                                 .replaceAll("(?i)cụm sân\\s*", "")
+                                                 .trim();
+                String strippedScope = scopeLower.replaceAll("(?i)chi nhánh \\d+\\s*-\\s*", "")
+                                                 .replaceAll("(?i)chi nhánh\\s*", "")
+                                                 .replaceAll("(?i)sân cầu lông\\s*", "")
+                                                 .replaceAll("(?i)cụm sân\\s*", "")
+                                                 .trim();
+                if (!strippedBName.isEmpty() && !strippedScope.isEmpty()) {
+                    if (strippedBName.contains(strippedScope) || strippedScope.contains(strippedBName)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     // ==========================================
 
     // 10.5 CUSTOMER PRICING & PROMOTION SUMMARY - LẤY BẢNG GIÁ THEO CHI NHÁNH & ÁP DỤNG MÃ KHUYẾN MÃI
@@ -7443,13 +7511,7 @@ public class ApiController {
 
                                 (p.getEndDate() == null || !today.isAfter(p.getEndDate()));
 
-            boolean scopeValid = p.getScope() == null ||
-
-                                 "Toàn chuỗi".equalsIgnoreCase(p.getScope()) ||
-
-                                 p.getScope().contains(bCode) ||
-
-                                 p.getScope().contains(branchName);
+            boolean scopeValid = isPromotionApplicableForBranch(p, bCode);
 
 
 
@@ -7511,7 +7573,13 @@ public class ApiController {
 
             String promoCode = (String) payload.get("promoCode");
 
-            String branchCode = (String) payload.getOrDefault("branchCode", "CN01");
+            String branchCode = (String) payload.get("branchCode");
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = (String) payload.get("branch");
+            }
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = "CN01";
+            }
 
             BigDecimal orderAmount = BigDecimal.ZERO;
 
@@ -7548,9 +7616,7 @@ public class ApiController {
             Promotion p = promoOpt.get();
 
             if (!"Đang áp dụng".equalsIgnoreCase(p.getStatus())) {
-
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã khuyến mãi '" + promoCode + "' hiện không khả dụng (Trạng thái: " + p.getStatus() + ")!"));
-
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã khuyến mãi '" + promoCode + "' hiện không khả dụng (Trạng thái: " + p.getStatus() + "). Vui lòng kiểm tra hoặc kích hoạt mã trong trang Quản lý giá & Khuyến mãi của Giám đốc!"));
             }
 
 
@@ -7571,14 +7637,8 @@ public class ApiController {
 
 
 
-            if (p.getScope() != null && !"Toàn chuỗi".equalsIgnoreCase(p.getScope())) {
-
-                if (branchCode != null && !p.getScope().contains(branchCode)) {
-
-                    return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã khuyến mãi chỉ áp dụng cho " + p.getScope() + "!"));
-
-                }
-
+            if (!isPromotionApplicableForBranch(p, branchCode)) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã khuyến mãi '" + promoCode + "' chỉ áp dụng cho " + (p.getScope() != null ? p.getScope() : "chi nhánh khác") + "!"));
             }
 
 
@@ -8037,7 +8097,10 @@ public class ApiController {
 
             String scope = (String) payload.getOrDefault("scope", "Toàn chuỗi");
 
-            String status = (String) payload.getOrDefault("status", "Chờ phê duyệt");
+            String status = (String) payload.getOrDefault("status", "Đang áp dụng");
+            if (status == null || status.isBlank()) {
+                status = "Đang áp dụng";
+            }
 
             String startDateStr = (String) payload.get("startDate");
 
@@ -8841,7 +8904,13 @@ public class ApiController {
 
 
 
-            String branchCode = (String) payload.getOrDefault("branchCode", "CN01");
+            String branchCode = (String) payload.get("branchCode");
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = (String) payload.get("branch");
+            }
+            if (branchCode == null || branchCode.isBlank()) {
+                branchCode = "CN01";
+            }
 
             String code = (String) payload.get("tournamentCode");
 

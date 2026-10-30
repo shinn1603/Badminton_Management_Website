@@ -2333,13 +2333,15 @@
       updateSummary();
     }
 
-    async function loadSlotsForCourt(preselectedSlot = null) {
+    async function loadSlotsForCourt(preselectedSlot = null, silent = false) {
       if (!selectedCourt) return;
       const branch = document.getElementById('selBranch')?.value || 'CN01';
       const date = document.getElementById('selDate')?.value || new Date().toISOString().split('T')[0];
       const container = document.getElementById('slotsContainer');
       if (!container) return;
-      container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 18px; color: var(--text-muted); font-size: 12.5px;">Đang tải khung giờ khả dụng...</div>';
+      if (!silent) {
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 18px; color: var(--text-muted); font-size: 12.5px;">Đang tải khung giờ khả dụng...</div>';
+      }
 
       try {
         const res = await fetch(`/api/bookings/slots?branchCode=${encodeURIComponent(branch)}&courtCode=${encodeURIComponent(selectedCourt.courtCode)}&date=${encodeURIComponent(date)}`);
@@ -3198,16 +3200,16 @@
     let currentDetailCourt = null;
     let currentCommentRating = 5;
 
-    // Real-time synchronization for slot availability
+    // Real-time synchronization for slot availability (silent to prevent UI flicker)
     window.addEventListener('badminton:booking-event', function(e) {
       if (typeof loadSlotsForCourt === 'function' && selectedCourt) {
-        loadSlotsForCourt();
+        loadSlotsForCourt(null, true);
       }
     });
 
     window.addEventListener('badminton:court-event', function(e) {
       if (typeof loadSlotsForCourt === 'function' && selectedCourt) {
-        loadSlotsForCourt();
+        loadSlotsForCourt(null, true);
       }
     });
 

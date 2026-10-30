@@ -619,11 +619,20 @@
             <input type="date" class="form-control" id="inpPromoEndDate">
           </div>
         </div>
+
+        <div class="form-group">
+          <label class="form-label">Trạng thái phát hành</label>
+          <select class="form-control" id="inpPromoStatus">
+            <option value="Đang áp dụng" selected>Đang áp dụng (Phát hành dùng ngay)</option>
+            <option value="Chờ phê duyệt">Chờ phê duyệt</option>
+            <option value="Tạm ngưng">Tạm ngưng</option>
+          </select>
+        </div>
       </div>
 
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closePromoModal()">Hủy bỏ</button>
-        <button class="btn btn-primary" id="btnSavePromo" onclick="savePromotion()">Lưu đề xuất vào Database</button>
+        <button class="btn btn-primary" id="btnSavePromo" onclick="savePromotion()">Lưu chiến dịch vào Database</button>
       </div>
     </div>
   </div>
@@ -735,7 +744,7 @@
       if (promoScopeSel) {
         promoScopeSel.innerHTML = '<option value="Toàn chuỗi">Toàn chuỗi hệ thống</option>';
         allBranches.forEach(b => {
-          promoScopeSel.innerHTML += `<option value="${b.branchName}">${b.branchName}</option>`;
+          promoScopeSel.innerHTML += `<option value="${b.branchCode} - ${b.branchName}">[${b.branchCode}] ${b.branchName}</option>`;
         });
       }
     }
@@ -1180,10 +1189,14 @@
       document.getElementById('inpPromoCode').value = '';
       document.getElementById('inpPromoName').value = '';
       document.getElementById('inpDiscountValue').value = '20';
+      const statusSel = document.getElementById('inpPromoStatus');
+      if (statusSel) statusSel.value = 'Đang áp dụng';
       const now = new Date();
-      document.getElementById('inpPromoStartDate').value = now.toISOString().split('T')[0];
-      const nextMonth = new Date(now.setMonth(now.getMonth() + 1));
-      document.getElementById('inpPromoEndDate').value = nextMonth.toISOString().split('T')[0];
+      const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      document.getElementById('inpPromoStartDate').value = localToday;
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+      const localNextMonth = new Date(nextMonth.getTime() - nextMonth.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      document.getElementById('inpPromoEndDate').value = localNextMonth;
       document.getElementById('promoModal').classList.add('active');
     }
 
@@ -1197,6 +1210,7 @@
       const type = document.getElementById('inpDiscountType').value;
       const val = document.getElementById('inpDiscountValue').value;
       const scope = document.getElementById('inpPromoScope').value;
+      const status = document.getElementById('inpPromoStatus')?.value || 'Đang áp dụng';
       const startDate = document.getElementById('inpPromoStartDate').value;
       const endDate = document.getElementById('inpPromoEndDate').value;
 
@@ -1215,7 +1229,7 @@
         discountType: type,
         discountValue: val,
         scope: scope,
-        status: 'Chờ phê duyệt',
+        status: status,
         startDate: startDate,
         endDate: endDate
       };
@@ -1231,10 +1245,10 @@
         });
 
         const data = await res.json();
-        if (btn) { btn.disabled = false; btn.innerText = 'Lưu đề xuất vào Database'; }
+        if (btn) { btn.disabled = false; btn.innerText = 'Lưu chiến dịch vào Database'; }
 
         if (data.success) {
-          if (typeof showToast === 'function') showToast('Đã gửi đề xuất khuyến mãi vào Database chờ duyệt!', 'success');
+          if (typeof showToast === 'function') showToast(data.message || 'Đã lưu và phát hành chiến dịch khuyến mãi thành công!', 'success');
           else alert(data.message);
           closePromoModal();
           await loadDirectorPricing();

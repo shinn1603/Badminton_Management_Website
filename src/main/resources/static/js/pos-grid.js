@@ -15,12 +15,14 @@ let posItems = [];
 let currentBasePrice = 120000;
 let currentDeposit = 36000;
 let realCourts = [];
+let courtsCacheByBranch = {};
 let bookingServicesStore = {};
 let currentSessionKey = null;
 let currentSessionSlots = [];
 let currentDisplayTimeRange = '';
 let isRenderingGrid = false;
 let pendingRenderDate = null;
+let renderDebounceTimer = null;
 
 function getSessionKey(courtCode, code, customer, phone) {
   if (code && code.trim() !== '') return `code_${code.trim()}`;
@@ -176,21 +178,34 @@ async function loadBranchesForPos() {
   }
 }
 
-// Load real courts for the active branch
+// Load real courts for the active branch with memory cache to prevent flickering
 async function loadCourtsForBranch(branchCode) {
+  if (courtsCacheByBranch[branchCode] && courtsCacheByBranch[branchCode].length > 0) {
+    realCourts = courtsCacheByBranch[branchCode];
+  }
   try {
     const res = await fetch(`/api/courts?branchCode=${encodeURIComponent(branchCode)}`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         realCourts = data;
+        courtsCacheByBranch[branchCode] = data;
       }
     }
   } catch (e) {
     console.warn('Lỗi kết nối tải sân:', e);
   }
   if (!realCourts || realCourts.length === 0 || realCourts[0].branchCode !== branchCode) {
-    realCourts = fallbackCourts.map(c => ({ ...c, branchCode: branchCode }));
+    if (courtsCacheByBranch[branchCode] && courtsCacheByBranch[branchCode].length > 0) {
+      realCourts = courtsCacheByBranch[branchCode];
+    } else {
+      // Create fallback court with proper prefix matching the branch instead of always CL01..CL08
+      realCourts = fallbackCourts.map(c => ({
+        ...c,
+        courtCode: `${branchCode}_${c.courtCode}`,
+        branchCode: branchCode
+      }));
+    }
   }
   updateCourtSelectDropdowns();
 }
@@ -430,6 +445,9 @@ async function changeBranch() {
   const branchFilterEl = document.getElementById('branchFilter');
   if (branchFilterEl) {
     currentBranch = branchFilterEl.value;
+    try {
+      localStorage.setItem('utesport_active_branch', currentBranch);
+    } catch (e) {}
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('branchCode', currentBranch);
@@ -1758,13 +1776,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // React to realtime booking and court events from WebSocket
+  function scheduleGridRender(dateStr, delay = 150) {
+    clearTimeout(renderDebounceTimer);
+    renderDebounceTimer = setTimeout(() => {
+      renderGridForDate(dateStr);
+    }, delay);
+  }
+
+  // React to realtime booking and court events from WebSocket (debounced to prevent flicker)
   window.addEventListener('badminton:booking-event', function(e) {
     if (e && e.detail && e.detail.branchCode && e.detail.branchCode !== currentBranch && e.detail.branchCode !== 'ALL') {
       return;
     }
     if (currentDateStr) {
-      renderGridForDate(currentDateStr);
+      scheduleGridRender(currentDateStr, 200);
     }
   });
 
@@ -1773,14 +1798,14 @@ window.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     if (currentDateStr) {
-      renderGridForDate(currentDateStr);
+      scheduleGridRender(currentDateStr, 250);
     }
   });
 
-  // Polling fallback every 5 seconds to ensure real-time consistency
+  // Polling fallback every 15 seconds to ensure real-time consistency without racing WebSocket
   setInterval(() => {
-    if (currentDateStr) {
+    if (currentDateStr && !isRenderingGrid) {
       renderGridForDate(currentDateStr);
     }
-  }, 5000);
+  }, 15000);
 });
