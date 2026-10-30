@@ -35,6 +35,11 @@ public class DashboardController {
         return "customer/auth";
     }
 
+    @GetMapping("/customer/verify-otp")
+    public String customerVerifyOtp() {
+        return "customer/verify-otp";
+    }
+    
     @GetMapping("/customer/booking")
     public String customerBooking() {
         return "customer/booking";
