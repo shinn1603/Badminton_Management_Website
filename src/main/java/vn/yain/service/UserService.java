@@ -283,11 +283,11 @@ public class UserService {
     }
 
     public User saveOrUpdateUser(Map<String, String> payload) {
-        String username = payload.get("username");
-        if (username == null || username.trim().isEmpty()) {
+        String rawUsername = payload.get("username");
+        if (rawUsername == null || rawUsername.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên đăng nhập không được để trống!");
         }
-        username = username.trim();
+        final String username = rawUsername.trim();
         if (username.length() < 3 || username.length() > 30 || !username.matches("^[a-zA-Z0-9_.\\-]+$")) {
             throw new IllegalArgumentException("Tên đăng nhập tối thiểu 3 ký tự và chỉ chứa chữ cái, chữ số, dấu chấm hoặc gạch nối!");
         }
