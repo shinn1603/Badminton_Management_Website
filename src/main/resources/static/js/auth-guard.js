@@ -1,8 +1,4 @@
-/**
- * UTE SPORT - RBAC ROLE GUARD & DYNAMIC USER PROFILE
- * Manages role-based access control, protects routes, and dynamically
- * synchronizes user profile across all screens without hardcoded templates.
- */
+
 
 (function () {
   'use strict';
@@ -61,7 +57,6 @@
     }
   };
 
-  // Helper to generate initials from full name
   function getInitials(name) {
     if (!name) return 'US';
     const parts = name.trim().split(/\s+/);
@@ -69,7 +64,6 @@
     return (parts[parts.length - 2][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-  // 1. Resolve Current User
   function getCurrentUser() {
     let raw = localStorage.getItem('utesport_user');
     let user = null;
@@ -81,7 +75,6 @@
       }
     }
 
-    // Auto-recover token from cookie if missing in localStorage
     if (!localStorage.getItem('jwt_token') && typeof document !== 'undefined' && document.cookie) {
       const match = document.cookie.match(/(?:^|;\s*)jwt_token=([^;]+)/);
       if (match) {
@@ -92,12 +85,10 @@
     const currentPath = window.location.pathname.toLowerCase();
     const targetRole = resolveTargetRoleForPath(currentPath);
 
-    // If unauthenticated:
     if (!user || !user.role) {
       return null;
     }
 
-    // Auto-heal legacy mock usernames to standard database accounts
     const legacyMap = {
       'tho.nguyen': 'director',
       'admin_system': 'admin',
@@ -109,7 +100,6 @@
       user.username = legacyMap[user.username];
     }
 
-    // Auto-heal: Ensure role consistency based on logged-in username
     if (user.username === 'director') {
       user.role = 'DIRECTOR';
       user.fullName = 'Nguyễn Phước Thọ';
@@ -144,7 +134,6 @@
     }
 
     // CRITICAL: NEVER mutate an authenticated user's account or role based on current URL!
-    // A Director inspecting /admin/users or /pos/grid remains Director (Nguyễn Phước Thọ).
 
     const cfg = ROLE_CONFIG[user.role] || ROLE_CONFIG.CUSTOMER;
     if (!user.fullName) user.fullName = cfg.defaultName;
@@ -152,7 +141,6 @@
     if (!user.branchName) user.branchName = cfg.branchName;
     if (!user.branchCode) user.branchCode = cfg.branchCode;
 
-    // Persist normalized user
     localStorage.setItem('utesport_user', JSON.stringify(user));
     return user;
   }
@@ -170,11 +158,9 @@
   const currentRoleCfg = currentUser ? (ROLE_CONFIG[currentUser.role] || ROLE_CONFIG.CUSTOMER) : null;
   const currentPath = window.location.pathname;
 
-  // 2. RBAC Route Guard - Enforce access control hierarchy
   (function enforceRouteGuard() {
     const lowerPath = currentPath.toLowerCase();
 
-    // Customer member-only pages: Require login before accessing profile or booking history
     if (lowerPath === '/customer/profile' || lowerPath === '/customer/history') {
       if (!currentUser || !currentUser.fullName) {
         window.location.href = '/customer/auth?redirect=' + encodeURIComponent(currentPath);
@@ -217,7 +203,6 @@
         }
       }
       if (currentUser.role === 'ADMIN') {
-        // Superadmin has full access across management and operational modules
       }
       if (currentUser.role === 'MANAGER') {
         const isAllowedManager = target === 'MANAGER' || lowerPath === '/pos/grid' || lowerPath === '/booking/grid';
@@ -235,7 +220,6 @@
     }
   })();
 
-  // 3. UI Synchronization on DOM Ready
   window.syncUserProfileUI = syncUserProfileUI;
   function syncUserProfileUI() {
     if (currentUser) {
@@ -243,13 +227,11 @@
       const branchLabel = currentUser.branchName || currentUser.branchCode || 'CN Thủ Đức';
       const titleLabel = `${currentUser.roleTitle} • ${branchLabel}`;
 
-      // Reload currentUser from localStorage in case it was updated
       const freshUserRaw = localStorage.getItem('utesport_user');
       if (freshUserRaw) {
         try { currentUser = JSON.parse(freshUserRaw); } catch (e) {}
       }
 
-      // Update avatar elements
       document.querySelectorAll('.user-avatar, #sidebarAvatar').forEach(el => {
         if (currentUser.avatarUrl && currentUser.avatarUrl.trim() !== '') {
           el.innerHTML = `<img src="${currentUser.avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" onerror="this.parentElement.textContent='${initials}'">`;
@@ -259,21 +241,17 @@
         el.title = `${currentUser.fullName} (${currentUser.roleTitle || 'Hội viên'})`;
       });
 
-      // Update name elements
       document.querySelectorAll('.user-name, #sidebarName').forEach(el => {
         el.textContent = currentUser.fullName;
       });
 
-      // Update title / role elements
       document.querySelectorAll('.user-title, #sidebarTitle').forEach(el => {
         el.textContent = titleLabel;
       });
 
-      // Synchronize both header widget styles (internal and customer nav)
       if (typeof syncInternalHeaderUser === 'function') syncInternalHeaderUser();
       if (typeof syncNavUserArea === 'function') syncNavUserArea();
 
-      // Update POS branch brand indicators if present
       document.querySelectorAll('#posSidebarBranchText').forEach(el => {
         el.textContent = (currentUser.branchName || ('Chi nhánh ' + branchLabel)).toUpperCase();
       });
@@ -287,7 +265,6 @@
           el.style.display = 'none';
         });
       } else if (currentUser.role === 'ADMIN') {
-        // Admin retains technical access to all modules
       } else if (currentUser.role === 'MANAGER') {
         document.querySelectorAll('a[href^="/director/"], a[href^="/admin/"]').forEach(el => {
           el.style.display = 'none';
@@ -298,7 +275,6 @@
         });
       }
 
-      // Supervisory Return Buttons for POS Grid
       const currentPathLower = window.location.pathname.toLowerCase();
       if (currentPathLower.startsWith('/pos/')) {
         const dBackSidebar = document.getElementById('directorPosBackLink');
@@ -345,17 +321,13 @@
         }
       }
 
-      // Khởi tạo bộ chọn / chuyển đổi chi nhánh thông minh cho Quản lý & Thu ngân
       initBranchSwitcherUI();
     }
 
-    // Globally synchronize Customer Nav User Area across all customer pages
     syncNavUserArea();
 
-    // Globally synchronize Internal Topbar User Pill across all management & POS pages
     syncInternalHeaderUser();
 
-    // Setup logout handler
     document.querySelectorAll('a[href="/login"], a[title="Đăng xuất"]').forEach(btn => {
       btn.addEventListener('click', function (e) {
         if (btn.getAttribute('data-bypass-logout') === 'true') return;
@@ -461,7 +433,6 @@
     const isCustomer = user.role === 'CUSTOMER';
     const tierBadge = isCustomer ? 'Hội viên VIP' : roleLabel;
 
-    // If page has a header actions/right container but no user pill, create one automatically
     const isCustPage = window.location.pathname.startsWith('/customer/');
     if (!isCustPage && document.querySelectorAll('.user-pill-header').length === 0 && !document.getElementById('navUserArea')) {
       const headerContainer = document.querySelector('.header-right') || document.querySelector('.header-actions');
@@ -473,7 +444,6 @@
       }
     }
 
-    // Populate all .user-pill-header instances
     document.querySelectorAll('.user-pill-header').forEach(pill => {
       pill.innerHTML = `
         ${(user.avatarUrl && user.avatarUrl.trim() !== '')
@@ -583,7 +553,6 @@
     syncUserProfileUI();
   }
 
-  // Intercept window.fetch to attach JWT Bearer token and handle 401/403 Unauthorized/Forbidden
   const originalFetch = window.fetch;
   window.fetch = async function (url, options = {}) {
     let token = localStorage.getItem('jwt_token');
@@ -606,7 +575,6 @@
     }
 
     // Strict branch isolation ONLY for branch staff (MANAGER, POS, STAFF):
-    // CUSTOMER, DIRECTOR, and ADMIN can freely query any branch across the chain.
     const isInternalBranchStaff = currentUser && currentUser.role !== 'CUSTOMER' && currentUser.role !== 'DIRECTOR' && currentUser.role !== 'ADMIN' && (currentUser.role === 'MANAGER' || currentUser.role === 'POS' || currentUser.role === 'STAFF');
     if (isInternalBranchStaff) {
       const assignedBranch = currentUser.branchCode || 'CN01';
@@ -629,9 +597,6 @@
     return response;
   };
 
-  // ========================================================
-  // BỘ CHUYỂN ĐỔI CHI NHÁNH TỰ ĐỘNG CHO QUẢN LÝ / GIÁM ĐỐC
-  // ========================================================
   let myAccessibleBranches = [];
 
   async function fetchUserBranches() {
@@ -657,7 +622,6 @@
       console.warn('Lỗi tải danh sách chi nhánh phụ trách:', e);
     }
 
-    // Default fallback cho quản lý (mặc định phụ trách CN01 và CN02 theo phân công)
     myAccessibleBranches = [
       { branchCode: 'CN01', branchName: 'Chi nhánh 1 - Sân Cầu Lông Thủ Đức', address: 'Số 01 Võ Văn Ngân, TP. Thủ Đức' },
       { branchCode: 'CN02', branchName: 'Chi nhánh 2 - Sân Cầu Lông Bình Thạnh', address: 'Số 234 Điện Biên Phủ, Bình Thạnh' }
@@ -682,7 +646,6 @@
     const activeName = activeObj ? activeObj.branchName : ('Chi nhánh ' + activeBranch);
     localStorage.setItem('utesport_active_branch_name', activeName);
 
-    // Đồng bộ lại các select chi nhánh trên trang (nếu có)
     document.querySelectorAll('select#branchFilterSelect, select#dashboardBranchSelect').forEach(sel => {
       let optHtml = '';
       branches.forEach(b => {
@@ -728,7 +691,6 @@
         </svg>
       `;
 
-      // Tạo menu popover dropdown
       const parentWrap = badge.parentElement;
       if (parentWrap) parentWrap.style.position = 'relative';
 
@@ -809,7 +771,6 @@
       menu.innerHTML = itemsHtml;
       if (parentWrap) parentWrap.appendChild(menu);
 
-      // Toggle click
       badge.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = menu.style.display === 'block';
@@ -823,7 +784,6 @@
         }
       });
 
-      // Item click
       menu.querySelectorAll('.branch-popover-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
           if (!item.style.background.includes('185, 129')) {
@@ -844,7 +804,6 @@
       });
     });
 
-    // Close on click outside
     document.addEventListener('click', () => {
       document.querySelectorAll('.branch-dropdown-popover').forEach(m => m.style.display = 'none');
       document.querySelectorAll('.branch-chevron-arrow').forEach(a => a.style.transform = 'rotate(0deg)');
@@ -879,7 +838,6 @@
       showToast(`Đã chuyển sang [${targetName}]! Đang tải lại dữ liệu...`, 'success');
     }
 
-    // Sync pos grid filter if present
     const bFilter = document.getElementById('branchFilter');
     if (bFilter) bFilter.value = targetCode;
 
@@ -892,8 +850,6 @@
     }, 350);
   }
 
-
-  // Expose global helper for testing or role switching
   window.RBAC = {
     getCurrentUser: () => currentUser,
     syncNavUserArea: syncNavUserArea,

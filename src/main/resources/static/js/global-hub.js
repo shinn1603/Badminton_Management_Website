@@ -1,9 +1,5 @@
-/**
- * UTE SPORT - GLOBAL COMPONENT & THEME CONTROLLER
- * Supports: Sidebar Toggle, Theme Toggle (Light/Dark), Tab Switching, Toast Alerts, Modal Controls, Device Detection
- */
 
-// 0. DEVICE DETECTION & ADAPTIVE COMPACT MODE (PHONE vs DESKTOP)
+
 (function detectDevice() {
   function checkDevice() {
     const ua = navigator.userAgent || navigator.vendor || window.opera || '';
@@ -46,7 +42,6 @@
   window.addEventListener('orientationchange', checkDevice);
 })();
 
-// Global XSS Sanitizer Helper
 window.escapeHtml = function (str) {
   if (str === null || str === undefined) return '';
   return String(str).replace(/[&<>"']/g, function (m) {
@@ -737,5 +732,4 @@ function showToast(message, type = 'success') {
     setupMobileNav();
   }
 })();
-
 

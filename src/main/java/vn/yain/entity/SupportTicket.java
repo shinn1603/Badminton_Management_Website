@@ -30,7 +30,6 @@ public class SupportTicket {
     @Column(name = "branch_code", length = 50)
     private String branchCode;
 
-    // "BOT", "WAITING_STAFF", "ACTIVE_STAFF", "CLOSED"
     @Column(name = "status", nullable = false, length = 30)
     @Builder.Default
     private String status = "BOT";

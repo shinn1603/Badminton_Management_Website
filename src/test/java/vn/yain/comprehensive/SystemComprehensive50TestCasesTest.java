@@ -105,10 +105,6 @@ public class SystemComprehensive50TestCasesTest {
         mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
     }
 
-    // =========================================================================
-    // NHÓM 1: XÁC THỰC, PHÂN QUYỀN RBAC & BẢO MẬT (TC01 - TC08)
-    // =========================================================================
-
     @Test
     @DisplayName("TC01: Đăng nhập thành công với vai trò Quản trị viên (ADMIN)")
     void test01_Auth_LoginSuccess_AdminRole() throws Exception {
@@ -206,10 +202,6 @@ public class SystemComprehensive50TestCasesTest {
                 .andExpect(jsonPath("$.username", is("admin")));
     }
 
-    // =========================================================================
-    // NHÓM 2: KHÔI PHỤC MẬT KHẨU & OTP QUA EMAIL (TC09 - TC12)
-    // =========================================================================
-
     @Test
     @DisplayName("TC09: Yêu cầu OTP khôi phục mật khẩu thành công với tài khoản có email")
     void test09_Auth_ForgotPassword_SuccessWithRegisteredUser() throws Exception {
@@ -267,13 +259,11 @@ public class SystemComprehensive50TestCasesTest {
         """, testUser, testEmail, testPhone);
 
         try {
-            // Bước 1: Yêu cầu mã OTP
             mockMvc.perform(post("/api/auth/forgot-password")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(Map.of("identifier", testUser))))
                     .andExpect(status().isOk());
 
-            // Bước 2: Lấy OTP nội bộ
             java.lang.reflect.Field otpField = ApiController.class.getDeclaredField("forgotPasswordOtpMap");
             otpField.setAccessible(true);
             @SuppressWarnings("unchecked")
@@ -290,7 +280,6 @@ public class SystemComprehensive50TestCasesTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success", is(true)));
 
-            // Bước 3: Đặt lại mật khẩu với OTP
             mockMvc.perform(post("/api/auth/reset-password")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(Map.of(
@@ -301,7 +290,6 @@ public class SystemComprehensive50TestCasesTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success", is(true)));
 
-            // Bước 4: Đăng nhập thành công với mật khẩu mới
             mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(Map.of("username", testUser, "password", "passTC12_OK"))))
@@ -311,10 +299,6 @@ public class SystemComprehensive50TestCasesTest {
             jdbcTemplate.update("DELETE FROM users WHERE username = ?", testUser);
         }
     }
-
-    // =========================================================================
-    // NHÓM 3: CHI NHÁNH, SÂN & DANH MỤC SẢN PHẨM / DỤNG CỤ (TC13 - TC18)
-    // =========================================================================
 
     @Test
     @DisplayName("TC13: Lấy danh sách toàn bộ chi nhánh chuỗi sân UTE Sport")
@@ -367,10 +351,6 @@ public class SystemComprehensive50TestCasesTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
-
-    // =========================================================================
-    // NHÓM 4: KHUNG GIỜ, BẢNG GIÁ & TÍNH KHẢ DỤNG (TC19 - TC24)
-    // =========================================================================
 
     @Test
     @DisplayName("TC19: Lấy danh sách 16 khung giờ hoạt động trong ngày (06:00 - 22:00)")
@@ -465,10 +445,6 @@ public class SystemComprehensive50TestCasesTest {
             jdbcTemplate.update("DELETE FROM bookings WHERE customer_phone = ?", testPhone);
         }
     }
-
-    // =========================================================================
-    // NHÓM 5: ĐẶT SÂN, VIETQR & XÁC NHẬN CỌC 30% (TC25 - TC31)
-    // =========================================================================
 
     @Test
     @DisplayName("TC25: Đặt sân trực tuyến tạo đơn mới ở trạng thái Chờ thanh toán cọc")
@@ -631,10 +607,6 @@ public class SystemComprehensive50TestCasesTest {
         }
     }
 
-    // =========================================================================
-    // NHÓM 6: CHECK-IN, DỊCH VỤ TRONG TRẬN & CHECK-OUT HÓA ĐƠN (TC32 - TC36)
-    // =========================================================================
-
     @Test
     @DisplayName("TC32: Check-in nhận sân tại quầy POS cập nhật đơn và sân sang Đang sử dụng")
     void test32_Checkin_PosCheckin_SetsBookingAndCourtToInUse() throws Exception {
@@ -748,10 +720,6 @@ public class SystemComprehensive50TestCasesTest {
         }
     }
 
-    // =========================================================================
-    // NHÓM 7: CHÍNH SÁCH HỦY SÂN, HOÀN CỌC & QUY ĐỊNH 4 TIẾNG (TC37 - TC40)
-    // =========================================================================
-
     @Test
     @DisplayName("TC37: Hủy sân trước giờ đấu > 4 tiếng được chấp thuận và hoàn trả trạng thái sân")
     void test37_Cancel_CancelBookingOverFourHours_GivesFullRefund() throws Exception {
@@ -817,7 +785,6 @@ public class SystemComprehensive50TestCasesTest {
         """, testCode, matchDate.toString());
 
         try {
-            // Chuyển tới cùng sân và cùng khung giờ -> phải báo lỗi
             Map<String, String> transferReq = Map.of(
                     "targetCourtCode", "CL01",
                     "newTimeSlot", "10:00 - 11:00"
@@ -831,10 +798,6 @@ public class SystemComprehensive50TestCasesTest {
             jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", testCode);
         }
     }
-
-    // =========================================================================
-    // NHÓM 8: NHẬP HÀNG KHO & TỰ ĐỘNG CẬP NHẬT TỒN KHO CSDL (TC41 - TC44)
-    // =========================================================================
 
     @Test
     @DisplayName("TC41: Lập phiếu nhập kho từ nhà cung cấp và tăng tồn kho CSDL chính xác")
@@ -862,7 +825,6 @@ public class SystemComprehensive50TestCasesTest {
         Integer stockAfter = jdbcTemplate.queryForObject("SELECT stock_quantity FROM products WHERE product_code = 'P01'", Integer.class);
         assertEquals(stockBefore + 10, stockAfter);
 
-        // Khôi phục số lượng
         jdbcTemplate.update("UPDATE products SET stock_quantity = ? WHERE product_code = 'P01'", stockBefore);
     }
 
@@ -892,10 +854,6 @@ public class SystemComprehensive50TestCasesTest {
         assertNotNull(detailCount);
         assertTrue(detailCount > 0, "Bảng stock_product_details phải có dữ liệu chi tiết nhập kho");
     }
-
-    // =========================================================================
-    // NHÓM 9: CA TRỰC THU NGÂN, BÀN GIAO TIỀN MẶT & BÁO CÁO (TC45 - TC47)
-    // =========================================================================
 
     @Test
     @DisplayName("TC45: Lấy thông tin tóm tắt ca trực thu ngân (Doanh thu tiền mặt, thẻ, QR)")
@@ -930,10 +888,6 @@ public class SystemComprehensive50TestCasesTest {
         mockMvc.perform(get("/api/manager/reports"))
                 .andExpect(status().isOk());
     }
-
-    // =========================================================================
-    // NHÓM 10: GIẢI ĐẤU, TRỢ LÝ AI & SAO LƯU CSDL AN TOÀN (TC48 - TC50)
-    // =========================================================================
 
     @Test
     @DisplayName("TC48: Đăng ký tham gia giải đấu và tự động cập nhật số lượng VĐV")
@@ -984,7 +938,6 @@ public class SystemComprehensive50TestCasesTest {
         assertTrue(file.exists());
         assertTrue(file.length() > 0);
 
-        // Dọn dẹp tệp test
         file.delete();
     }
 }

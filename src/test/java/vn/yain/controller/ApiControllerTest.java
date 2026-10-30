@@ -125,7 +125,6 @@ class ApiControllerTest {
         LocalDate testDate = LocalDate.now().plusDays(50);
         String dateStr = testDate.toString();
 
-        // Xoa booking cu neu co de dam bao tinh doc lap khi chay test nhieu lan
         bookingRepository.findByCourtCodeAndBookingDate(testCourt, testDate)
                 .forEach(b -> bookingRepository.delete(b));
 
@@ -157,7 +156,6 @@ class ApiControllerTest {
         String testSlot = "07:00 - 08:00";
         LocalDate futureDate = LocalDate.now().plusDays(20);
 
-        // Tao san 1 booking truoc
         Booking b = new Booking();
         b.setBookingCode("DS_CONFLICT_TEST_" + System.currentTimeMillis() % 10000);
         b.setBranchCode("CN01");
@@ -172,7 +170,6 @@ class ApiControllerTest {
         b.setStatus("Chờ cọc 30%");
         bookingRepository.save(b);
 
-        // Thu khoa lai dung khung gio va ngay do
         Map<String, Object> payload = new HashMap<>();
         payload.put("branchCode", "CN01");
         payload.put("courtCode", testCourt);
@@ -207,7 +204,6 @@ class ApiControllerTest {
         b.setStatus("Chờ cọc 30%");
         bookingRepository.save(b);
 
-        // Gia lap Webhook tu cong thanh toan Sepay / Casso / VietQR
         Map<String, Object> webhookPayload = new HashMap<>();
         webhookPayload.put("content", "CK " + uniqueBookingCode + " THANH TOAN COC SAN");
         webhookPayload.put("transferAmount", 30000);
@@ -219,7 +215,6 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
-        // Kiem tra du lieu trong Database da duoc cap nhat sang Da coc 30%
         Booking updated = bookingRepository.findByBookingCode(uniqueBookingCode).orElseThrow();
         assertEquals("Đã cọc 30%", updated.getStatus());
     }
@@ -251,7 +246,6 @@ class ApiControllerTest {
         b.setStatus("Đang sử dụng");
         bookingRepository.save(b);
 
-        // Don sach booking cu neu co o san dich
         bookingRepository.findByCourtCodeAndBookingDate("CL02", date)
                 .forEach(old -> bookingRepository.delete(old));
 
@@ -277,7 +271,7 @@ class ApiControllerTest {
         intakePayload.put("notes", "Nhap hang dau tuan");
 
         Map<String, Object> item = new HashMap<>();
-        item.put("productCode", "P01"); // Sp co san trong seed data
+        item.put("productCode", "P01");
         item.put("quantity", 10);
         item.put("importPrice", 15000);
         intakePayload.put("items", java.util.Collections.singletonList(item));
@@ -294,13 +288,11 @@ class ApiControllerTest {
     @Test
     @DisplayName("API XL-08: Thong ke doanh thu va chot ca thu ngan")
     void testApiShiftEndpoints() throws Exception {
-        // 1. Xem thong ke ca
         mockMvc.perform(get("/api/shifts/summary?staffCode=NVQ01&branchCode=CN01"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.staffCode", is("NVQ01")))
                 .andExpect(jsonPath("$.systemCashTotal", notNullValue()));
 
-        // 2. Chot ca
         Map<String, Object> closePayload = new HashMap<>();
         closePayload.put("staffCode", "NVQ01");
         closePayload.put("branchCode", "CN01");
@@ -338,12 +330,10 @@ class ApiControllerTest {
     @Test
     @DisplayName("API Staff & WorkShifts: Quan ly nhan su va xem lich truc tuan")
     void testApiStaffAndShifts_Success() throws Exception {
-        // 1. Lay danh sach nhan su
         mockMvc.perform(get("/api/staff?branchCode=CN01"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", notNullValue()));
 
-        // 2. Them nhan vien moi
         Map<String, String> staffPayload = new HashMap<>();
         staffPayload.put("staffCode", "NV-TEST-01");
         staffPayload.put("branchCode", "CN01");
@@ -359,13 +349,11 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.staff.staffCode", is("NV-TEST-01")));
 
-        // 3. Lay lich truc tuan
         mockMvc.perform(get("/api/shifts/week?branchCode=CN01"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.schedule.mon", notNullValue()));
 
-        // 4. Phan ca truc
         Map<String, String> assignPayload = new HashMap<>();
         assignPayload.put("day", "mon");
         assignPayload.put("shift", "morning");
@@ -384,13 +372,11 @@ class ApiControllerTest {
     @Test
     @DisplayName("API Tournaments: Tra cuu danh sach va dang ky giai dau")
     void testApiTournaments_GetAndRegister() throws Exception {
-        // 1. Lay danh sach giai dau
         mockMvc.perform(get("/api/tournaments"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", notNullValue()))
                 .andExpect(jsonPath("$[0].tournamentCode", notNullValue()));
 
-        // 2. Dang ky tham gia giai dau dang mo GD02
         Map<String, Object> regPayload = new HashMap<>();
         regPayload.put("tournamentCode", "GD02");
         regPayload.put("tournamentName", "Giai Cau Long Doanh Nghiep & Sinh Vien Cup Thu Duc 2026");
@@ -439,7 +425,6 @@ class ApiControllerTest {
     @Test
     @DisplayName("Director: Xoa chi nhanh thanh cong DELETE /api/director/branches/{branchCode}")
     void testDirectorDeleteBranch() throws Exception {
-        // Create branch CN99 first
         vn.yain.entity.Branch b = new vn.yain.entity.Branch();
         b.setBranchCode("CN99");
         b.setBranchName("Chi nhánh Test 99");
@@ -459,7 +444,6 @@ class ApiControllerTest {
     @Test
     @DisplayName("Promotion: Tao ma giam gia cho chi nhanh moi tao va ap dung thanh cong khi dat san")
     void testPromotionForNewBranch() throws Exception {
-        // 1. Tao chi nhanh moi CN88
         vn.yain.entity.Branch b = new vn.yain.entity.Branch();
         b.setBranchCode("CN88");
         b.setBranchName("Chi nhánh 88 - Bình Thạnh Mới");
@@ -469,7 +453,6 @@ class ApiControllerTest {
         b.setStatus("Hoạt động");
         branchRepository.save(b);
 
-        // 2. Tao ma giam gia KM88 cho chi nhanh moi nay qua API Director
         String promoPayload = """
             {
                 "promoCode": "KM88",
@@ -489,13 +472,11 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
-        // 3. Kiem tra /api/pricing/summary?branchCode=CN88 tra ve ma KM88
         mockMvc.perform(get("/api/pricing/summary?branchCode=CN88"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.activePromotions[?(@.promoCode == 'KM88')]", notNullValue()));
 
-        // 4. Ap dung ma KM88 khi dat san o chi nhanh CN88 -> Thanh cong!
         String applyPayload = """
             {
                 "promoCode": "KM88",
@@ -511,7 +492,6 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$.discountAmount", is(40000)))
                 .andExpect(jsonPath("$.finalAmount", is(160000)));
 
-        // 5. Ap dung ma KM88 o chi nhanh khac (CN01) -> Phai bao loi pham vi!
         String applyOtherBranch = """
             {
                 "promoCode": "KM88",
@@ -525,7 +505,6 @@ class ApiControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success", is(false)));
 
-        // Clean up
         promotionRepository.findByPromoCode("KM88").ifPresent(promotionRepository::delete);
         branchRepository.findByBranchCode("CN88").ifPresent(branchRepository::delete);
     }
@@ -552,7 +531,6 @@ class ApiControllerTest {
         );
 
         try {
-            // ql_cn01 chi quan ly CN01, san CL01 gia hien hanh la 90000 hoac 120000, co tinh doi sang 50000
             String payload = """
                 {
                     "courtCode": "CL01",
@@ -596,18 +574,15 @@ class ApiControllerTest {
         );
 
         try {
-            // 1. Quan ly CN01 co tinh goi lay san CN02 -> Backend ep ve CN01
             mockMvc.perform(get("/api/courts?branchCode=CN02"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].branchCode", is("CN01")));
 
-            // 2. Quan ly CN01 co tinh xoa san -> Bi chan 403
             mockMvc.perform(delete("/api/courts/CL01"))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.success", is(false)))
                     .andExpect(jsonPath("$.message", containsString("Chỉ Ban Giám Đốc")));
 
-            // 3. Quan ly CN01 cap nhat thong so van hanh giu nguyen don gia hien tai -> Thanh cong 200 OK!
             BigDecimal currentPrice = courtRepository.findByCourtCode("CL01").get().getHourlyRate();
             String validUpdate = String.format("""
                 {
@@ -633,14 +608,12 @@ class ApiControllerTest {
     @Test
     @DisplayName("Admin API Permissions: Lay ma tran va cap nhat pham vi da chi nhanh (CN01,CN02)")
     void testAdminPermissionsGetAndPostMultiBranch() throws Exception {
-        // 1. GET /api/admin/permissions tra ve danh sach chi nhanh va nhan su
         mockMvc.perform(get("/api/admin/permissions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.branches", notNullValue()))
                 .andExpect(jsonPath("$.users", notNullValue()));
 
-        // 2. POST /api/admin/permissions gan da chi nhanh cho manager (CN01,CN02)
         String payload = """
             [
                 {
@@ -656,7 +629,6 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
-        // Kiem tra trong CSDL tai khoan manager duoc cap nhat chinh xac CN01,CN02
         vn.yain.entity.User updatedManager = userRepository.findByUsername("manager").orElse(null);
         org.junit.jupiter.api.Assertions.assertNotNull(updatedManager);
         assertEquals("CN01,CN02", updatedManager.getBranchCode());

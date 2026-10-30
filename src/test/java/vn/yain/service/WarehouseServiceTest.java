@@ -64,14 +64,13 @@ class WarehouseServiceTest {
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Khach goi 2 chai Revive (tong 30,000d)
         Map<String, Object> res = warehouseService.orderServiceForBooking("DS123456", "SP_REVIVE", 2);
 
         assertNotNull(res);
         assertTrue((boolean) res.get("success"));
-        assertEquals(18, water.getStockQuantity()); // 20 - 2 = 18
+        assertEquals(18, water.getStockQuantity());
         assertEquals(new BigDecimal("30000"), res.get("itemTotal"));
-        assertEquals(new BigDecimal("130000"), booking.getTotalPrice()); // 100,000 + 30,000 = 130,000
+        assertEquals(new BigDecimal("130000"), booking.getTotalPrice());
         verify(productRepository, times(1)).save(water);
         verify(bookingRepository, times(1)).save(booking);
     }
@@ -87,7 +86,6 @@ class WarehouseServiceTest {
 
         when(productRepository.findByProductCode("SP_YONEX_TUBE")).thenReturn(Optional.of(shuttlecock));
 
-        // Khach muon mua 5 ong nhung kho chi con 1
         IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
             warehouseService.orderServiceForBooking("DS123456", "SP_YONEX_TUBE", 5);
         });
@@ -110,7 +108,6 @@ class WarehouseServiceTest {
         when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
         when(stockReceiptRepository.save(any(StockReceipt.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Nhap kho 50 chiec quan can voi gia 28,000d/chiec -> Tong: 1,400,000d
         List<Map<String, Object>> items = new ArrayList<>();
         Map<String, Object> item = new HashMap<>();
         item.put("productCode", "SP_GRIP");
@@ -125,10 +122,38 @@ class WarehouseServiceTest {
         assertEquals(new BigDecimal("1400000"), receipt.getTotalAmount());
         assertEquals("Yonex Sunrise VN", receipt.getSupplierName());
 
-        // Kiem tra hang hoa da duoc cong them vao kho va tinh dung gia von binh quan gia quyen
-        assertEquals(60, grip.getStockQuantity()); // 10 + 50 = 60
+        assertEquals(60, grip.getStockQuantity());
         assertEquals(new BigDecimal("27500.00"), grip.getCostPrice());
         verify(productRepository, times(1)).save(grip);
         verify(stockReceiptRepository, times(1)).save(any(StockReceipt.class));
+    }
+
+    @Test
+    @DisplayName("XL-05: Huy dich vu hoan tra lai ton kho san pham va giam tien don dat san")
+    void testCancelServiceForBooking_Success() {
+        Product drink = new Product();
+        drink.setProductCode("SP_REVIVE");
+        drink.setProductName("Nước Revive");
+        drink.setUnitPrice(new BigDecimal("15000"));
+        drink.setStockQuantity(10);
+        drink.setUnit("chai");
+
+        Booking booking = new Booking();
+        booking.setBookingCode("DS999999");
+        booking.setTotalPrice(new BigDecimal("130000"));
+
+        when(productRepository.findByProductCode("SP_REVIVE")).thenReturn(Optional.of(drink));
+        when(bookingRepository.findByBookingCode("DS999999")).thenReturn(Optional.of(booking));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Map<String, Object> res = warehouseService.cancelServiceForBooking("DS999999", "SP_REVIVE", 2);
+
+        assertNotNull(res);
+        assertTrue((boolean) res.get("success"));
+        assertEquals(12, drink.getStockQuantity());
+        assertEquals(new BigDecimal("100000"), booking.getTotalPrice());
+        verify(productRepository, times(1)).save(drink);
+        verify(bookingRepository, times(1)).save(booking);
     }
 }

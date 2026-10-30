@@ -124,9 +124,9 @@ class SqlServerDatabaseIntegrationTest {
                 cs.setString(7, "Dat san thu nghiem");
                 cs.setString(8, null);
                 cs.setBigDecimal(9, BigDecimal.ZERO);
-                cs.registerOutParameter(10, Types.VARCHAR); // @booking_code
-                cs.registerOutParameter(11, Types.DECIMAL); // @deposit_amount
-                cs.registerOutParameter(12, Types.DECIMAL); // @total_price
+                cs.registerOutParameter(10, Types.VARCHAR);
+                cs.registerOutParameter(11, Types.DECIMAL);
+                cs.registerOutParameter(12, Types.DECIMAL);
 
                 cs.execute();
                 String bkCode = cs.getString(10);
@@ -139,7 +139,6 @@ class SqlServerDatabaseIntegrationTest {
                 assertNotNull(deposit);
                 assertTrue(deposit.compareTo(BigDecimal.ZERO) > 0);
 
-                // Don dep sau khi test
                 jdbcTemplate.update("DELETE FROM audit_logs WHERE details LIKE ?", "%" + bkCode + "%");
                 jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", bkCode);
             }
@@ -158,7 +157,6 @@ class SqlServerDatabaseIntegrationTest {
 
         final String[] createdBkCode = new String[1];
 
-        // 1. sp_LockSlotAndCreateBooking
         jdbcTemplate.execute((Connection conn) -> {
             try (CallableStatement cs = conn.prepareCall("{call dbo.sp_LockSlotAndCreateBooking(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}")) {
                 cs.setString(1, testCourt);
@@ -183,24 +181,21 @@ class SqlServerDatabaseIntegrationTest {
         String bkCode = createdBkCode[0];
         assertNotNull(bkCode);
 
-        // 2. sp_ConfirmBookingDeposit
         jdbcTemplate.update("EXEC dbo.sp_ConfirmBookingDeposit @booking_code = ?, @amount = 30000, @method = N'VietQR Pro', @transaction_ref = 'TX-LIFECYCLE'", bkCode);
         String statusAfterDeposit = jdbcTemplate.queryForObject("SELECT status FROM bookings WHERE booking_code = ?", String.class, bkCode);
         assertEquals("Đã cọc 30%", statusAfterDeposit);
 
-        // 3. sp_CheckInBooking
         jdbcTemplate.update("EXEC dbo.sp_CheckInBooking @booking_code = ?, @staff_code = 'NVQ01'", bkCode);
         String statusAfterCheckIn = jdbcTemplate.queryForObject("SELECT status FROM bookings WHERE booking_code = ?", String.class, bkCode);
         assertEquals("Đang sử dụng", statusAfterCheckIn);
 
-        // 4. sp_CheckOutAndCreateInvoice
         jdbcTemplate.execute((Connection conn) -> {
             try (CallableStatement cs = conn.prepareCall("{call dbo.sp_CheckOutAndCreateInvoice(?, ?, ?, ?, ?)}")) {
                 cs.setString(1, bkCode);
                 cs.setString(2, "NVQ01");
                 cs.setString(3, "Tiền mặt");
-                cs.registerOutParameter(4, Types.VARCHAR); // @invoice_code
-                cs.registerOutParameter(5, Types.DECIMAL); // @final_payment
+                cs.registerOutParameter(4, Types.VARCHAR);
+                cs.registerOutParameter(5, Types.DECIMAL);
 
                 cs.execute();
                 String invCode = cs.getString(4);
@@ -210,13 +205,11 @@ class SqlServerDatabaseIntegrationTest {
                 assertTrue(invCode.startsWith("HD"));
                 assertNotNull(finalPay);
 
-                // Cleanup invoice
                 jdbcTemplate.update("DELETE FROM invoices WHERE invoice_code = ?", invCode);
             }
             return null;
         });
 
-        // Cleanup invoice, payment, booking
         jdbcTemplate.update("DELETE FROM payments WHERE booking_code = ?", bkCode);
         jdbcTemplate.update("DELETE FROM audit_logs WHERE details LIKE ?", "%" + bkCode + "%");
         jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", bkCode);
@@ -240,8 +233,8 @@ class SqlServerDatabaseIntegrationTest {
             try (CallableStatement cs = conn.prepareCall("{call dbo.sp_CancelBookingWithRefundPolicy(?, ?, ?, ?)}")) {
                 cs.setString(1, bkCode);
                 cs.setString(2, "Ly do ca nhan");
-                cs.registerOutParameter(3, Types.DECIMAL); // @refund_amount
-                cs.registerOutParameter(4, Types.BIT);     // @is_refunded
+                cs.registerOutParameter(3, Types.DECIMAL);
+                cs.registerOutParameter(4, Types.BIT);
 
                 cs.execute();
                 BigDecimal refund = cs.getBigDecimal(3);
@@ -253,7 +246,6 @@ class SqlServerDatabaseIntegrationTest {
             return null;
         });
 
-        // Cleanup: Xoa payments truoc khi xoa bookings de khong vi pham Foreign Key
         jdbcTemplate.update("DELETE FROM payments WHERE booking_code = ?", bkCode);
         jdbcTemplate.update("DELETE FROM audit_logs WHERE details LIKE ?", "%" + bkCode + "%");
         jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", bkCode);
@@ -271,7 +263,6 @@ class SqlServerDatabaseIntegrationTest {
         Integer exists = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM stock_receipts WHERE receipt_code = ?", Integer.class, receiptCode);
         assertEquals(1, exists);
 
-        // Cleanup
         jdbcTemplate.update("DELETE FROM audit_logs WHERE details LIKE ?", "%" + receiptCode + "%");
         jdbcTemplate.update("DELETE FROM stock_receipts WHERE receipt_code = ?", receiptCode);
     }
@@ -293,7 +284,6 @@ class SqlServerDatabaseIntegrationTest {
 
         jdbcTemplate.update("DELETE FROM bookings WHERE court_code = ? AND booking_date = ?", testCourt, testDate.toString());
 
-        // Tao don thu 1
         String b1 = "DS_TEST_TRG_1_" + (System.currentTimeMillis() % 10000);
         jdbcTemplate.update(
                 "INSERT INTO bookings (booking_code, court_code, branch_code, customer_name, customer_phone, booking_date, time_slot, hourly_price, total_price, deposit_amount, status) " +
@@ -313,7 +303,6 @@ class SqlServerDatabaseIntegrationTest {
 
         assertTrue(ex.getMessage().contains("Lỗi xung đột lịch") || ex.getMessage().contains("trùng"), "Trigger phai bao loi xung dot lich");
 
-        // Cleanup
         jdbcTemplate.update("DELETE FROM bookings WHERE booking_code = ?", b1);
     }
 
@@ -327,22 +316,18 @@ class SqlServerDatabaseIntegrationTest {
                 testCust
         );
 
-        // Cap nhat total_play_hours len 15 -> Trigger phai tu dong chuyen sang Bac
         jdbcTemplate.update("UPDATE customers SET total_play_hours = 15 WHERE customer_code = ?", testCust);
         String tier1 = jdbcTemplate.queryForObject("SELECT membership_tier FROM customers WHERE customer_code = ?", String.class, testCust);
         assertEquals("Bạc", tier1);
 
-        // Cap nhat total_play_hours len 35 -> Trigger phai tu dong chuyen sang Vang
         jdbcTemplate.update("UPDATE customers SET total_play_hours = 35 WHERE customer_code = ?", testCust);
         String tier2 = jdbcTemplate.queryForObject("SELECT membership_tier FROM customers WHERE customer_code = ?", String.class, testCust);
         assertEquals("Vàng", tier2);
 
-        // Cap nhat total_play_hours len 75 -> Trigger phai tu dong chuyen sang Kim Cuong
         jdbcTemplate.update("UPDATE customers SET total_play_hours = 75 WHERE customer_code = ?", testCust);
         String tier3 = jdbcTemplate.queryForObject("SELECT membership_tier FROM customers WHERE customer_code = ?", String.class, testCust);
         assertEquals("Kim Cương", tier3);
 
-        // Cleanup
         jdbcTemplate.update("DELETE FROM customers WHERE customer_code = ?", testCust);
     }
 
@@ -353,7 +338,6 @@ class SqlServerDatabaseIntegrationTest {
         Integer stockBefore = jdbcTemplate.queryForObject("SELECT stock_quantity FROM products WHERE product_code = ?", Integer.class, pCode);
         assertNotNull(stockBefore);
 
-        // Tao 1 receipt tam voi staffCode hop le (NS02)
         String rcCode = "RC_STOCK_TEST_" + (System.currentTimeMillis() % 10000);
         jdbcTemplate.update(
                 "INSERT INTO stock_receipts (receipt_code, branch_code, staff_code, receipt_date, supplier_name, total_amount) " +
@@ -361,7 +345,6 @@ class SqlServerDatabaseIntegrationTest {
                 rcCode
         );
 
-        // Insert chi tiet nhap 15 chai Lavie
         jdbcTemplate.update(
                 "INSERT INTO stock_product_details (receipt_code, product_code, quantity, import_price, total_amount) " +
                 "VALUES (?, ?, 15, 6000, 90000)",
@@ -383,10 +366,8 @@ class SqlServerDatabaseIntegrationTest {
         String courtCode = "CL01";
         String oldStatus = jdbcTemplate.queryForObject("SELECT status FROM courts WHERE court_code = ?", String.class, courtCode);
 
-        // Doi trang thai san sang 'Bảo trì'
         jdbcTemplate.update("UPDATE courts SET status = N'Bảo trì' WHERE court_code = ?", courtCode);
 
-        // Kiem tra audit log
         Integer logCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM audit_logs WHERE details LIKE ? AND username = 'SYSTEM_COURT_MONITOR'",
                 Integer.class,
@@ -394,7 +375,6 @@ class SqlServerDatabaseIntegrationTest {
         );
         assertTrue(logCount != null && logCount > 0, "Trigger phai tu dong sinh ban ghi audit log");
 
-        // Tra lai trang thai cu
         jdbcTemplate.update("UPDATE courts SET status = ? WHERE court_code = ?", oldStatus, courtCode);
     }
 

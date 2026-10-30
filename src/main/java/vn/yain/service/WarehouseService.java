@@ -58,11 +58,9 @@ public class WarehouseService {
         Booking booking = bookingRepository.findByBookingCode(bookingCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn đặt sân: " + bookingCode));
 
-        // Trừ tồn kho
         product.setStockQuantity(product.getStockQuantity() - quantity);
         productRepository.save(product);
 
-        // Tính thành tiền và cộng vào đơn đặt sân
         BigDecimal itemTotal = product.getUnitPrice().multiply(new BigDecimal(quantity));
         if (booking.getTotalPrice() != null) {
             booking.setTotalPrice(booking.getTotalPrice().add(itemTotal));
@@ -85,6 +83,45 @@ public class WarehouseService {
         result.put("remainingStock", product.getStockQuantity());
         result.put("newBookingTotal", updatedBooking.getTotalPrice());
         result.put("message", "Đã thêm dịch vụ: " + itemNote);
+        return result;
+    }
+
+    /**
+     * Hoàn trả tồn kho và khấu trừ dịch vụ khi quầy POS giảm hoặc hủy món
+     */
+    public Map<String, Object> cancelServiceForBooking(String bookingCode, String productCode, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Số lượng hủy phải lớn hơn 0!");
+        }
+
+        Product product = productRepository.findByProductCode(productCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sản phẩm có mã: " + productCode));
+
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn đặt sân: " + bookingCode));
+
+        product.setStockQuantity((product.getStockQuantity() != null ? product.getStockQuantity() : 0) + quantity);
+        productRepository.save(product);
+
+        BigDecimal itemTotal = product.getUnitPrice().multiply(new BigDecimal(quantity));
+        if (booking.getTotalPrice() != null) {
+            BigDecimal newTotal = booking.getTotalPrice().subtract(itemTotal);
+            booking.setTotalPrice(newTotal.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : newTotal);
+        }
+
+        String itemNote = "Hủy " + quantity + "x " + product.getProductName();
+        booking.setNotes((booking.getNotes() != null ? booking.getNotes() + " | " : "") + "- DV: " + itemNote);
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("bookingCode", bookingCode);
+        result.put("productCode", productCode);
+        result.put("productName", product.getProductName());
+        result.put("quantity", quantity);
+        result.put("remainingStock", product.getStockQuantity());
+        result.put("newBookingTotal", updatedBooking.getTotalPrice());
+        result.put("message", "Đã hoàn trả tồn kho dịch vụ: " + itemNote);
         return result;
     }
 
@@ -145,19 +182,16 @@ public class WarehouseService {
                 throw new IllegalArgumentException("Số lượng và giá nhập của từng sản phẩm phải hợp lệ!");
             }
 
-            // 1. Tìm sản phẩm trong chi nhánh mục tiêu
             Product product = productRepository.findByBranchCode(targetBranch).stream()
                     .filter(p -> p.getProductCode().equalsIgnoreCase(productCode)
                             || (productName != null && p.getProductName() != null && p.getProductName().equalsIgnoreCase(productName)))
                     .findFirst()
                     .orElse(null);
 
-            // 2. Tìm theo mã sản phẩm chính xác trên toàn hệ thống
             if (product == null) {
                 product = productRepository.findByProductCode(productCode).orElse(null);
             }
 
-            // 3. Tìm theo tên hoặc mã tương tự trên toàn bộ danh mục
             if (product == null) {
                 final String searchName = (productName != null && !productName.isBlank()) ? productName : productCode;
                 product = productRepository.findAll().stream()
@@ -167,8 +201,6 @@ public class WarehouseService {
                         .orElse(null);
             }
 
-            // 4. Nếu tìm thấy sản phẩm ở chi nhánh khác nhưng chưa có ở targetBranch:
-            // Tự động phân bổ/tạo mới bản ghi sản phẩm cho targetBranch để quản lý tồn kho riêng biệt
             if (product != null && product.getBranchCode() != null && !targetBranch.equalsIgnoreCase(product.getBranchCode())) {
                 final String pName = product.getProductName();
                 Optional<Product> existingInBranch = productRepository.findByBranchCode(targetBranch).stream()
@@ -195,7 +227,6 @@ public class WarehouseService {
                 }
             }
 
-            // 5. Nếu không tìm thấy trong bất kỳ chi nhánh nào: Tự động khởi tạo sản phẩm vào kho
             if (product == null) {
                 Product newProd = new Product();
                 String codeToUse = productCode.toUpperCase();
@@ -218,7 +249,6 @@ public class WarehouseService {
                 product = productRepository.save(newProd);
             }
 
-            // Tăng tồn kho và cập nhật giá vốn bình quân gia quyền (BUG-MED-26)
             int currentStock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
             BigDecimal currentCost = product.getCostPrice() != null ? product.getCostPrice() : BigDecimal.ZERO;
             int newTotalStock = currentStock + quantity;
@@ -237,7 +267,6 @@ public class WarehouseService {
             BigDecimal lineTotal = importPrice.multiply(new BigDecimal(quantity));
             totalAmount = totalAmount.add(lineTotal);
 
-            // Lưu chi tiết nhập hàng vào bảng stock_product_details
             StockProductDetail detail = new StockProductDetail();
             detail.setReceiptCode(receiptCode);
             detail.setProductCode(product.getProductCode());

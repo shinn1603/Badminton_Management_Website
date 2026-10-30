@@ -75,12 +75,10 @@ public class GeminiAiService {
 
             Map<String, Object> requestBody = new HashMap<>();
 
-            // System instructions
             Map<String, Object> systemInstruction = new HashMap<>();
             systemInstruction.put("parts", List.of(Map.of("text", systemPrompt)));
             requestBody.put("system_instruction", systemInstruction);
 
-            // Multi-turn dialog contents
             List<Map<String, Object>> contents = new ArrayList<>();
             if (ctx.dialogHistory != null) {
                 int start = Math.max(0, ctx.dialogHistory.size() - 8);
@@ -94,11 +92,9 @@ public class GeminiAiService {
                 }
             }
 
-            // Current user message
             contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", userMessage))));
             requestBody.put("contents", contents);
 
-            // Generation config
             Map<String, Object> genConfig = new HashMap<>();
             genConfig.put("temperature", 0.6);
             genConfig.put("maxOutputTokens", 800);
@@ -106,7 +102,6 @@ public class GeminiAiService {
 
             String jsonPayload = objectMapper.writeValueAsString(requestBody);
 
-            // Try candidate models
             List<String> candidateModels = List.of(
                     modelName != null && !modelName.isEmpty() ? modelName : "gemini-1.5-flash",
                     "gemini-flash-latest",
@@ -135,7 +130,6 @@ public class GeminiAiService {
                     if (!candidateTextNode.isMissingNode()) {
                         String botReply = candidateTextNode.asText();
 
-                        // Add to session history
                         ctx.addDialogTurn("user", userMessage);
                         ctx.addDialogTurn("model", botReply);
 
@@ -226,7 +220,6 @@ public class GeminiAiService {
         Map<String, Object> paymentData = null;
         Map<String, Object> lookupData = null;
 
-        // Check for [ACTION:BOOKING ...] tag
         Pattern bookingPattern = Pattern.compile("\\[ACTION:BOOKING\\s+([^\\]]+)\\]");
         Matcher bookingMatcher = bookingPattern.matcher(rawReply);
 
@@ -243,7 +236,6 @@ public class GeminiAiService {
             String priceStr = extractAttr(attributes, "price", ctx.totalPrice.toString());
             String depositStr = extractAttr(attributes, "deposit", ctx.depositAmount.toString());
 
-            // Đảm bảo đủ thông tin cơ bản trước khi tạo đơn
             if (name == null || name.isBlank() || phone == null || !phone.matches("0[3|5|7|8|9]\\d{8}")) {
                 return ChatMessageDto.builder()
                         .sender("bot")
@@ -316,7 +308,6 @@ public class GeminiAiService {
                     .build();
         }
 
-        // Check for [ACTION:LOOKUP ...] tag
         Pattern lookupPattern = Pattern.compile("\\[ACTION:LOOKUP\\s+code=\"([^\"]+)\"\\]");
         Matcher lookupMatcher = lookupPattern.matcher(rawReply);
         if (lookupMatcher.find()) {
@@ -338,7 +329,6 @@ public class GeminiAiService {
             }
         }
 
-        // Check for [ACTION:CANCEL ...] tag
         Pattern cancelPattern = Pattern.compile("\\[ACTION:CANCEL\\s+code=\"([^\"]+)\"\\]");
         Matcher cancelMatcher = cancelPattern.matcher(rawReply);
         if (cancelMatcher.find()) {

@@ -171,8 +171,8 @@ class BookingServiceTest {
         booking.setBookingCode("DS123456");
         booking.setCourtCode("CL04");
         booking.setStatus("Đang sử dụng");
-        booking.setTotalPrice(new BigDecimal("120000")); // Tien gio
-        booking.setDepositAmount(new BigDecimal("36000")); // Da coc 30%
+        booking.setTotalPrice(new BigDecimal("120000"));
+        booking.setDepositAmount(new BigDecimal("36000"));
 
         Court court = new Court();
         court.setCourtCode("CL04");
@@ -183,11 +183,9 @@ class BookingServiceTest {
         when(invoiceRepository.save(any(Invoice.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(courtRepository.findByCourtCode("CL04")).thenReturn(Optional.of(court));
 
-        // Phat sinh them: Thue vot 20,000 + Nuoc uong 30,000
         BigDecimal eqFee = new BigDecimal("20000");
         BigDecimal prodFee = new BigDecimal("30000");
 
-        // Tong con lai phai thu = 120,000 + 20,000 + 30,000 - 36,000 = 134,000
         Invoice invoice = bookingService.checkOut("DS123456", eqFee, prodFee, "Tiền mặt", "NVQ01");
 
         assertNotNull(invoice);
@@ -274,7 +272,7 @@ class BookingServiceTest {
         oldCourt.setStatus("Đang sử dụng");
 
         Court targetCourt = new Court();
-        targetCourt.setCourtCode("CL06"); // San VIP Yonex
+        targetCourt.setCourtCode("CL06");
         targetCourt.setHourlyRate(new BigDecimal("120000"));
         targetCourt.setStatus("Trống");
 
@@ -289,7 +287,6 @@ class BookingServiceTest {
         assertNotNull(res);
         assertTrue((boolean) res.get("success"));
         assertEquals("CL06", res.get("newCourtCode"));
-        // 120,000 - 90,000 = 30,000 chenh lech bu them
         assertEquals(new BigDecimal("30000"), res.get("priceDifference"));
         assertEquals(new BigDecimal("120000"), res.get("newTotalPrice"));
         verify(courtService, times(1)).updateCourtStatus("CL01", "Trống");

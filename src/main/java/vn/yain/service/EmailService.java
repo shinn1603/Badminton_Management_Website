@@ -336,7 +336,6 @@ public class EmailService {
             helper.setText(html, true);
             sender.send(message);
 
-            // Tự động lưu cấu hình hợp lệ vào CSDL
             saveOrUpdateSetting("CFG_MAIL_USERNAME", username);
             saveOrUpdateSetting("CFG_MAIL_PASSWORD", password);
             saveOrUpdateSetting("CFG_MAIL_PORT", String.valueOf(port));
@@ -359,7 +358,6 @@ public class EmailService {
             boolean isAuthErr = fullErr.contains("535") || fullErr.contains("AuthenticationFailedException") || fullErr.contains("Username and Password not accepted") || fullErr.contains("BadCredentials");
             boolean isConnErr = fullErr.contains("Could not connect") || fullErr.contains("ConnectException") || fullErr.contains("timed out") || fullErr.contains("SocketTimeoutException") || fullErr.contains("MailConnectException");
 
-            // Nếu chỉ lỗi kết nối mạng/tường lửa mà không phải sai mật khẩu, tự động thử cổng thay thế (587 <-> 465)
             if (isConnErr && !isAuthErr) {
                 int altPort = (port == 587) ? 465 : 587;
                 try {
@@ -375,7 +373,6 @@ public class EmailService {
                         altHelper.setText(altHtml, true);
                         altSender.send(altMsg);
 
-                        // Lưu cổng thành công vào database
                         saveOrUpdateSetting("CFG_MAIL_USERNAME", username);
                         saveOrUpdateSetting("CFG_MAIL_PASSWORD", password);
                         saveOrUpdateSetting("CFG_MAIL_PORT", String.valueOf(altPort));
@@ -441,7 +438,6 @@ public class EmailService {
             log.warn("[EMAIL SERVICE] Chưa cấu hình SMTP (username/password trống), chuyển sang chế độ mô phỏng log.");
         }
 
-        // Chế độ mô phỏng (Development / Offline Logger)
         log.info("================================================================================");
         log.info("[EMAIL SIMULATION - UTE SPORT NOTIFICATION]");
         log.info("From: {} ({})", getResolvedUsername(), getResolvedFromName());
@@ -452,10 +448,6 @@ public class EmailService {
         log.info("================================================================================");
         return true;
     }
-
-    // =========================================================================
-    // 1. GỬI MÃ OTP / THÔNG BÁO QUÊN MẬT KHẨU
-    // =========================================================================
 
     public void sendPasswordResetOtp(String toEmail, String fullName, String otpCode) {
         String safeName = (fullName != null && !fullName.isBlank()) ? fullName : "Quý khách";
@@ -579,10 +571,50 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
+    
+    public void sendRegistrationOtpEmail(String toEmail, String fullName, String otpCode) {
+        String safeName = (fullName != null && !fullName.isBlank()) ? fullName : "Quý khách";
+        String subject = "[UTE Sport] Mã xác thực kích hoạt tài khoản hội viên: " + otpCode;
 
-    // =========================================================================
+String html = """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #1e293b;">
+                <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+                    <div style="background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 28px 24px; text-align: center; border-bottom: 3px solid #10b981;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">UTE SPORT BADMINTON ARENA</h1>
+                        <p style="color: #94a3b8; margin: 6px 0 0; font-size: 13px;">Hệ Thống Quản Lý Chuỗi Trung Tâm Thể Thao Cao Cấp</p>
+                    </div>
+                    <div style="padding: 28px 24px;">
+                        <h2 style="color: #0f172a; font-size: 18px; margin-top: 0;">Xác Thực Tài Khoản Đăng Ký</h2>
+                        <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+                            Xin chào <strong>%s</strong>,<br>
+                            Cảm ơn bạn đã đăng ký tài khoản tại UTE Sport! Để hoàn tất quá trình tạo tài khoản và kích hoạt các quyền lợi hội viên, vui lòng nhập mã xác nhận bên dưới:
+                        </p>
+                        <div style="margin: 24px 0; text-align: center;">
+                            <div style="display: inline-block; background: #f8fafc; border: 2px dashed #10b981; border-radius: 12px; padding: 14px 32px; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #047857;">
+                                %s
+                            </div>
+                            <p style="font-size: 12px; color: #64748b; margin: 8px 0 0;">Mã xác thực có hiệu lực trong vòng <strong>10 phút</strong>.</p>
+                        </div>
+                        <p style="font-size: 13px; line-height: 1.6; color: #64748b; background: #f0fdf4; border-left: 4px solid #10b981; padding: 10px 14px; border-radius: 4px;">
+                            <strong>Lưu ý bảo mật:</strong> Không chia sẻ mã OTP này cho bất kỳ ai. Nếu bạn không thực hiện đăng ký tài khoản này tại UTE Sport, vui lòng bỏ qua email này.
+                        </p>
+                    </div>
+                    <div style="background: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
+                        © 2026 UTE Sport Badminton Club | Chi nhánh chính: 01 Võ Văn Ngân, TP. Thủ Đức<br>
+                        Hotline hỗ trợ: 0903.123.456 - Website: utesport.vn
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(safeName, otpCode);
+
+        sendHtmlEmailAsync(toEmail, subject, html);
+    }
+    
     // 2. GỬI PHIẾU XÁC NHẬN ĐẶT SÂN & VÉ ĐIỆN TỬ (E-TICKET BM-KH02)
-    // =========================================================================
 
     public void sendBookingTicket(Booking booking, String qrCodeUrl) {
         sendBookingConfirmation(booking);
@@ -591,7 +623,6 @@ public class EmailService {
     public void sendBookingConfirmation(Booking booking) {
         if (booking == null) return;
 
-        // Tìm email người nhận
         String toEmail = booking.getCustomerEmail();
         if (toEmail == null || toEmail.isBlank() || !toEmail.contains("@")) {
             if (booking.getCustomerCode() != null) {
@@ -615,7 +646,6 @@ public class EmailService {
             return;
         }
 
-        // Thông tin sân và chi nhánh
         Court court = courtRepository.findByCourtCode(booking.getCourtCode()).orElse(null);
         String courtName = court != null ? court.getCourtName() : ("Sân " + booking.getCourtCode());
         String courtType = court != null ? court.getCourtType() : "Tiêu chuẩn";
@@ -747,10 +777,6 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
-
-    // =========================================================================
-    // 2.2 GỬI THÔNG BÁO HỦY ĐẶT SÂN & HƯỚNG DẪN HOÀN TIỀN CỌC
-    // =========================================================================
 
     public void sendCancellationNotice(Booking booking, String reason) {
         if (booking == null) return;
@@ -951,11 +977,6 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
-
-    // =========================================================================
-    // 3. GỬI PHIẾU XÁC NHẬN THAM GIA GIẢI ĐẤU (BM-KH03)
-    // =========================================================================
-    // =========================================================================
 
     public void sendTournamentRegistration(String email, String fullName, Tournament tournament, String regCode) {
         if (tournament == null) return;

@@ -122,19 +122,14 @@ class ChatbotAndCustomerSupportTest {
     void testBookingExecutionIntent() {
         String sessionId = "test_sess_booking_" + System.currentTimeMillis();
 
-        // 1. Chọn chi nhánh & giờ
         chatbotService.processMessage("Đặt sân ở chi nhánh 1 từ 18h đến 20h hôm nay", sessionId);
 
-        // 2. Chọn sân VIP
         chatbotService.processMessage("Cho tôi đặt sân VIP", sessionId);
 
-        // 3. Phụ kiện
         chatbotService.processMessage("Không lấy thêm gì", sessionId);
 
-        // 4. Họ tên & SĐT
         chatbotService.processMessage("Mình tên Tuấn Anh, SĐT 0987654321", sessionId);
 
-        // 5. Xác nhận chốt đặt sân
         ChatMessageDto bookReply = chatbotService.processMessage("Ok chốt đặt sân", sessionId);
         assertNotNull(bookReply);
         assertEquals("OPEN_PAYMENT", bookReply.getActionType());
@@ -148,7 +143,6 @@ class ChatbotAndCustomerSupportTest {
         assertNotNull(qrUrl);
         assertTrue(qrUrl.contains("vietqr.io"));
 
-        // 6. Tra cứu lại mã đơn vừa tạo
         ChatMessageDto lookupReply = chatbotService.processMessage("Kiểm tra thông tin đơn " + bookingCode, sessionId);
         assertNotNull(lookupReply);
         assertNotNull(lookupReply.getLookupData());

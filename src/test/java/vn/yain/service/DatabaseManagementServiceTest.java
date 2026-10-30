@@ -57,7 +57,6 @@ class DatabaseManagementServiceTest {
         assertNotNull(saved);
         assertTrue(saved.exists());
 
-        // Cleanup
         saved.delete();
     }
 
@@ -78,7 +77,6 @@ class DatabaseManagementServiceTest {
     @DisplayName("DB Mgmt 04: Bảo vệ chống Path Traversal khi lấy file sao lưu")
     void testPreventPathTraversal() {
         File file = databaseManagementService.getBackupFile("../../pom.xml");
-        // Must either be null or sanitize to just "pom.xml" inside database/backups
         if (file != null) {
             assertTrue(file.getPath().replace('\\', '/').contains("database/backups"));
         }

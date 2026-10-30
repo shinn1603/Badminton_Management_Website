@@ -25,7 +25,6 @@ public class DashboardController {
         return "login";
     }
 
-    // CUSTOMER PORTAL ENDPOINTS (Phan he Cong Khach Hang - Tran Bieu Huong)
     @GetMapping("/customer/home")
     public String customerHome() {
         return "customer/home";
@@ -36,6 +35,11 @@ public class DashboardController {
         return "customer/auth";
     }
 
+    @GetMapping("/customer/verify-otp")
+    public String customerVerifyOtp() {
+        return "customer/verify-otp";
+    }
+    
     @GetMapping("/customer/booking")
     public String customerBooking() {
         return "customer/booking";
@@ -135,7 +139,6 @@ public class DashboardController {
         return "pos/grid";
     }
 
-    // MANAGER ENDPOINTS
     @GetMapping("/manager/dashboard")
     public String managerDashboard() {
         return "manager/dashboard";

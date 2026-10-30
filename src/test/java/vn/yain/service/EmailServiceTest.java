@@ -54,7 +54,6 @@ public class EmailServiceTest {
     @Test
     @DisplayName("Email 04: Tự động loại bỏ dấu cách từ Mật khẩu ứng dụng Google")
     void testResolvedPasswordStripsWhitespace() {
-        // Giả lập mật khẩu có dấu cách thường gặp khi copy từ Google
         String raw = "abcd efgh ijkl mnop";
         String cleaned = raw.trim().replace(" ", "");
         assertEquals("abcdefghijklmnop", cleaned);

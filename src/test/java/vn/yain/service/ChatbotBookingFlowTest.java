@@ -96,24 +96,20 @@ public class ChatbotBookingFlowTest {
     void testStepByStepCollection_EnsureAll6FieldsBeforeLocking() {
         String session = "test_sess_step";
 
-        // Bước 1: Khách chọn chi nhánh & giờ
         ChatMessageDto step1 = chatbotService.processMessage("Đặt sân ở chi nhánh 1 từ 18h đến 20h hôm nay", session);
         assertNotNull(step1);
         assertNotEquals("OPEN_PAYMENT", step1.getActionType(), "Chưa đủ 6 thông tin, không được hiện mã khóa sân!");
 
-        // Bước 2: Khách chọn sân VIP
         ChatMessageDto step2 = chatbotService.processMessage("Cho tôi đặt sân VIP", session);
         assertNotNull(step2);
         assertNotEquals("OPEN_PAYMENT", step2.getActionType(), "Chưa hỏi dịch vụ đi kèm & tên/SĐT, không được hiện mã khóa sân!");
         assertTrue(step2.getText().contains("dịch vụ") || step2.getText().contains("phụ kiện"));
 
-        // Bước 3: Khách trả lời về dịch vụ đi kèm
         ChatMessageDto step3 = chatbotService.processMessage("Không lấy thêm gì", session);
         assertNotNull(step3);
         assertNotEquals("OPEN_PAYMENT", step3.getActionType(), "Chưa có tên và SĐT, không được hiện mã khóa sân!");
         assertTrue(step3.getText().contains("Họ tên") || step3.getText().contains("Số điện thoại"));
 
-        // Bước 4: Khách cung cấp tên và SĐT
         ChatMessageDto step4 = chatbotService.processMessage("Mình tên Tuấn Anh, SĐT 0987654321", session);
         assertNotNull(step4);
         assertNotEquals("OPEN_PAYMENT", step4.getActionType(), "Vừa đủ thông tin, phải hiện bảng tóm tắt xác nhận trước khi khóa sân!");
@@ -123,7 +119,6 @@ public class ChatbotBookingFlowTest {
         assertTrue(step4.getText().contains("Chi nhánh 1"));
         assertTrue(step4.getText().contains("Sân 1 (VIP)"));
 
-        // Bước 5: Khách xác nhận chốt
         ChatMessageDto step5 = chatbotService.processMessage("Xác nhận và xuất mã khóa sân", session);
         assertNotNull(step5);
         assertEquals("OPEN_PAYMENT", step5.getActionType(), "Đã đủ 6 thông tin và khách xác nhận -> PHẢI HIỆN MÃ KHÓA SÂN!");
@@ -135,7 +130,6 @@ public class ChatbotBookingFlowTest {
     @Test
     void testOneShotBooking_WithAll6Fields_ShouldDirectlyLockAndShowCode() {
         String session = "test_sess_oneshot";
-        // Cung cấp đầy đủ: Tên, SĐT, Chi nhánh, Sân, Giờ, Dịch vụ đi kèm + Yêu cầu khóa sân
         String input = "Tôi tên Nguyễn Văn Nam, SĐT 0912345678, muốn đặt sân VIP ở chi nhánh 1 từ 18h đến 20h hôm nay, không chọn thêm gì, khóa sân giùm tôi";
         
         ChatMessageDto reply = chatbotService.processMessage(input, session);
@@ -153,7 +147,6 @@ public class ChatbotBookingFlowTest {
     void testReopenPendingPayment_WhenClosedAndRequestedAgain() {
         String session = "test_reopen_sess";
         
-        // Tạo booking giả lập trong database ở trạng thái "Chờ cọc 30%"
         vn.yain.entity.Booking pendingBooking = new vn.yain.entity.Booking();
         pendingBooking.setBookingCode("DS888999");
         pendingBooking.setCourtCode("CL01");
@@ -172,7 +165,6 @@ public class ChatbotBookingFlowTest {
         when(bookingService.getAccountName()).thenReturn("UTE BADMINTON CLUB");
         when(bookingService.getBankName()).thenReturn("MBBank (Ngân hàng Quân Đội)");
 
-        // Khách hàng hỏi tiếp tục thanh toán đơn DS888999
         ChatMessageDto reopenReply = chatbotService.processMessage("Tôi muốn tiếp tục thanh toán đơn DS888999", session);
 
         assertNotNull(reopenReply);
@@ -189,14 +181,12 @@ public class ChatbotBookingFlowTest {
     void testBranchSelection_ShouldNotLoopBranchList_AndAskForSlot() {
         String session = "test_branch_loop_fix";
 
-        // Bước 1: Khách hỏi hệ thống có những chi nhánh nào
         ChatMessageDto step1 = chatbotService.processMessage("Bạn có những chi nhánh nào", session);
         assertNotNull(step1);
         assertEquals("BRANCH_LIST", step1.getIntent());
         assertTrue(step1.getText().contains("Hệ thống sân cầu lông UTE Sport hiện có các cơ sở thi đấu sau"));
         assertTrue(step1.getQuickReplies().stream().anyMatch(q -> q.contains("Chi nhánh 1")));
 
-        // Bước 2: Khách chọn "Chi nhánh 1" -> Bot KHÔNG ĐƯỢC lặp lại BRANCH_LIST, mà phải ghi nhận CN01 và hỏi khung giờ
         ChatMessageDto step2 = chatbotService.processMessage("Chi nhánh 1", session);
         assertNotNull(step2);
         assertNotEquals("BRANCH_LIST", step2.getIntent(), "Không được lặp lại danh sách chi nhánh khi khách đã chọn Chi nhánh 1!");
@@ -204,7 +194,6 @@ public class ChatbotBookingFlowTest {
         assertTrue(step2.getText().contains("Chi nhánh 1"));
         assertTrue(step2.getText().contains("mấy giờ"));
 
-        // Bước 3: Khách tiếp tục chọn khung giờ "Hôm nay 18h - 20h" -> Bot chuyển sang gợi ý sân khả dụng
         ChatMessageDto step3 = chatbotService.processMessage("Hôm nay 18h - 20h", session);
         assertNotNull(step3);
         assertEquals("PROPOSE_COURTS", step3.getIntent());
@@ -215,12 +204,10 @@ public class ChatbotBookingFlowTest {
     void testSlotFirst_ThenBranchSelection_ShouldAdvanceToProposeCourts() {
         String session = "test_slot_first";
 
-        // Bước 1: Khách đưa giờ trước: "Đặt sân từ 18h đến 20h hôm nay"
         ChatMessageDto step1 = chatbotService.processMessage("Đặt sân từ 18h đến 20h hôm nay", session);
         assertNotNull(step1);
         assertEquals("ASK_BRANCH", step1.getIntent());
 
-        // Bước 2: Khách chọn "Chi nhánh 1" -> Đã có cả giờ và chi nhánh -> Phải chuyển sang PROPOSE_COURTS ngay!
         ChatMessageDto step2 = chatbotService.processMessage("Chi nhánh 1", session);
         assertNotNull(step2);
         assertNotEquals("BRANCH_LIST", step2.getIntent());

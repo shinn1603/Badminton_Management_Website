@@ -50,13 +50,11 @@ public class CloudinaryService {
             throw new IllegalArgumentException("Tệp tải lên không được để trống!");
         }
 
-        // Return mock CDN URL if in mock/test environment to satisfy automated tests
         if (apiKey.startsWith("test-") || "test-cloud".equalsIgnoreCase(cloudName)) {
             String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "image.jpg";
             return "https://res.cloudinary.com/" + cloudName + "/image/upload/v1728460000/" + (folder != null ? folder + "/" : "") + filename;
         }
 
-        // If real Cloudinary API key is provided, attempt Cloudinary upload
         if (!apiKey.isBlank()) {
             try {
                 Map<?, ?> uploadResult = cloudinary.uploader().upload(
@@ -74,7 +72,6 @@ public class CloudinaryService {
             }
         }
 
-        // Local storage fallback so the application works reliably in development / offline
         return saveFileLocally(file, folder);
     }
 

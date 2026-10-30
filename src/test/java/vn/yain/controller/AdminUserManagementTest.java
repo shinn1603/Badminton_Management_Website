@@ -107,7 +107,6 @@ class AdminUserManagementTest {
         assertNotNull(created);
         assertEquals("Nguyen Van Staff", created.getFullName());
 
-        // Update user
         payload.put("fullName", "Nguyen Van Staff Updated");
         mockMvc.perform(post("/api/admin/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -134,13 +133,11 @@ class AdminUserManagementTest {
             return userRepository.save(newUser);
         });
 
-        // Toggle from Hoạt động -> Bị khóa
         mockMvc.perform(post("/api/admin/users/" + username + "/toggle-status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.status", is("Bị khóa")));
 
-        // Toggle from Bị khóa -> Hoạt động
         mockMvc.perform(post("/api/admin/users/" + username + "/toggle-status"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))

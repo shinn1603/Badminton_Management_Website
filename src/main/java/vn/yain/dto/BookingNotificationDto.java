@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class BookingNotificationDto {
-    private String eventType; // NEW_BOOKING, DEPOSIT_CONFIRMED, CHECKED_IN, CHECKED_OUT, BOOKING_CANCELLED, COURT_TRANSFERRED
+    private String eventType;
     private String bookingCode;
     private String courtCode;
     private String branchCode;

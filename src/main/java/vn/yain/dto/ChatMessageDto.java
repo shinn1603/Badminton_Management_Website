@@ -15,12 +15,12 @@ import java.util.Map;
 @Builder
 public class ChatMessageDto {
     private String text;
-    private String sender; // "user" or "bot"
+    private String sender;
     private String intent;
     private List<String> quickReplies;
     private String actionUrl;
     private String actionText;
-    private String actionType; // "OPEN_PAYMENT", "REDIRECT", "LOOKUP_RESULT", "TOURNAMENT_LIST", "NONE"
+    private String actionType;
     private Map<String, Object> paymentData;
     private Map<String, Object> lookupData;
     private List<Map<String, Object>> tournamentData;

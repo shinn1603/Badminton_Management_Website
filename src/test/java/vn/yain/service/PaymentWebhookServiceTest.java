@@ -105,20 +105,17 @@ class PaymentWebhookServiceTest {
         webhookData.put("transferAmount", 30000);
         webhookData.put("referenceCode", "TX-DUP-" + code);
 
-        // Lần gửi 1: Thành công cập nhật
         Map<String, Object> res1 = paymentWebhookService.processVietQRWebhook(
                 "UTE_VIETQR_SECRET_TOKEN_2026", null, webhookData);
         assertTrue((boolean) res1.get("success"));
         assertNull(res1.get("duplicate"));
 
-        // Lần gửi 2: Bị phát hiện lặp và bỏ qua an toàn
         Map<String, Object> res2 = paymentWebhookService.processVietQRWebhook(
                 "UTE_VIETQR_SECRET_TOKEN_2026", null, webhookData);
         assertTrue((boolean) res2.get("success"));
         assertTrue((boolean) res2.get("duplicate"));
         assertEquals("Duplicate webhook ignored: booking already confirmed", res2.get("message"));
 
-        // Xác minh chỉ có duy nhất 1 bản ghi thanh toán được tạo
         List<Payment> payments = paymentRepository.findByBookingCode(code);
         assertEquals(1, payments.size());
     }
