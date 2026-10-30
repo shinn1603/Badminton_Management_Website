@@ -1261,6 +1261,10 @@
         showToast('Vui lòng nhập mã sân!', 'warning');
         return;
       }
+      if (!rate || isNaN(rate) || Number(rate) <= 0) {
+        showToast('Đơn giá thuê sân mỗi giờ phải lớn hơn 0 (Ví dụ: 90.000 VNĐ)!', 'warning');
+        return;
+      }
 
       const token = localStorage.getItem('jwt_token') || '';
       const headers = { 'Content-Type': 'application/json' };

@@ -1229,11 +1229,28 @@
         return;
       }
 
+      const supPhone = document.getElementById('dirSupplierPhone').value.trim();
+      const supEmail = document.getElementById('dirSupplierEmail').value.trim();
+      if (supPhone) {
+        const cleanP = supPhone.replace(/[\s.\-]/g, '');
+        if (!/^(0|\+84)[0-9]{9}$/.test(cleanP)) {
+          if (window.showToast) showToast('Số điện thoại nhà cung cấp không hợp lệ (Phải gồm 10 số)!', 'warning');
+          else alert('Số điện thoại nhà cung cấp không hợp lệ!');
+          return;
+        }
+      }
+      if (supEmail) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supEmail)) {
+          if (window.showToast) showToast('Địa chỉ email nhà cung cấp không đúng định dạng!', 'warning');
+          else alert('Địa chỉ email không hợp lệ!');
+          return;
+        }
+      }
       const payload = {
         supplierName: name,
         contactPerson: document.getElementById('dirSupplierContact').value.trim(),
-        phone: document.getElementById('dirSupplierPhone').value.trim(),
-        email: document.getElementById('dirSupplierEmail').value.trim(),
+        phone: supPhone,
+        email: supEmail,
         address: document.getElementById('dirSupplierAddress').value.trim(),
         category: document.getElementById('dirSupplierCategory').value,
         status: document.getElementById('dirSupplierStatus').value,
@@ -1789,7 +1806,7 @@
       const branchCode = document.getElementById('dirReceiptBranch').value;
       const supplierName = document.getElementById('dirReceiptSupplier').value;
       const notes = document.getElementById('dirReceiptNotes').value.trim() || 'Giám đốc chuỗi tạo phiếu nhập kho';
-      const staffCode = 'GD01';
+      const staffCode = (window.RBAC && window.RBAC.getCurrentUser && window.RBAC.getCurrentUser()?.username) || (function(){ try { return JSON.parse(localStorage.getItem('utesport_user'))?.username; } catch(e){ return 'GD01'; } })() || 'GD01';
 
       const rows = document.querySelectorAll('#dirReceiptItemsContainer .dir-receipt-row');
       if (!rows || rows.length === 0) {

@@ -2748,6 +2748,9 @@ public class ApiController {
             if (court.getCourtCode() == null || court.getCourtCode().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã sân không được để trống!"));
             }
+            if (court.getHourlyRate() != null && court.getHourlyRate().compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Đơn giá thuê sân mỗi giờ phải lớn hơn 0!"));
+            }
             String courtCode = court.getCourtCode().trim();
             Optional<Court> existingOpt = courtRepository.findByCourtCode(courtCode);
 

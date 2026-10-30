@@ -1106,6 +1106,22 @@
         alert('Vui lòng nhập tên giải đấu!');
         return;
       }
+      if (!start || !end) {
+        alert('Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc giải đấu!');
+        return;
+      }
+      if (new Date(end) < new Date(start)) {
+        alert('Thời gian kết thúc giải đấu không được trước thời gian bắt đầu!');
+        return;
+      }
+      if (parseInt(maxP) < 2) {
+        alert('Số lượng đội tham gia tối thiểu phải từ 2 đội trở lên!');
+        return;
+      }
+      if (parseFloat(fee) < 0 || parseFloat(prize) < 0) {
+        alert('Lệ phí tham gia và giải thưởng không được âm!');
+        return;
+      }
 
       const payload = {
         tournamentCode: code,

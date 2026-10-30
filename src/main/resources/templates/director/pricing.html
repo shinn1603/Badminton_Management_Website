@@ -1208,11 +1208,26 @@
       const endDate = document.getElementById('inpPromoEndDate').value;
 
       if (!name) {
-        alert('Vui lòng nhập tên chương trình khuyến mãi!');
+        if (typeof showToast === 'function') showToast('Vui lòng nhập tên chương trình khuyến mãi!', 'warning');
+        else alert('Vui lòng nhập tên chương trình khuyến mãi!');
         return;
       }
-      if (!val || parseFloat(val) <= 0) {
-        alert('Vui lòng nhập mức giảm giá hợp lệ!');
+      const numVal = parseFloat(val);
+      if (!val || isNaN(numVal) || numVal <= 0) {
+        if (typeof showToast === 'function') showToast('Vui lòng nhập mức giảm giá hợp lệ lớn hơn 0!', 'warning');
+        else alert('Vui lòng nhập mức giảm giá hợp lệ lớn hơn 0!');
+        return;
+      }
+      if (type.includes('%') || type.toLowerCase().includes('phần trăm')) {
+        if (numVal > 100) {
+          if (typeof showToast === 'function') showToast('Mức giảm giá theo phần trăm không được vượt quá 100%!', 'warning');
+          else alert('Mức giảm giá theo phần trăm không được vượt quá 100%!');
+          return;
+        }
+      }
+      if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+        if (typeof showToast === 'function') showToast('Ngày kết thúc khuyến mãi không được trước ngày bắt đầu!', 'warning');
+        else alert('Ngày kết thúc khuyến mãi không được trước ngày bắt đầu!');
         return;
       }
 

@@ -287,9 +287,13 @@ public class UserService {
         if (username == null || username.trim().isEmpty()) {
             throw new IllegalArgumentException("Tên đăng nhập không được để trống!");
         }
-        Optional<User> existing = userRepository.findByUsername(username.trim());
+        username = username.trim();
+        if (username.length() < 3 || username.length() > 30 || !username.matches("^[a-zA-Z0-9_.\\-]+$")) {
+            throw new IllegalArgumentException("Tên đăng nhập tối thiểu 3 ký tự và chỉ chứa chữ cái, chữ số, dấu chấm hoặc gạch nối!");
+        }
+        Optional<User> existing = userRepository.findByUsername(username);
         User u = existing.orElseGet(User::new);
-        u.setUsername(username.trim());
+        u.setUsername(username);
         if (payload.containsKey("password") && payload.get("password") != null && !payload.get("password").isBlank()) {
             u.setPassword(passwordEncoder.encode(payload.get("password").trim()));
         } else if (u.getPassword() == null) {
@@ -298,7 +302,13 @@ public class UserService {
         if (payload.containsKey("fullName")) u.setFullName(payload.get("fullName"));
         if (payload.containsKey("role")) u.setRole(payload.get("role").toUpperCase());
         if (payload.containsKey("branchCode")) u.setBranchCode(payload.get("branchCode"));
-        if (payload.containsKey("phone")) u.setPhone(payload.get("phone"));
+        if (payload.containsKey("phone") && payload.get("phone") != null && !payload.get("phone").isBlank()) {
+            String ph = payload.get("phone").trim().replaceAll("[\\s.\\-]", "");
+            if (!ph.matches("^(0|\\+84)[35789][0-9]{8}$")) {
+                throw new IllegalArgumentException("Số điện thoại không hợp lệ (Phải gồm 10 chữ số theo định dạng di động Việt Nam)!");
+            }
+            u.setPhone(ph);
+        }
         if (payload.containsKey("email")) u.setEmail(payload.get("email"));
         if (payload.containsKey("status") && payload.get("status") != null && !payload.get("status").isBlank()) {
             String newStat = payload.get("status").trim();

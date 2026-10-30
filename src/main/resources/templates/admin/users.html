@@ -458,6 +458,7 @@
         document.getElementById('inpBranch').value = branch || ((role === 'DIRECTOR' || role === 'ADMIN') ? 'ALL' : (dbBranches[0]?.branchCode || 'CN01'));
         document.getElementById('inpPhone').value = phone || '';
         document.getElementById('inpPassword').value = '';
+        document.getElementById('inpPassword').placeholder = '•••••••• (để trống nếu giữ nguyên mật khẩu cũ)';
         if (inpStatus) {
           inpStatus.value = isUserLocked({ status }) ? 'Bị khóa' : 'Hoạt động';
         }
@@ -467,6 +468,7 @@
         document.getElementById('inpUsername').value = '';
         document.getElementById('inpUsername').disabled = false;
         document.getElementById('inpPassword').value = '';
+        document.getElementById('inpPassword').placeholder = 'Mặc định: Badminton@2026 nếu để trống';
         document.getElementById('inpFullName').value = '';
         document.getElementById('inpPhone').value = '';
         document.getElementById('inpRole').value = 'POS';
@@ -539,9 +541,20 @@
         if (window.showToast) showToast('Vui lòng nhập tên đăng nhập!', 'error');
         return;
       }
+      if (username.length < 3 || username.length > 30 || !/^[a-zA-Z0-9_.\-]+$/.test(username)) {
+        if (window.showToast) showToast('Tên đăng nhập tối thiểu 3 ký tự và chỉ chứa chữ cái, số, dấu chấm hoặc gạch dưới!', 'warning');
+        return;
+      }
       if (!fullName) {
         if (window.showToast) showToast('Vui lòng nhập họ và tên!', 'error');
         return;
+      }
+      if (phone) {
+        const cleanPhone = phone.replace(/[\s.\-]/g, '');
+        if (!/^(0|\+84)[35789][0-9]{8}$/.test(cleanPhone)) {
+          if (window.showToast) showToast('Số điện thoại không hợp lệ (Phải gồm 10 chữ số di động Việt Nam)!', 'warning');
+          return;
+        }
       }
 
       const payload = { username, fullName, role, branchCode, phone, status };
