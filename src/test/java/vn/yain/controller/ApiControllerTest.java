@@ -50,6 +50,9 @@ class ApiControllerTest {
     @Autowired
     private vn.yain.repository.BranchRepository branchRepository;
 
+    @Autowired
+    private vn.yain.repository.PromotionRepository promotionRepository;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(apiController).build();
@@ -448,5 +451,79 @@ class ApiControllerTest {
                 .andExpect(jsonPath("$.success", is(true)));
 
         org.junit.jupiter.api.Assertions.assertTrue(branchRepository.findByBranchCode("CN99").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Promotion: Tao ma giam gia cho chi nhanh moi tao va ap dung thanh cong khi dat san")
+    void testPromotionForNewBranch() throws Exception {
+        // 1. Tao chi nhanh moi CN88
+        vn.yain.entity.Branch b = new vn.yain.entity.Branch();
+        b.setBranchCode("CN88");
+        b.setBranchName("Chi nhánh 88 - Bình Thạnh Mới");
+        b.setAddress("88 Dien Bien Phu, Binh Thanh");
+        b.setPhone("0988888888");
+        b.setTotalCourts(4);
+        b.setStatus("Hoạt động");
+        branchRepository.save(b);
+
+        // 2. Tao ma giam gia KM88 cho chi nhanh moi nay qua API Director
+        String promoPayload = """
+            {
+                "promoCode": "KM88",
+                "promoName": "Ưu đãi khai trương CN88",
+                "discountType": "Phần trăm (%)",
+                "discountValue": 20,
+                "scope": "Chi nhánh 88 - Bình Thạnh Mới",
+                "status": "Đang áp dụng",
+                "startDate": "2026-01-01",
+                "endDate": "2026-12-31"
+            }
+            """;
+
+        mockMvc.perform(post("/api/director/pricing/promotions")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(promoPayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
+
+        // 3. Kiem tra /api/pricing/summary?branchCode=CN88 tra ve ma KM88
+        mockMvc.perform(get("/api/pricing/summary?branchCode=CN88"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.activePromotions[?(@.promoCode == 'KM88')]", notNullValue()));
+
+        // 4. Ap dung ma KM88 khi dat san o chi nhanh CN88 -> Thanh cong!
+        String applyPayload = """
+            {
+                "promoCode": "KM88",
+                "branchCode": "CN88",
+                "orderAmount": 200000
+            }
+            """;
+        mockMvc.perform(post("/api/promotions/apply")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(applyPayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.discountAmount", is(40000)))
+                .andExpect(jsonPath("$.finalAmount", is(160000)));
+
+        // 5. Ap dung ma KM88 o chi nhanh khac (CN01) -> Phai bao loi pham vi!
+        String applyOtherBranch = """
+            {
+                "promoCode": "KM88",
+                "branchCode": "CN01",
+                "orderAmount": 200000
+            }
+            """;
+        mockMvc.perform(post("/api/promotions/apply")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(applyOtherBranch))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", is(false)));
+
+        // Clean up
+        promotionRepository.findByPromoCode("KM88").ifPresent(promotionRepository::delete);
+        branchRepository.findByBranchCode("CN88").ifPresent(branchRepository::delete);
     }
 }
