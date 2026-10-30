@@ -571,6 +571,10 @@ public class EmailService {
 
         sendHtmlEmailAsync(toEmail, subject, html);
     }
+    
+    public void sendRegistrationOtpEmail(String toEmail, String fullName, String otpCode) {
+        String safeName = (fullName != null && !fullName.isBlank()) ? fullName : "Quý khách";
+        String subject = "[UTE Sport] Mã xác thực kích hoạt tài khoản hội viên: " + otpCode;
 
     public void sendBookingTicket(Booking booking, String qrCodeUrl) {
         sendBookingConfirmation(booking);

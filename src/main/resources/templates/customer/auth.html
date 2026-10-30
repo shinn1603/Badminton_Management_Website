@@ -891,62 +891,70 @@
     }
 
     async function handleRegisterSubmit(e) {
-      e.preventDefault();
-      const p1 = document.getElementById('regPass').value;
-      const p2 = document.getElementById('regPassConfirm').value;
-      const name = document.getElementById('regFullName').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
+        e.preventDefault();
+        const p1 = document.getElementById('regPass').value;
+        const p2 = document.getElementById('regPassConfirm').value;
+        const name = document.getElementById('regFullName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
 
-      if (p1 !== p2) {
-        showToast('Mật khẩu xác nhận không khớp.', false);
-        return;
-      }
+        if (p1 !== p2) {
+          showToast('Mật khẩu xác nhận không khớp.', false);
+          return;
+        }
 
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: phone,
-            password: p1,
-            fullName: name,
-            phone: phone,
-            email: email,
-            role: 'CUSTOMER',
-            branchCode: 'CN01'
-          })
-        });
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Đang gửi mã OTP về Email...';
+        }
 
-        const data = await res.json();
-        if (res.ok && data.success) {
-          localStorage.setItem('utesport_user', JSON.stringify(data));
-          if (data.token) {
-            localStorage.setItem('jwt_token', data.token);
-            document.cookie = `jwt_token=${data.token}; path=/; max-age=86400`;
-          }
-          const qParams = new URLSearchParams(window.location.search);
-          const redirectParam = qParams.get('redirect');
-          const targetUrl = (redirectParam && redirectParam.startsWith('/customer/')) ? redirectParam : '/customer/profile';
-          showToast('Đăng ký tài khoản thành công.');
-          setTimeout(() => {
-            window.location.href = targetUrl;
-          }, 1000);
-        } else {
-          const msg = data.message || 'Đăng ký không thành công.';
-          if (msg.includes('Số điện thoại') || msg.includes('đăng ký')) {
-            showToast(msg + ' Bấm tab "Đăng Nhập" để vào tài khoản.', 'warning');
-            const loginPhone = document.getElementById('loginPhone');
-            if (loginPhone) loginPhone.value = phone;
+        try {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: phone,
+              password: p1,
+              fullName: name,
+              phone: phone,
+              email: email,
+              role: 'CUSTOMER',
+              branchCode: 'CN01'
+            })
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            sessionStorage.setItem('utesport_pending_email', data.email || email);
+            sessionStorage.setItem('utesport_pending_masked_email', data.maskedEmail || email);
+
+            const qParams = new URLSearchParams(window.location.search);
+            const redirectParam = qParams.get('redirect');
+            const verifyUrl = redirectParam 
+              ? `/customer/verify-otp?redirect=${encodeURIComponent(redirectParam)}` 
+              : '/customer/verify-otp';
+
+            showToast(data.message || 'Đã gửi mã OTP về email! Đang chuyển hướng...', true);
+            setTimeout(() => {
+              window.location.href = verifyUrl;
+            }, 800);
           } else {
-            showToast(msg, 'error');
+            showToast(data.message || 'Đăng ký không thành công.', false);
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Đăng Ký Tài Khoản';
+            }
+          }
+        } catch (err) {
+          console.error('Lỗi khi gọi API đăng ký:', err);
+          showToast('Không thể kết nối đến hệ thống máy chủ hoặc lỗi mạng. Vui lòng thử lại!', false);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Đăng Ký Tài Khoản';
           }
         }
-      } catch (err) {
-        console.error('Lỗi khi gọi API đăng ký:', err);
-        showToast('Không thể kết nối đến hệ thống máy chủ hoặc lỗi mạng. Vui lòng thử lại!', false);
       }
-    }
 
     function quickSocialLogin(provider) {
       showToast('Tính năng đăng nhập qua ' + provider + ' OAuth 2.0 đang kết nối chứng thực. Vui lòng đăng nhập bằng SĐT/mật khẩu hoặc đăng ký tài khoản!', 'warning');

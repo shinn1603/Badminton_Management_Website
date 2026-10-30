@@ -418,45 +418,83 @@ public class ApiController {
     }
 
     @PostMapping("/auth/register")
-
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
-
         try {
-
             String username = payload.get("username");
-
             String password = payload.get("password");
-
             String fullName = payload.get("fullName");
-
             String phone = payload.get("phone");
-
             String email = payload.get("email");
 
             if ((username == null || username.trim().isEmpty()) && phone != null) {
 
-                username = phone.trim();
-
+            if (userRepository.findByUsername(cleanUsername).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tên đăng nhập đã tồn tại!"));
             }
+            if (!cleanPhone.isEmpty() && userRepository.findByPhone(cleanPhone).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Số điện thoại này đã được đăng ký!"));
+            }
+            if (userRepository.findByEmail(cleanEmail).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Email này đã được sử dụng cho một tài khoản khác!"));
+            }
+
+            String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+            Map<String, Object> pendingUser = new HashMap<>();
+            pendingUser.put("username", cleanUsername);
+            pendingUser.put("password", password);
+            pendingUser.put("fullName", fullName != null ? fullName.trim() : cleanUsername);
+            pendingUser.put("phone", cleanPhone);
+            pendingUser.put("email", cleanEmail);
+            pendingUser.put("otp", otp);
+            pendingUser.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000);
+
+            registerOtpMap.put(cleanEmail, pendingUser);
+
+            if (emailService != null) {
+                emailService.sendRegistrationOtpEmail(cleanEmail, (String) pendingUser.get("fullName"), otp);
+            }
+            log.info("[OTP REGISTER] Mã xác nhận OTP tạo tài khoản cho {} ({}): {}", cleanUsername, cleanEmail, otp);
 
             Map<String, Object> registerResult = userService.registerCustomer(username, password, fullName, phone, email);
 
-            registerResult.put("success", true);
+            String cleanEmail = email.trim().toLowerCase();
+            Map<String, Object> pendingUser = registerOtpMap.get(cleanEmail);
 
-            registerResult.put("message", "Đăng ký tài khoản thành công!");
+            if (pendingUser == null) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Yêu cầu đăng ký không tồn tại hoặc đã hết hạn. Vui lòng đăng ký lại!"));
+            }
 
-            return ResponseEntity.ok(registerResult);
+            long expiry = (long) pendingUser.get("expiry");
+            if (System.currentTimeMillis() > expiry) {
+                registerOtpMap.remove(cleanEmail);
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã OTP đã hết hạn (quá 10 phút). Vui lòng thực hiện đăng ký lại!"));
+            }
 
-        } catch (IllegalArgumentException e) {
+            String expectedOtp = (String) pendingUser.get("otp");
+            if (!expectedOtp.equals(otp.trim())) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mã xác nhận OTP không chính xác. Vui lòng kiểm tra lại!"));
+            }
 
+            registerOtpMap.remove(cleanEmail);
+
+            String username = (String) pendingUser.get("username");
+            String password = (String) pendingUser.get("password");
+            String fullName = (String) pendingUser.get("fullName");
+            String phone = (String) pendingUser.get("phone");
+
+            userService.registerCustomer(username, password, fullName, phone, cleanEmail);
+
+            Map<String, Object> authResult = userService.authenticate(username, password);
+            authResult.put("success", true);
+            authResult.put("message", "Xác thực OTP và tạo tài khoản thành công!");
+            authResult.put("redirectUrl", "/customer/home");
+
+            return ResponseEntity.ok(authResult);
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
-
         } catch (Exception e) {
-
             return ResponseEntity.status(500).body(Map.of("success", false, "message", sanitizeErrorMessage(e)));
-
         }
-
     }
 
     @PostMapping("/auth/forgot-password")
@@ -546,7 +584,7 @@ public class ApiController {
             otpInfo.put("expiry", System.currentTimeMillis() + 10 * 60 * 1000);
 
             forgotPasswordOtpMap.put(cleanId.toLowerCase(), otpInfo);
-
+            
             if (user != null) {
 
                 if (user.getUsername() != null) forgotPasswordOtpMap.put(user.getUsername().trim().toLowerCase(), otpInfo);
